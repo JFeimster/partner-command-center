@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Funding Readiness Widget | Moonshine Partner Command Center</title>
+  <meta name="description" content="Static embeddable funding readiness widget demo for Moonshine partners.">
+  <link rel="stylesheet" href="./funding-widget.css">
+</head>
+<body>
+  <main class="widget-shell" data-widget-root>
+    <section class="widget-card" aria-labelledby="widget-title">
+      <header class="widget-header">
+        <div class="widget-brand">
+          <span class="widget-mark" aria-hidden="true">M</span>
+          <span data-widget-brand>Moonshine Capital</span>
+        </div>
+        <span class="widget-badge" data-widget-partner-id>MS-WIDGET-DEMO</span>
+      </header>
+
+      <div class="widget-intro">
+        <h1 id="widget-title" data-widget-title>Check funding readiness</h1>
+        <p data-widget-subtitle>
+          Share basic business context and organize the next step. This is not a funding application or approval decision.
+        </p>
+      </div>
+
+      <form class="widget-form" data-widget-form novalidate>
+        <div class="widget-grid">
+          <label>
+            <span>Business name *</span>
+            <input name="businessName" type="text" autocomplete="organization" required placeholder="Example: Harbor Street HVAC">
+          </label>
+
+          <label>
+            <span>Contact name *</span>
+            <input name="contactName" type="text" autocomplete="name" required placeholder="Owner or decision maker">
+          </label>
+
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" autocomplete="email" placeholder="owner@example.com">
+          </label>
+
+          <label>
+            <span>Phone</span>
+            <input name="phone" type="tel" autocomplete="tel" placeholder="(555) 010-0000">
+          </label>
+
+          <label>
+            <span>Monthly revenue estimate</span>
+            <input name="monthlyRevenue" type="text" inputmode="decimal" placeholder="$50,000">
+          </label>
+
+          <label>
+            <span>Funding need estimate</span>
+            <input name="fundingNeed" type="text" inputmode="decimal" placeholder="$75,000">
+          </label>
+        </div>
+
+        <label>
+          <span>Timeline</span>
+          <select name="timeline">
+            <option value="">Choose timing</option>
+            <option>Immediate</option>
+            <option>2 weeks</option>
+            <option>30 days</option>
+            <option>60–90 days</option>
+            <option>Planning ahead</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Use of funds</span>
+          <textarea name="useOfFunds" placeholder="Inventory, payroll bridge, equipment, marketing, expansion..."></textarea>
+        </label>
+
+        <label class="widget-check">
+          <input name="consent" type="checkbox" required>
+          <span>I have permission to share this information and understand this static widget does not guarantee approval, funding, rates, terms, timelines, or commissions.</span>
+        </label>
+
+        <div class="widget-disclaimer">
+          <strong>Demo notice:</strong>
+          <span data-widget-disclaimer>Funding options may vary. This static widget stores demo inquiries locally in the browser.</span>
+        </div>
+
+        <button class="widget-button" type="submit" data-widget-submit>Save Demo Inquiry</button>
+
+        <div class="widget-status" data-widget-status role="status" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+
+  <script src="./widget-config.js"></script>
+  <script src="./funding-widget.js"></script>
+</body>
+</html>

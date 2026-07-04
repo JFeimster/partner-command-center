@@ -1,0 +1,209 @@
+/*
+  Batch 10 — Commission Simulator Styles
+*/
+
+.tool-body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(52, 211, 153, 0.16), transparent 32rem),
+    radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.12), transparent 30rem),
+    var(--color-ink-950);
+}
+
+.tool-shell {
+  width: min(var(--container-lg), calc(100% - (var(--page-gutter) * 2)));
+  margin-inline: auto;
+}
+
+.tool-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(2, 6, 23, 0.74);
+  backdrop-filter: blur(18px);
+}
+
+.tool-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 4.75rem;
+}
+
+.tool-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-primary);
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.tool-logo:hover {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.tool-logo-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 0.9rem;
+  color: var(--text-inverse);
+  background: var(--gradient-primary);
+  box-shadow: var(--shadow-emerald);
+}
+
+.tool-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tool-nav a {
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.tool-nav a:hover {
+  color: var(--text-primary);
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.tool-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 0.95fr);
+  gap: clamp(var(--space-8), 6vw, var(--space-16));
+  align-items: center;
+  padding-block: clamp(4rem, 8vw, 7rem);
+}
+
+.tool-hero h1 {
+  margin: 0 0 var(--space-5);
+}
+
+.tool-hero-card,
+.tool-card {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-3xl);
+  background: var(--gradient-card);
+  box-shadow: var(--shadow-lg);
+}
+
+.tool-hero-card {
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+}
+
+.tool-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 0.95fr);
+  gap: var(--space-5);
+  align-items: start;
+  padding-bottom: var(--section-pad-y-sm);
+}
+
+.tool-card {
+  padding: clamp(var(--space-5), 3vw, var(--space-8));
+}
+
+.tool-form {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.tool-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.tool-results {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.tool-metric {
+  padding: var(--space-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.tool-metric span {
+  display: block;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 900;
+  letter-spacing: var(--letter-label);
+  text-transform: uppercase;
+}
+
+.tool-metric strong {
+  display: block;
+  margin-top: var(--space-2);
+  color: var(--text-primary);
+  font-size: clamp(1.5rem, 3vw, 2.3rem);
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.tool-section {
+  padding-bottom: var(--section-pad-y);
+}
+
+.public-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.public-list li {
+  display: flex;
+  gap: var(--space-3);
+  color: var(--text-secondary);
+}
+
+.public-list li::before {
+  content: "✓";
+  color: var(--color-emerald-300);
+  font-weight: 950;
+}
+
+@media (max-width: 900px) {
+  .tool-header-inner,
+  .tool-hero,
+  .tool-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tool-header-inner {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-block: var(--space-4);
+  }
+}
+
+@media (max-width: 640px) {
+  .tool-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tool-nav {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .tool-nav a {
+    text-align: center;
+  }
+}

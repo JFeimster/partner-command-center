@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Funding Readiness Checklist | Moonshine Partner Command Center</title>
+  <meta name="description" content="Static funding readiness checklist for partners and business owners. Educational only.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+  <link rel="stylesheet" href="./funding-readiness-checklist.css">
+</head>
+<body class="readiness-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="readiness-header">
+    <div class="readiness-shell readiness-header-inner">
+      <a class="readiness-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="readiness-logo-mark" aria-hidden="true">M</span>
+        <span>Funding Readiness</span>
+      </a>
+
+      <nav class="readiness-nav" aria-label="Tool navigation">
+        <a href="../dashboard.html">Dashboard</a>
+        <a href="../resources.html">Resources</a>
+        <a href="../compliance.html">Compliance</a>
+        <a href="../partner-access.html">Partner Access</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="readiness-shell readiness-hero">
+      <div>
+        <span class="mpc-eyebrow">Educational checklist</span>
+        <h1>Funding Readiness Checklist</h1>
+        <p class="lead">
+          Help business owners organize the basic signals and documents that often matter before a funding conversation.
+        </p>
+        <div class="mpc-disclaimer">
+          This checklist is educational only. It is not an underwriting decision, credit decision, lender approval, legal advice, tax advice, or guarantee of funding.
+        </div>
+      </div>
+
+      <aside class="readiness-score-card">
+        <span class="mpc-badge mpc-badge-success">Local progress</span>
+        <strong data-readiness-score>0%</strong>
+        <span data-readiness-label>Start checklist</span>
+        <div class="dashboard-progress" aria-label="Readiness checklist progress">
+          <span data-readiness-progress style="--progress: 0%"></span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="readiness-shell readiness-layout">
+      <div class="readiness-toolbar">
+        <button class="mpc-button mpc-button-primary" type="button" data-export-readiness>Export Checklist</button>
+        <button class="mpc-button mpc-button-outline" type="button" data-fill-readiness>Mark Common Ready Items</button>
+        <button class="mpc-button mpc-button-danger" type="button" data-reset-readiness>Reset</button>
+      </div>
+
+      <div id="readiness-list" class="readiness-list" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+  <script src="./funding-readiness-checklist.js"></script>
+</body>
+</html>

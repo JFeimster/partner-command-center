@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Commission Simulator | Moonshine Partner Command Center</title>
+  <meta name="description" content="Static educational commission simulator for partner planning. No payout or income guarantee.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+  <link rel="stylesheet" href="./commission-simulator.css">
+</head>
+<body class="tool-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="tool-header">
+    <div class="tool-shell tool-header-inner">
+      <a class="tool-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="tool-logo-mark" aria-hidden="true">M</span>
+        <span>Moonshine Tools</span>
+      </a>
+
+      <nav class="tool-nav" aria-label="Tool navigation">
+        <a href="../dashboard.html">Dashboard</a>
+        <a href="../marketplace.html">Marketplace</a>
+        <a href="../resources.html">Resources</a>
+        <a href="../partner-access.html">Partner Access</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="tool-main">
+    <section class="tool-shell tool-hero">
+      <div>
+        <span class="mpc-eyebrow">Partner planning tool</span>
+        <h1>Commission Simulator</h1>
+        <p class="lead">
+          Estimate educational partner scenarios from demo assumptions: lead volume, conversion rate, funded amount, and example compensation model.
+        </p>
+        <div class="mpc-disclaimer">
+          This simulator is for planning only. It does not guarantee funding, approval, deal volume, commissions, payout timing, partner income, or any specific business outcome.
+        </div>
+      </div>
+
+      <aside class="tool-hero-card">
+        <span class="mpc-badge mpc-badge-warning">Example-only math</span>
+        <h2>Use this like a sandbox.</h2>
+        <p>
+          Real compensation requires signed partner terms, verified funded outcomes, compliance review, and backend reporting.
+        </p>
+      </aside>
+    </section>
+
+    <section class="tool-shell tool-layout" aria-labelledby="simulator-title">
+      <form class="tool-card tool-form" id="commission-form">
+        <span class="mpc-eyebrow">Inputs</span>
+        <h2 id="simulator-title">Model a partner scenario</h2>
+
+        <div class="tool-form-grid">
+          <div class="mpc-field">
+            <label for="leadVolume">Monthly referred leads</label>
+            <input id="leadVolume" name="leadVolume" type="number" min="0" step="1" value="20">
+          </div>
+
+          <div class="mpc-field">
+            <label for="qualifiedRate">Qualified lead rate (%)</label>
+            <input id="qualifiedRate" name="qualifiedRate" type="number" min="0" max="100" step="1" value="45">
+          </div>
+
+          <div class="mpc-field">
+            <label for="fundedRate">Funded rate from qualified (%)</label>
+            <input id="fundedRate" name="fundedRate" type="number" min="0" max="100" step="1" value="18">
+          </div>
+
+          <div class="mpc-field">
+            <label for="averageFunding">Average funded amount</label>
+            <input id="averageFunding" name="averageFunding" type="number" min="0" step="500" value="65000">
+          </div>
+
+          <div class="mpc-field">
+            <label for="model">Example compensation model</label>
+            <select id="model" name="model">
+              <option value="flat">Flat referral amount</option>
+              <option value="percent">Percentage of funded amount</option>
+              <option value="hybrid">Hybrid flat + percentage</option>
+            </select>
+          </div>
+
+          <div class="mpc-field">
+            <label for="flatAmount">Flat amount per funded deal</label>
+            <input id="flatAmount" name="flatAmount" type="number" min="0" step="50" value="750">
+          </div>
+
+          <div class="mpc-field">
+            <label for="percentRate">Percentage rate (%)</label>
+            <input id="percentRate" name="percentRate" type="number" min="0" max="10" step="0.1" value="1.5">
+          </div>
+
+          <div class="mpc-field">
+            <label for="months">Projection months</label>
+            <input id="months" name="months" type="number" min="1" max="24" step="1" value="3">
+          </div>
+        </div>
+
+        <div class="mpc-actions">
+          <button class="mpc-button mpc-button-primary" type="submit">Run Simulation</button>
+          <button class="mpc-button mpc-button-outline" type="button" data-reset-sim>Reset Defaults</button>
+        </div>
+      </form>
+
+      <aside class="tool-card" aria-live="polite">
+        <span class="mpc-eyebrow">Results</span>
+        <h2>Estimated demo output</h2>
+        <div class="tool-results" id="commission-results">
+          <p>Run the simulator to calculate a scenario.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="tool-shell tool-section">
+      <div class="tool-card">
+        <span class="mpc-eyebrow">Reality check</span>
+        <h2>Commission planning rules</h2>
+        <ul class="public-list">
+          <li>Use ranges, not promises.</li>
+          <li>Separate referred leads from qualified leads.</li>
+          <li>Separate submitted deals from funded deals.</li>
+          <li>Do not quote commissions unless the partner terms actually support them.</li>
+          <li>Never describe projected earnings as guaranteed income.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/form-utils.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+  <script src="./commission-simulator.js"></script>
+</body>
+</html>

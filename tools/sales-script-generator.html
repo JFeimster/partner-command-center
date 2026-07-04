@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sales Script Generator | Moonshine Partner Command Center</title>
+  <meta name="description" content="Static partner sales script generator for funding referral conversations.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+  <link rel="stylesheet" href="./sales-script-generator.css">
+</head>
+<body class="script-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="script-header">
+    <div class="script-shell script-header-inner">
+      <a class="script-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="script-logo-mark" aria-hidden="true">M</span>
+        <span>Script Generator</span>
+      </a>
+
+      <nav class="script-nav" aria-label="Tool navigation">
+        <a href="../dashboard.html">Dashboard</a>
+        <a href="../resources.html">Resources</a>
+        <a href="../compliance.html">Compliance</a>
+        <a href="../partner-access.html">Partner Access</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="script-shell script-hero">
+      <div>
+        <span class="mpc-eyebrow">Partner enablement</span>
+        <h1>Sales Script Generator</h1>
+        <p class="lead">
+          Generate safer partner scripts for email, SMS, social DMs, call openers, and warm introductions.
+        </p>
+        <div class="mpc-disclaimer">
+          Generated scripts are templates only. Review before use. Do not promise approval, funding, rates, terms, timelines, income, or commissions.
+        </div>
+      </div>
+
+      <aside class="script-hero-card">
+        <span class="mpc-badge mpc-badge-success">Template-based</span>
+        <h2>No AI dependency.</h2>
+        <p>
+          This is a static template generator. It uses your inputs and safe language rules to create partner-ready drafts.
+        </p>
+      </aside>
+    </section>
+
+    <section class="script-shell script-layout">
+      <form class="script-card script-form" id="script-form">
+        <span class="mpc-eyebrow">Inputs</span>
+        <h2>Build your script</h2>
+
+        <div class="script-form-grid">
+          <div class="mpc-field">
+            <label for="partnerType">Partner type</label>
+            <select id="partnerType" name="partnerType">
+              <option>Funding broker</option>
+              <option>Referral partner</option>
+              <option>Affiliate partner</option>
+              <option>Center of influence</option>
+            </select>
+          </div>
+
+          <div class="mpc-field">
+            <label for="channel">Channel</label>
+            <select id="channel" name="channel">
+              <option>Email</option>
+              <option>SMS</option>
+              <option>LinkedIn DM</option>
+              <option>Phone opener</option>
+              <option>Warm intro</option>
+              <option>Social post</option>
+            </select>
+          </div>
+
+          <div class="mpc-field">
+            <label for="audience">Audience</label>
+            <input id="audience" name="audience" type="text" value="small business owners">
+          </div>
+
+          <div class="mpc-field">
+            <label for="useCase">Funding use case</label>
+            <select id="useCase" name="useCase">
+              <option>working capital</option>
+              <option>equipment purchase</option>
+              <option>inventory</option>
+              <option>payroll bridge</option>
+              <option>receivables timing gap</option>
+              <option>growth planning</option>
+            </select>
+          </div>
+
+          <div class="mpc-field">
+            <label for="tone">Tone</label>
+            <select id="tone" name="tone">
+              <option>direct</option>
+              <option>consultative</option>
+              <option>warm</option>
+              <option>urgent but responsible</option>
+              <option>educational</option>
+            </select>
+          </div>
+
+          <div class="mpc-field">
+            <label for="cta">Call to action</label>
+            <select id="cta" name="cta">
+              <option>review funding readiness</option>
+              <option>organize documents</option>
+              <option>schedule a funding conversation</option>
+              <option>use the readiness checklist</option>
+              <option>submit information for review</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mpc-field">
+          <label for="context">Optional context</label>
+          <textarea id="context" name="context" placeholder="Example: seasonal cash-flow gap, upcoming equipment purchase, client asked about funding options."></textarea>
+        </div>
+
+        <div class="mpc-actions">
+          <button class="mpc-button mpc-button-primary" type="submit">Generate Script</button>
+          <button class="mpc-button mpc-button-outline" type="button" data-copy-script>Copy Script</button>
+          <button class="mpc-button mpc-button-ghost" type="reset">Reset</button>
+        </div>
+      </form>
+
+      <aside class="script-card script-output-card">
+        <span class="mpc-eyebrow">Output</span>
+        <h2>Generated script</h2>
+        <pre id="script-output" tabindex="0">Generate a script to see the output.</pre>
+      </aside>
+    </section>
+
+    <section class="script-shell script-section">
+      <div class="script-card">
+        <span class="mpc-eyebrow">Compliance notes</span>
+        <h2>Script rules baked into the generator</h2>
+        <ul class="public-list">
+          <li>Position funding as a review or readiness conversation.</li>
+          <li>Ask for permission before sharing business details.</li>
+          <li>Do not promise approval, rates, terms, timelines, or funding.</li>
+          <li>Use clear affiliate/referral disclosure when appropriate.</li>
+          <li>Keep sensitive borrower data out of static tools.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/form-utils.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+  <script src="./sales-script-generator.js"></script>
+</body>
+</html>
