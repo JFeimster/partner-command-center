@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Agents | Moonshine Partner Command Center</title>
+  <meta name="description" content="AI agent and GPT action boundaries for Moonshine Partner Command Center.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/public.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+</head>
+<body class="public-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="public-header">
+    <div class="public-shell public-header-inner">
+      <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="public-logo-mark" aria-hidden="true">M</span>
+        <span>Developer Docs</span>
+      </a>
+
+      <nav class="public-nav" aria-label="Primary navigation">
+        <a href="../index.html">Home</a>
+        <a href="../dashboard.html">Dashboard</a>
+        <a href="../widgets/README.md">Widgets</a>
+        <a href="../admin/index.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="public-page">
+    <section class="public-hero" aria-labelledby="doc-title">
+      <div class="public-shell public-hero-inner">
+        <div class="public-hero-copy">
+          <span class="mpc-eyebrow">AI agent layer</span>
+          <h1 id="doc-title">Use AI for workflow help, not fake underwriting.</h1>
+          <p class="lead">AI agents can assist partners and operators, but must stay inside safe boundaries and avoid funding, approval, income, and commission guarantees.</p>
+          <div class="mpc-actions">
+            <a class="mpc-button mpc-button-primary" href="../dashboard.html">Open Dashboard</a>
+            <a class="mpc-button mpc-button-outline" href="./quickstart.html">Developer Quickstart</a>
+          </div>
+        </div>
+
+        <aside class="public-hero-card">
+          <span class="mpc-badge mpc-badge-warning">Static-first docs</span>
+          <h2>Current implementation boundary</h2>
+          <p>
+            These docs describe the static prototype and the intended backend seams. Example routes, schemas, widgets, and webhooks are not live production services until explicitly implemented.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-section" aria-label="Developer documentation">
+      <div class="public-shell public-legal-layout">
+        <aside class="public-legal-nav" aria-label="Developer documentation navigation">
+          <a href="./index.html">Overview</a>
+          <a href="./quickstart.html">Quickstart</a>
+          <a href="./widget-docs.html">Widget Docs</a>
+          <a href="./crm-integrations.html">CRM</a>
+          <a href="./ai-agents.html" class="is-active" aria-current="page">AI Agents</a>
+          <a href="./webhooks.html">Webhooks</a>
+          <a href="./api-docs.html">API Docs</a>
+          <a href="./security.html">Security</a>
+        </aside>
+
+        <div class="public-legal-content">
+          <section id="agent-boundaries">
+            <span class="mpc-badge mpc-badge-warning">AI-safe boundaries</span>
+            <h2>AI agent use cases</h2>
+            <p>
+              AI agents can help partners draft scripts, summarize readiness, prepare CRM notes, classify inquiries, and explain resources. They should not make funding decisions, approval claims, rate quotes, underwriting judgments, or commission promises.
+            </p>
+          </section>
+
+          <section id="recommended-actions">
+            <h2>Recommended GPT/action workflows</h2>
+            <div class="mpc-grid mpc-grid-2">
+              <article class="mpc-card mpc-card-pad">
+                <h3>Partner Profile Helper</h3>
+                <p>Helps a partner choose partner type, channel, audience, and onboarding path.</p>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>Lead Intake Assistant</h3>
+                <p>Transforms permitted business context into clean intake notes and missing-info questions.</p>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>Compliance Copy Reviewer</h3>
+                <p>Flags restricted phrases and rewrites copy into safer funding-readiness language.</p>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>CRM Note Formatter</h3>
+                <p>Formats partner notes into CRM-ready summaries without inventing facts or statuses.</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="agent-rules">
+            <h2>Agent rules</h2>
+            <ul class="public-list">
+              <li>Do not identify a business as approved, fundable, eligible, or declined unless the real system provides that status.</li>
+              <li>Do not ask for bank logins, SSNs, full tax IDs, account numbers, or private documents inside a chat action.</li>
+              <li>Do not invent lender names, offers, rates, terms, timelines, or commissions.</li>
+              <li>Always preserve partner ID, source, timestamp, and consent context when creating backend records.</li>
+              <li>Return structured errors when a live endpoint rejects a request.</li>
+              <li>Use educational language: readiness, options, review path, documents, next steps.</li>
+            </ul>
+          </section>
+
+          <section id="example-tool-contract">
+            <h2>Future action contract</h2>
+            <pre><code>{
+  "tool": "submit_partner_lead",
+  "requires": [
+    "partner_id",
+    "business_name",
+    "contact_name",
+    "consent_confirmed"
+  ],
+  "must_not_collect": [
+    "ssn",
+    "bank_login",
+    "full_tax_id",
+    "account_number",
+    "private_documents"
+  ],
+  "response_shape": {
+    "lead_id": "string",
+    "status": "new",
+    "message": "Received for review. No approval or funding is guaranteed."
+  }
+}</code></pre>
+          </section>
+
+          <section id="handoff">
+            <h2>Human review checkpoints</h2>
+            <ul class="public-list">
+              <li>Partner copy before publishing.</li>
+              <li>New marketplace offers before promotion.</li>
+              <li>Lead submissions with missing consent or unusual risk indicators.</li>
+              <li>Commission estimates before sharing with partners.</li>
+              <li>Any AI-generated claims that sound like approval, eligibility, or guaranteed income.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-shell public-footer-inner">
+      <div>
+        <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+          <span class="public-logo-mark" aria-hidden="true">M</span>
+          <span>Moonshine Partner Command Center</span>
+        </a>
+        <p class="mt-4">
+          Developer documentation for the static-first Funding Partners OS.
+        </p>
+        <p>
+          No approval, funding, commission, or integration behavior is guaranteed by these static docs.
+        </p>
+      </div>
+
+      <div class="public-footer-links" aria-label="Footer links">
+        <a href="./quickstart.html">Quickstart</a>
+        <a href="./api-docs.html">API Docs</a>
+        <a href="./security.html">Security</a>
+        <a href="../compliance.html">Compliance</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/route-utils.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+</body>
+</html>

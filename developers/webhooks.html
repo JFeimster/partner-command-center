@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Webhooks | Moonshine Partner Command Center</title>
+  <meta name="description" content="Webhook event contracts and security requirements for Moonshine Partner Command Center.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/public.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+</head>
+<body class="public-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="public-header">
+    <div class="public-shell public-header-inner">
+      <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="public-logo-mark" aria-hidden="true">M</span>
+        <span>Developer Docs</span>
+      </a>
+
+      <nav class="public-nav" aria-label="Primary navigation">
+        <a href="../index.html">Home</a>
+        <a href="../dashboard.html">Dashboard</a>
+        <a href="../widgets/README.md">Widgets</a>
+        <a href="../admin/index.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="public-page">
+    <section class="public-hero" aria-labelledby="doc-title">
+      <div class="public-shell public-hero-inner">
+        <div class="public-hero-copy">
+          <span class="mpc-eyebrow">Webhook blueprint</span>
+          <h1 id="doc-title">Design inbound and outbound events before wiring automation.</h1>
+          <p class="lead">This page defines future event types, payload envelopes, response shapes, and webhook security requirements.</p>
+          <div class="mpc-actions">
+            <a class="mpc-button mpc-button-primary" href="../dashboard.html">Open Dashboard</a>
+            <a class="mpc-button mpc-button-outline" href="./quickstart.html">Developer Quickstart</a>
+          </div>
+        </div>
+
+        <aside class="public-hero-card">
+          <span class="mpc-badge mpc-badge-warning">Static-first docs</span>
+          <h2>Current implementation boundary</h2>
+          <p>
+            These docs describe the static prototype and the intended backend seams. Example routes, schemas, widgets, and webhooks are not live production services until explicitly implemented.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-section" aria-label="Developer documentation">
+      <div class="public-shell public-legal-layout">
+        <aside class="public-legal-nav" aria-label="Developer documentation navigation">
+          <a href="./index.html">Overview</a>
+          <a href="./quickstart.html">Quickstart</a>
+          <a href="./widget-docs.html">Widget Docs</a>
+          <a href="./crm-integrations.html">CRM</a>
+          <a href="./ai-agents.html">AI Agents</a>
+          <a href="./webhooks.html" class="is-active" aria-current="page">Webhooks</a>
+          <a href="./api-docs.html">API Docs</a>
+          <a href="./security.html">Security</a>
+        </aside>
+
+        <div class="public-legal-content">
+          <section id="overview">
+            <span class="mpc-badge mpc-badge-warning">Future backend</span>
+            <h2>Webhook purpose</h2>
+            <p>
+              Webhooks will let external systems notify the Partner Command Center when partner signups, widget inquiries, CRM updates, lead status changes, or document events occur.
+            </p>
+            <p>
+              In the current repo, webhook files are examples only. No endpoint is live unless a backend is implemented.
+            </p>
+          </section>
+
+          <section id="events">
+            <h2>Recommended event types</h2>
+            <div class="mpc-table-wrap">
+              <table>
+                <thead><tr><th>Event</th><th>Source</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td><code>partner.signup.created</code></td><td>Tally or partner form</td><td>Create or queue partner profile review.</td></tr>
+                  <tr><td><code>widget.inquiry.created</code></td><td>Embeddable widget</td><td>Create a lead inquiry with partner attribution.</td></tr>
+                  <tr><td><code>lead.status.updated</code></td><td>CRM or funding desk</td><td>Sync lead status into dashboard and event log.</td></tr>
+                  <tr><td><code>partner.link.clicked</code></td><td>Tracking service</td><td>Log partner traffic and campaign attribution.</td></tr>
+                  <tr><td><code>compliance.copy.flagged</code></td><td>Review tool</td><td>Queue partner copy for operator review.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="payload">
+            <h2>Common payload envelope</h2>
+            <pre><code>{
+  "event_id": "evt_123",
+  "event_type": "widget.inquiry.created",
+  "created_at": "2026-07-04T12:00:00Z",
+  "source": "partner-widget",
+  "partner_id": "MS-FB-1024",
+  "data": {},
+  "metadata": {
+    "ip_hash": "optional",
+    "user_agent": "optional",
+    "page_url": "https://example.com/funding"
+  }
+}</code></pre>
+          </section>
+
+          <section id="security">
+            <h2>Webhook security requirements</h2>
+            <ul class="public-list">
+              <li>Use HTTPS only.</li>
+              <li>Verify signatures for every inbound webhook.</li>
+              <li>Reject unsigned or expired payloads.</li>
+              <li>Validate event type and schema before processing.</li>
+              <li>Make handlers idempotent using <code>event_id</code>.</li>
+              <li>Log accepted, rejected, and duplicate events.</li>
+              <li>Rate-limit event sources and quarantine suspicious payloads.</li>
+            </ul>
+          </section>
+
+          <section id="response">
+            <h2>Expected response</h2>
+            <pre><code>{
+  "ok": true,
+  "received": true,
+  "event_id": "evt_123",
+  "message": "Webhook received for processing."
+}</code></pre>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-shell public-footer-inner">
+      <div>
+        <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+          <span class="public-logo-mark" aria-hidden="true">M</span>
+          <span>Moonshine Partner Command Center</span>
+        </a>
+        <p class="mt-4">
+          Developer documentation for the static-first Funding Partners OS.
+        </p>
+        <p>
+          No approval, funding, commission, or integration behavior is guaranteed by these static docs.
+        </p>
+      </div>
+
+      <div class="public-footer-links" aria-label="Footer links">
+        <a href="./quickstart.html">Quickstart</a>
+        <a href="./api-docs.html">API Docs</a>
+        <a href="./security.html">Security</a>
+        <a href="../compliance.html">Compliance</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/route-utils.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+</body>
+</html>

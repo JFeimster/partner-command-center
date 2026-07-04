@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Security | Moonshine Partner Command Center</title>
+  <meta name="description" content="Security boundaries and production controls for Moonshine Partner Command Center.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/public.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+</head>
+<body class="public-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="public-header">
+    <div class="public-shell public-header-inner">
+      <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="public-logo-mark" aria-hidden="true">M</span>
+        <span>Developer Docs</span>
+      </a>
+
+      <nav class="public-nav" aria-label="Primary navigation">
+        <a href="../index.html">Home</a>
+        <a href="../dashboard.html">Dashboard</a>
+        <a href="../widgets/README.md">Widgets</a>
+        <a href="../admin/index.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="public-page">
+    <section class="public-hero" aria-labelledby="doc-title">
+      <div class="public-shell public-hero-inner">
+        <div class="public-hero-copy">
+          <span class="mpc-eyebrow">Security requirements</span>
+          <h1 id="doc-title">Static prototypes are not secure production systems.</h1>
+          <p class="lead">Use this page to separate what is safe for static demo from what requires production-grade authentication, validation, storage, logging, and privacy controls.</p>
+          <div class="mpc-actions">
+            <a class="mpc-button mpc-button-primary" href="../dashboard.html">Open Dashboard</a>
+            <a class="mpc-button mpc-button-outline" href="./quickstart.html">Developer Quickstart</a>
+          </div>
+        </div>
+
+        <aside class="public-hero-card">
+          <span class="mpc-badge mpc-badge-warning">Static-first docs</span>
+          <h2>Current implementation boundary</h2>
+          <p>
+            These docs describe the static prototype and the intended backend seams. Example routes, schemas, widgets, and webhooks are not live production services until explicitly implemented.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-section" aria-label="Developer documentation">
+      <div class="public-shell public-legal-layout">
+        <aside class="public-legal-nav" aria-label="Developer documentation navigation">
+          <a href="./index.html">Overview</a>
+          <a href="./quickstart.html">Quickstart</a>
+          <a href="./widget-docs.html">Widget Docs</a>
+          <a href="./crm-integrations.html">CRM</a>
+          <a href="./ai-agents.html">AI Agents</a>
+          <a href="./webhooks.html">Webhooks</a>
+          <a href="./api-docs.html">API Docs</a>
+          <a href="./security.html" class="is-active" aria-current="page">Security</a>
+        </aside>
+
+        <div class="public-legal-content">
+          <section id="scope">
+            <span class="mpc-badge mpc-badge-danger">Security boundary</span>
+            <h2>Current security posture</h2>
+            <p>
+              The current repo is static and does not provide production authentication, authorization, secure server storage, backend validation, audit logs, encrypted databases, or secret management.
+            </p>
+            <p>
+              Static pages are appropriate for prototypes, docs, mock dashboards, and local demos. They are not appropriate for secure lead processing or admin operations without a backend.
+            </p>
+          </section>
+
+          <section id="do-not-store">
+            <h2>Do not store sensitive data in the static demo</h2>
+            <ul class="public-list">
+              <li>No Social Security numbers.</li>
+              <li>No full tax IDs or EIN documents.</li>
+              <li>No bank account numbers.</li>
+              <li>No bank login credentials.</li>
+              <li>No private financial documents.</li>
+              <li>No full loan applications.</li>
+              <li>No underwriting files or provider decisions.</li>
+            </ul>
+          </section>
+
+          <section id="production-controls">
+            <h2>Production controls required before live data</h2>
+            <div class="mpc-grid mpc-grid-2">
+              <article class="mpc-card mpc-card-pad">
+                <h3>Identity and access</h3>
+                <p>Authentication, role-based access control, partner scoping, admin scoping, and session management.</p>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>Server-side validation</h3>
+                <p>Validate every field, event, partner ID, consent flag, source, and status transition server-side.</p>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>Secrets and signatures</h3>
+                <p>Use environment variables, webhook signatures, key rotation, and no secrets in static files.</p>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>Audit logs</h3>
+                <p>Log creates, updates, status changes, exports, admin reviews, and webhook processing outcomes.</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="threat-model">
+            <h2>Minimum threat model</h2>
+            <ul class="public-list">
+              <li>Fake partner IDs submitting leads through widgets.</li>
+              <li>Spam submissions and bot traffic.</li>
+              <li>Unauthorized partner access to other partners’ leads.</li>
+              <li>Admin screens exposed without authentication.</li>
+              <li>Webhook replay attacks.</li>
+              <li>Malformed payloads changing statuses or polluting CRM records.</li>
+              <li>Leaking sensitive lead data through browser storage or exports.</li>
+            </ul>
+          </section>
+
+          <section id="static-hosting">
+            <h2>Static hosting recommendations</h2>
+            <ul class="public-list">
+              <li>Keep security headers in <code>vercel.json</code> or host config.</li>
+              <li>Do not publish real API keys, tokens, CRM secrets, or webhook secrets in the repo.</li>
+              <li>Use clear labels for static demo/admin pages.</li>
+              <li>Block or discourage indexing of admin and example API docs where appropriate.</li>
+              <li>Add production access controls before any real data appears.</li>
+            </ul>
+          </section>
+
+          <section id="incident-readiness">
+            <h2>Incident readiness checklist</h2>
+            <ul class="public-list">
+              <li>Know how to disable forms, widgets, and webhooks quickly.</li>
+              <li>Keep partner IDs revocable.</li>
+              <li>Keep webhook secrets rotatable.</li>
+              <li>Log and review rejected submissions.</li>
+              <li>Document data retention and deletion process.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-shell public-footer-inner">
+      <div>
+        <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+          <span class="public-logo-mark" aria-hidden="true">M</span>
+          <span>Moonshine Partner Command Center</span>
+        </a>
+        <p class="mt-4">
+          Developer documentation for the static-first Funding Partners OS.
+        </p>
+        <p>
+          No approval, funding, commission, or integration behavior is guaranteed by these static docs.
+        </p>
+      </div>
+
+      <div class="public-footer-links" aria-label="Footer links">
+        <a href="./quickstart.html">Quickstart</a>
+        <a href="./api-docs.html">API Docs</a>
+        <a href="./security.html">Security</a>
+        <a href="../compliance.html">Compliance</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/route-utils.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+</body>
+</html>

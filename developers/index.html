@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Developer Overview | Moonshine Partner Command Center</title>
+  <meta name="description" content="Developer documentation overview for the static Moonshine Partner Command Center.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/public.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+</head>
+<body class="public-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="public-header">
+    <div class="public-shell public-header-inner">
+      <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="public-logo-mark" aria-hidden="true">M</span>
+        <span>Developer Docs</span>
+      </a>
+
+      <nav class="public-nav" aria-label="Primary navigation">
+        <a href="../index.html">Home</a>
+        <a href="../dashboard.html">Dashboard</a>
+        <a href="../widgets/README.md">Widgets</a>
+        <a href="../admin/index.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="public-page">
+    <section class="public-hero" aria-labelledby="doc-title">
+      <div class="public-shell public-hero-inner">
+        <div class="public-hero-copy">
+          <span class="mpc-eyebrow">Developer documentation</span>
+          <h1 id="doc-title">Static-first docs for the partner OS buildout.</h1>
+          <p class="lead">Use these docs to understand the current prototype, future backend seams, widget behavior, CRM mapping, AI action boundaries, webhooks, API examples, and security requirements.</p>
+          <div class="mpc-actions">
+            <a class="mpc-button mpc-button-primary" href="../dashboard.html">Open Dashboard</a>
+            <a class="mpc-button mpc-button-outline" href="./quickstart.html">Developer Quickstart</a>
+          </div>
+        </div>
+
+        <aside class="public-hero-card">
+          <span class="mpc-badge mpc-badge-warning">Static-first docs</span>
+          <h2>Current implementation boundary</h2>
+          <p>
+            These docs describe the static prototype and the intended backend seams. Example routes, schemas, widgets, and webhooks are not live production services until explicitly implemented.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-section" aria-label="Developer documentation">
+      <div class="public-shell public-legal-layout">
+        <aside class="public-legal-nav" aria-label="Developer documentation navigation">
+          <a href="./index.html" class="is-active" aria-current="page">Overview</a>
+          <a href="./quickstart.html">Quickstart</a>
+          <a href="./widget-docs.html">Widget Docs</a>
+          <a href="./crm-integrations.html">CRM</a>
+          <a href="./ai-agents.html">AI Agents</a>
+          <a href="./webhooks.html">Webhooks</a>
+          <a href="./api-docs.html">API Docs</a>
+          <a href="./security.html">Security</a>
+        </aside>
+
+        <div class="public-legal-content">
+          <section id="purpose">
+            <span class="mpc-badge mpc-badge-success">Developer layer</span>
+            <h2>Purpose</h2>
+            <p>
+              The developer layer explains how the static Partner Command Center should evolve into a connected system without confusing demo behavior for production infrastructure.
+            </p>
+            <p>
+              The current repo is intentionally static: HTML, CSS, JavaScript, mock data, localStorage, iframe widgets, example schemas, and documentation. This makes the partner motion reviewable before authentication, CRM, API, webhooks, and security controls are added.
+            </p>
+          </section>
+
+          <section id="map">
+            <h2>Documentation map</h2>
+            <div class="mpc-grid mpc-grid-2">
+              <article class="mpc-card mpc-card-pad">
+                <h3>Quickstart</h3>
+                <p>Local setup, file order, script loading, static hosting, and smoke tests.</p>
+                <a class="mpc-button mpc-button-outline" href="./quickstart.html">Open quickstart</a>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>Widget docs</h3>
+                <p>How the iframe widget, embed loader, query parameters, and postMessage events work.</p>
+                <a class="mpc-button mpc-button-outline" href="./widget-docs.html">Open widget docs</a>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>CRM integrations</h3>
+                <p>Recommended partner, lead, event, attribution, and consent field mapping.</p>
+                <a class="mpc-button mpc-button-outline" href="./crm-integrations.html">Open CRM docs</a>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>AI agents</h3>
+                <p>Safe GPT/action boundaries for partner, lead, marketplace, and admin workflows.</p>
+                <a class="mpc-button mpc-button-outline" href="./ai-agents.html">Open AI docs</a>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>Webhooks</h3>
+                <p>Event contracts for future Tally signup, widget inquiry, lead status, and CRM updates.</p>
+                <a class="mpc-button mpc-button-outline" href="./webhooks.html">Open webhook docs</a>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>API docs</h3>
+                <p>Example endpoint contracts and response shapes for the future backend.</p>
+                <a class="mpc-button mpc-button-outline" href="./api-docs.html">Open API docs</a>
+              </article>
+            </div>
+          </section>
+
+          <section id="principles">
+            <h2>Implementation principles</h2>
+            <ul class="public-list">
+              <li>Keep static demo behavior clearly labeled as demo behavior.</li>
+              <li>Use localStorage only for non-sensitive browser-local state.</li>
+              <li>Do not collect SSNs, bank logins, full tax IDs, account numbers, private documents, or underwriting files in static tools.</li>
+              <li>Do not promise funding, approval, rates, terms, timelines, income, or commissions.</li>
+              <li>Use backend validation, authentication, authorization, audit logging, and secure storage before handling live partner or lead data.</li>
+              <li>Treat schemas and endpoints as contracts, not decorations.</li>
+            </ul>
+          </section>
+
+          <section id="recommended-order">
+            <h2>Recommended future build order</h2>
+            <ol class="public-list">
+              <li>Finalize CRM fields and partner status lifecycle.</li>
+              <li>Create lead submission API with validation and consent capture.</li>
+              <li>Connect Tally partner signup webhook.</li>
+              <li>Connect widget inquiry submission to backend API.</li>
+              <li>Add authentication and role-based access for admin/operator/partner views.</li>
+              <li>Add webhook signature verification and audit logs.</li>
+              <li>Add GPT action schema only after backend endpoints exist.</li>
+              <li>Add production privacy policy and terms matched to real data flows.</li>
+            </ol>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-shell public-footer-inner">
+      <div>
+        <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+          <span class="public-logo-mark" aria-hidden="true">M</span>
+          <span>Moonshine Partner Command Center</span>
+        </a>
+        <p class="mt-4">
+          Developer documentation for the static-first Funding Partners OS.
+        </p>
+        <p>
+          No approval, funding, commission, or integration behavior is guaranteed by these static docs.
+        </p>
+      </div>
+
+      <div class="public-footer-links" aria-label="Footer links">
+        <a href="./quickstart.html">Quickstart</a>
+        <a href="./api-docs.html">API Docs</a>
+        <a href="./security.html">Security</a>
+        <a href="../compliance.html">Compliance</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/route-utils.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+</body>
+</html>

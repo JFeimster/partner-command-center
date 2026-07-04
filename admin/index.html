@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Ops Prototype | Moonshine Partner Command Center</title>
+  <meta name="description" content="Static admin operations prototype for Moonshine Partner Command Center.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body class="admin-body">
+  <a class="skip-link" href="#main">Skip to admin content</a>
+
+  <div class="admin-app" data-admin-root>
+    <aside class="admin-sidebar" aria-label="Admin navigation">
+      <a class="admin-brand" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="admin-brand-mark" aria-hidden="true">M</span>
+        <span>Admin Ops</span>
+      </a>
+
+      <nav class="admin-nav" data-admin-nav aria-label="Admin sections">
+        <a href="#overview">Overview</a>
+        <a href="#partners">Partners</a>
+        <a href="#leads">Leads</a>
+        <a href="#marketplace">Marketplace</a>
+        <a href="#compliance">Compliance</a>
+        <a href="#integrations">Integrations</a>
+        <a href="#activity">Activity</a>
+        <a href="#settings">Settings</a>
+      </nav>
+
+      <div class="admin-sidebar-footer">
+        <p>
+          Static admin prototype only. No auth, CRM, backend, lender routing, or payout approval.
+        </p>
+        <a class="mpc-button mpc-button-outline mpc-button-block" href="../dashboard.html">Partner Dashboard</a>
+      </div>
+    </aside>
+
+    <main id="main" class="admin-main">
+      <header class="admin-topbar">
+        <div>
+          <span class="mpc-kicker">Internal Ops Prototype</span>
+          <h1>Admin Command Surface</h1>
+        </div>
+        <div class="admin-actions">
+          <button class="mpc-button mpc-button-outline" type="button" data-export-admin>Export Admin JSON</button>
+          <a class="mpc-button mpc-button-primary" href="../partner-access.html">Partner Access</a>
+        </div>
+      </header>
+
+      <section class="admin-alert" aria-label="Admin disclaimer">
+        <strong>Static admin caveat:</strong>
+        <span data-admin-disclaimer>This admin area is a static prototype and does not provide authentication, role-based access, secure storage, CRM updates, underwriting, or payout approval.</span>
+      </section>
+
+      <section id="overview" class="admin-section" data-admin-view>
+        <div class="admin-section-header">
+          <div>
+            <span class="mpc-eyebrow">Overview</span>
+            <h2>Ops snapshot</h2>
+            <p>Review queues, flagged copy, integration blockers, and fictional operational status.</p>
+          </div>
+        </div>
+
+        <div class="admin-metrics" data-render-admin-metrics></div>
+
+        <div class="admin-grid admin-grid-2">
+          <article class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h3>Priority review queue</h3>
+                <p>Partners, offers, and integrations needing operator attention.</p>
+              </div>
+            </div>
+            <div data-render-priority></div>
+          </article>
+
+          <article class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h3>Recent admin activity</h3>
+                <p>Fictional event stream for static ops review.</p>
+              </div>
+            </div>
+            <div data-render-recent-activity></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="partners" class="admin-section" data-admin-view>
+        <div class="admin-section-header">
+          <div>
+            <span class="mpc-eyebrow">Partners</span>
+            <h2>Partner review queue</h2>
+            <p>Review demo partner profiles, sources, status, and next actions.</p>
+          </div>
+          <div class="admin-actions">
+            <select data-filter-partners aria-label="Filter partners by status">
+              <option value="all">All statuses</option>
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="needs-review">Needs Review</option>
+              <option value="paused">Paused</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+        </div>
+        <div data-render-partners></div>
+      </section>
+
+      <section id="leads" class="admin-section" data-admin-view>
+        <div class="admin-section-header">
+          <div>
+            <span class="mpc-eyebrow">Leads</span>
+            <h2>Lead review queue</h2>
+            <p>Fictional lead records only. No live lender status or underwriting review.</p>
+          </div>
+          <div class="admin-actions">
+            <select data-filter-leads aria-label="Filter leads by status">
+              <option value="all">All statuses</option>
+              <option value="new">New</option>
+              <option value="reviewing">Reviewing</option>
+              <option value="needsInfo">Needs Info</option>
+              <option value="submitted">Submitted</option>
+              <option value="funded">Funded</option>
+              <option value="declined">Declined</option>
+            </select>
+          </div>
+        </div>
+        <div data-render-leads></div>
+      </section>
+
+      <section id="marketplace" class="admin-section" data-admin-view>
+        <div class="admin-section-header">
+          <div>
+            <span class="mpc-eyebrow">Marketplace</span>
+            <h2>Offer operations review</h2>
+            <p>Audit example offers before partners promote them.</p>
+          </div>
+          <a class="mpc-button mpc-button-outline" href="../marketplace.html">Public Marketplace</a>
+        </div>
+        <div data-render-marketplace></div>
+      </section>
+
+      <section id="compliance" class="admin-section" data-admin-view>
+        <div class="admin-section-header">
+          <div>
+            <span class="mpc-eyebrow">Compliance</span>
+            <h2>Copy and workflow guardrails</h2>
+            <p>Review flagged terms and safe-language remediation.</p>
+          </div>
+          <a class="mpc-button mpc-button-outline" href="../compliance.html">Public Compliance</a>
+        </div>
+
+        <div class="admin-grid admin-grid-2">
+          <article class="admin-card">
+            <h3>Review rules</h3>
+            <div data-render-rules></div>
+          </article>
+
+          <article class="admin-card">
+            <h3>Flagged copy</h3>
+            <div data-render-compliance></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="integrations" class="admin-section" data-admin-view>
+        <div class="admin-section-header">
+          <div>
+            <span class="mpc-eyebrow">Integrations</span>
+            <h2>Backend readiness map</h2>
+            <p>Tally, CRM, widget, GPT, API, webhook, and admin auth readiness.</p>
+          </div>
+          <a class="mpc-button mpc-button-outline" href="../developers/index.html">Developer Docs</a>
+        </div>
+        <div data-render-integrations></div>
+      </section>
+
+      <section id="activity" class="admin-section" data-admin-view>
+        <div class="admin-section-header">
+          <div>
+            <span class="mpc-eyebrow">Activity</span>
+            <h2>Ops timeline</h2>
+            <p>Fictional admin events for review and UI planning.</p>
+          </div>
+        </div>
+        <div data-render-activity></div>
+      </section>
+
+      <section id="settings" class="admin-section" data-admin-view>
+        <div class="admin-section-header">
+          <div>
+            <span class="mpc-eyebrow">Settings</span>
+            <h2>Static admin controls</h2>
+            <p>Export data, review production requirements, and reset local admin notes.</p>
+          </div>
+        </div>
+
+        <div class="admin-grid admin-grid-2">
+          <article class="admin-card">
+            <h3>Admin mode</h3>
+            <div data-render-settings></div>
+          </article>
+
+          <article class="admin-card admin-form">
+            <h3>Ops note</h3>
+            <form data-admin-note-form>
+              <label for="adminNote">Add local admin note</label>
+              <textarea id="adminNote" name="note" placeholder="Example: Review affiliate copy before enabling campaign."></textarea>
+              <button class="mpc-button mpc-button-primary" type="submit">Save Admin Note</button>
+            </form>
+            <div class="mt-5" data-render-admin-notes></div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/form-utils.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+
+  <script src="./admin-config.js"></script>
+  <script src="./mock-admin-data.js"></script>
+  <script src="./admin.js"></script>
+</body>
+</html>

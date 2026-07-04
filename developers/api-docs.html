@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API Docs | Moonshine Partner Command Center</title>
+  <meta name="description" content="Future API endpoint contracts for Moonshine Partner Command Center.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/public.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+</head>
+<body class="public-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="public-header">
+    <div class="public-shell public-header-inner">
+      <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="public-logo-mark" aria-hidden="true">M</span>
+        <span>Developer Docs</span>
+      </a>
+
+      <nav class="public-nav" aria-label="Primary navigation">
+        <a href="../index.html">Home</a>
+        <a href="../dashboard.html">Dashboard</a>
+        <a href="../widgets/README.md">Widgets</a>
+        <a href="../admin/index.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="public-page">
+    <section class="public-hero" aria-labelledby="doc-title">
+      <div class="public-shell public-hero-inner">
+        <div class="public-hero-copy">
+          <span class="mpc-eyebrow">API contract map</span>
+          <h1 id="doc-title">Example endpoint contracts for the future backend.</h1>
+          <p class="lead">These docs define future API shapes. They are not live endpoints until a backend/serverless layer is implemented.</p>
+          <div class="mpc-actions">
+            <a class="mpc-button mpc-button-primary" href="../dashboard.html">Open Dashboard</a>
+            <a class="mpc-button mpc-button-outline" href="./quickstart.html">Developer Quickstart</a>
+          </div>
+        </div>
+
+        <aside class="public-hero-card">
+          <span class="mpc-badge mpc-badge-warning">Static-first docs</span>
+          <h2>Current implementation boundary</h2>
+          <p>
+            These docs describe the static prototype and the intended backend seams. Example routes, schemas, widgets, and webhooks are not live production services until explicitly implemented.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-section" aria-label="Developer documentation">
+      <div class="public-shell public-legal-layout">
+        <aside class="public-legal-nav" aria-label="Developer documentation navigation">
+          <a href="./index.html">Overview</a>
+          <a href="./quickstart.html">Quickstart</a>
+          <a href="./widget-docs.html">Widget Docs</a>
+          <a href="./crm-integrations.html">CRM</a>
+          <a href="./ai-agents.html">AI Agents</a>
+          <a href="./webhooks.html">Webhooks</a>
+          <a href="./api-docs.html" class="is-active" aria-current="page">API Docs</a>
+          <a href="./security.html">Security</a>
+        </aside>
+
+        <div class="public-legal-content">
+          <section id="boundary">
+            <span class="mpc-badge mpc-badge-warning">Example API only</span>
+            <h2>API boundary</h2>
+            <p>
+              The current repo includes example API docs and placeholder files only. A static host cannot process live POST requests unless a serverless/backend layer is added.
+            </p>
+            <div class="mpc-disclaimer">
+              Do not describe example endpoints as live. Do not connect GPT actions, widgets, or forms to example files until production endpoints exist.
+            </div>
+          </section>
+
+          <section id="endpoints">
+            <h2>Future endpoint map</h2>
+            <div class="mpc-table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Path</th><th>Purpose</th><th>Auth</th></tr></thead>
+                <tbody>
+                  <tr><td><code>POST</code></td><td><code>/api/leads-submit</code></td><td>Create a partner-attributed lead inquiry.</td><td>API key or signed widget token</td></tr>
+                  <tr><td><code>GET</code></td><td><code>/api/lead-status/:id</code></td><td>Read permitted lead status.</td><td>Bearer token</td></tr>
+                  <tr><td><code>GET</code></td><td><code>/api/partner-stats</code></td><td>Return partner dashboard metrics.</td><td>Bearer token</td></tr>
+                  <tr><td><code>POST</code></td><td><code>/api/external-lead-webhook</code></td><td>Receive external lead events.</td><td>Webhook signature</td></tr>
+                  <tr><td><code>POST</code></td><td><code>/api/tally-signup-webhook</code></td><td>Receive partner signup form events.</td><td>Webhook signature</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="lead-submit">
+            <h2>Lead submit request example</h2>
+            <pre><code>{
+  "partner_id": "MS-FB-1024",
+  "source": "partner-widget",
+  "business": {
+    "name": "Harbor Street HVAC",
+    "industry": "Contractor",
+    "monthly_revenue_estimate": 78000
+  },
+  "contact": {
+    "name": "Marcus Reed",
+    "email": "marcus@example.com",
+    "phone": "(555) 010-0000"
+  },
+  "funding": {
+    "requested_amount_estimate": 85000,
+    "use_of_funds": "Equipment and payroll bridge",
+    "timeline": "30 days"
+  },
+  "consent": {
+    "confirmed": true,
+    "captured_at": "2026-07-04T12:00:00Z",
+    "method": "widget checkbox"
+  }
+}</code></pre>
+          </section>
+
+          <section id="lead-response">
+            <h2>Lead submit response example</h2>
+            <pre><code>{
+  "ok": true,
+  "lead_id": "lead_abc123",
+  "status": "new",
+  "message": "Lead received for review. No approval, funding, terms, or timeline is guaranteed."
+}</code></pre>
+          </section>
+
+          <section id="errors">
+            <h2>Error response example</h2>
+            <pre><code>{
+  "ok": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Consent confirmation is required.",
+    "fields": ["consent.confirmed"]
+  }
+}</code></pre>
+          </section>
+
+          <section id="rate-limits">
+            <h2>Recommended rate limits</h2>
+            <ul class="public-list">
+              <li>Widget lead submissions: 10 per IP per hour until stronger anti-spam is added.</li>
+              <li>Partner stats reads: 60 per partner per minute.</li>
+              <li>Webhook endpoints: provider-specific limits plus signature verification.</li>
+              <li>Admin endpoints: authenticated operator-only and audit logged.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-shell public-footer-inner">
+      <div>
+        <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+          <span class="public-logo-mark" aria-hidden="true">M</span>
+          <span>Moonshine Partner Command Center</span>
+        </a>
+        <p class="mt-4">
+          Developer documentation for the static-first Funding Partners OS.
+        </p>
+        <p>
+          No approval, funding, commission, or integration behavior is guaranteed by these static docs.
+        </p>
+      </div>
+
+      <div class="public-footer-links" aria-label="Footer links">
+        <a href="./quickstart.html">Quickstart</a>
+        <a href="./api-docs.html">API Docs</a>
+        <a href="./security.html">Security</a>
+        <a href="../compliance.html">Compliance</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/route-utils.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+</body>
+</html>

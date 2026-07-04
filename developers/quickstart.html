@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Developer Quickstart | Moonshine Partner Command Center</title>
+  <meta name="description" content="Local setup and smoke tests for Moonshine Partner Command Center.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/public.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+</head>
+<body class="public-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="public-header">
+    <div class="public-shell public-header-inner">
+      <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="public-logo-mark" aria-hidden="true">M</span>
+        <span>Developer Docs</span>
+      </a>
+
+      <nav class="public-nav" aria-label="Primary navigation">
+        <a href="../index.html">Home</a>
+        <a href="../dashboard.html">Dashboard</a>
+        <a href="../widgets/README.md">Widgets</a>
+        <a href="../admin/index.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="public-page">
+    <section class="public-hero" aria-labelledby="doc-title">
+      <div class="public-shell public-hero-inner">
+        <div class="public-hero-copy">
+          <span class="mpc-eyebrow">Quickstart</span>
+          <h1 id="doc-title">Run, review, and smoke-test the static repo.</h1>
+          <p class="lead">Start here when installing the repo locally, checking file load order, or validating the partner access, dashboard, widget, tools, and admin flows.</p>
+          <div class="mpc-actions">
+            <a class="mpc-button mpc-button-primary" href="../dashboard.html">Open Dashboard</a>
+            <a class="mpc-button mpc-button-outline" href="./quickstart.html">Developer Quickstart</a>
+          </div>
+        </div>
+
+        <aside class="public-hero-card">
+          <span class="mpc-badge mpc-badge-warning">Static-first docs</span>
+          <h2>Current implementation boundary</h2>
+          <p>
+            These docs describe the static prototype and the intended backend seams. Example routes, schemas, widgets, and webhooks are not live production services until explicitly implemented.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-section" aria-label="Developer documentation">
+      <div class="public-shell public-legal-layout">
+        <aside class="public-legal-nav" aria-label="Developer documentation navigation">
+          <a href="./index.html">Overview</a>
+          <a href="./quickstart.html" class="is-active" aria-current="page">Quickstart</a>
+          <a href="./widget-docs.html">Widget Docs</a>
+          <a href="./crm-integrations.html">CRM</a>
+          <a href="./ai-agents.html">AI Agents</a>
+          <a href="./webhooks.html">Webhooks</a>
+          <a href="./api-docs.html">API Docs</a>
+          <a href="./security.html">Security</a>
+        </aside>
+
+        <div class="public-legal-content">
+          <section id="local-run">
+            <span class="mpc-badge mpc-badge-success">Start here</span>
+            <h2>Local run</h2>
+            <p>Because this repo is static, a basic local web server is enough.</p>
+            <pre><code>cd partner-command-center
+python -m http.server 8080</code></pre>
+            <p>Then open:</p>
+            <pre><code>http://localhost:8080/index.html
+http://localhost:8080/partner-access.html
+http://localhost:8080/dashboard.html
+http://localhost:8080/admin/index.html</code></pre>
+          </section>
+
+          <section id="file-order">
+            <h2>Script and data loading order</h2>
+            <p>For dashboard pages, load data files first, shared scripts second, dashboard modules third, and the page controller last.</p>
+            <pre><code>&lt;script src="./data/sample-leads.js"&gt;&lt;/script&gt;
+&lt;script src="./scripts/config.js"&gt;&lt;/script&gt;
+&lt;script src="./scripts/storage.js"&gt;&lt;/script&gt;
+&lt;script src="./dashboard/dashboard-config.js"&gt;&lt;/script&gt;
+&lt;script src="./dashboard/dashboard-state.js"&gt;&lt;/script&gt;
+&lt;script src="./dashboard.js"&gt;&lt;/script&gt;</code></pre>
+          </section>
+
+          <section id="smoke-tests">
+            <h2>Manual smoke tests</h2>
+            <ul class="public-list">
+              <li>Open the homepage and confirm CTAs route to partner access and dashboard.</li>
+              <li>Create a local partner profile on <code>partner-access.html</code>.</li>
+              <li>Confirm <code>/welcome/index.html</code> displays the partner ID and profile.</li>
+              <li>Open <code>dashboard.html</code> and confirm metrics, leads, resources, marketplace, training, and links render.</li>
+              <li>Create a demo lead, update its status, and export dashboard JSON.</li>
+              <li>Open <code>/tools/funding-readiness-checklist.html</code> and confirm local progress saves.</li>
+              <li>Open <code>/widgets/funding-widget.html</code> with a partner ID query parameter.</li>
+              <li>Open <code>/admin/index.html</code> and confirm tables, filters, export, and local admin notes work.</li>
+            </ul>
+          </section>
+
+          <section id="deployment">
+            <h2>Static deployment notes</h2>
+            <p>
+              The repo can be deployed as a static site. The current <code>vercel.json</code> may include an auto-deploy gate while the repo is being assembled. Remove or reverse that gate when you intentionally want Vercel builds to run.
+            </p>
+            <div class="mpc-disclaimer">
+              If deployment is gated, Git pushes may still appear as deployment attempts in Vercel, but the ignored build command should prevent the build from completing.
+            </div>
+          </section>
+
+          <section id="common-issues">
+            <h2>Common issues</h2>
+            <ul class="public-list">
+              <li>If pages look unstyled, confirm relative paths use <code>./styles/</code> at root and <code>../styles/</code> in nested folders.</li>
+              <li>If dashboard sections are empty, confirm Batch 04 data files and Batch 08 dashboard files are present.</li>
+              <li>If local data seems stale, clear browser localStorage or use dashboard reset.</li>
+              <li>If widget embed height looks wrong, confirm <code>postMessage</code> events are not blocked by the parent page.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-shell public-footer-inner">
+      <div>
+        <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+          <span class="public-logo-mark" aria-hidden="true">M</span>
+          <span>Moonshine Partner Command Center</span>
+        </a>
+        <p class="mt-4">
+          Developer documentation for the static-first Funding Partners OS.
+        </p>
+        <p>
+          No approval, funding, commission, or integration behavior is guaranteed by these static docs.
+        </p>
+      </div>
+
+      <div class="public-footer-links" aria-label="Footer links">
+        <a href="./quickstart.html">Quickstart</a>
+        <a href="./api-docs.html">API Docs</a>
+        <a href="./security.html">Security</a>
+        <a href="../compliance.html">Compliance</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/route-utils.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+</body>
+</html>

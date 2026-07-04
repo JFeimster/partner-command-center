@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRM Integrations | Moonshine Partner Command Center</title>
+  <meta name="description" content="CRM integration field map and sync rules for Moonshine Partner Command Center.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/public.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+</head>
+<body class="public-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="public-header">
+    <div class="public-shell public-header-inner">
+      <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="public-logo-mark" aria-hidden="true">M</span>
+        <span>Developer Docs</span>
+      </a>
+
+      <nav class="public-nav" aria-label="Primary navigation">
+        <a href="../index.html">Home</a>
+        <a href="../dashboard.html">Dashboard</a>
+        <a href="../widgets/README.md">Widgets</a>
+        <a href="../admin/index.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="public-page">
+    <section class="public-hero" aria-labelledby="doc-title">
+      <div class="public-shell public-hero-inner">
+        <div class="public-hero-copy">
+          <span class="mpc-eyebrow">CRM integration blueprint</span>
+          <h1 id="doc-title">Map partner and lead workflows before connecting the CRM.</h1>
+          <p class="lead">Use this page to define CRM objects, fields, lifecycle states, consent capture, event logging, and sync rules before backend work begins.</p>
+          <div class="mpc-actions">
+            <a class="mpc-button mpc-button-primary" href="../dashboard.html">Open Dashboard</a>
+            <a class="mpc-button mpc-button-outline" href="./quickstart.html">Developer Quickstart</a>
+          </div>
+        </div>
+
+        <aside class="public-hero-card">
+          <span class="mpc-badge mpc-badge-warning">Static-first docs</span>
+          <h2>Current implementation boundary</h2>
+          <p>
+            These docs describe the static prototype and the intended backend seams. Example routes, schemas, widgets, and webhooks are not live production services until explicitly implemented.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-section" aria-label="Developer documentation">
+      <div class="public-shell public-legal-layout">
+        <aside class="public-legal-nav" aria-label="Developer documentation navigation">
+          <a href="./index.html">Overview</a>
+          <a href="./quickstart.html">Quickstart</a>
+          <a href="./widget-docs.html">Widget Docs</a>
+          <a href="./crm-integrations.html" class="is-active" aria-current="page">CRM</a>
+          <a href="./ai-agents.html">AI Agents</a>
+          <a href="./webhooks.html">Webhooks</a>
+          <a href="./api-docs.html">API Docs</a>
+          <a href="./security.html">Security</a>
+        </aside>
+
+        <div class="public-legal-content">
+          <section id="field-map">
+            <span class="mpc-badge mpc-badge-success">CRM blueprint</span>
+            <h2>Recommended CRM objects</h2>
+            <p>The future CRM layer should separate partners, leads, events, resources, and attribution records instead of cramming everything into one haunted spreadsheet.</p>
+            <div class="mpc-grid mpc-grid-2">
+              <article class="mpc-card mpc-card-pad">
+                <h3>Partner</h3>
+                <p>Partner identity, partner type, status, approved channels, disclosure acknowledgment, and partner ID.</p>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>Lead</h3>
+                <p>Business basics, contact details, funding need, use of funds, status, partner ID, consent, and source.</p>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>Activity Event</h3>
+                <p>Profile created, lead submitted, status updated, resource saved, link copied, widget submitted.</p>
+              </article>
+              <article class="mpc-card mpc-card-pad">
+                <h3>Offer / Resource</h3>
+                <p>Marketplace category, compliance note, allowed partner types, CTA route, and status.</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="partner-fields">
+            <h2>Partner fields</h2>
+            <div class="mpc-table-wrap">
+              <table>
+                <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+                <tbody>
+                  <tr><td><code>partner_id</code></td><td>String</td><td>Stable public partner identifier.</td></tr>
+                  <tr><td><code>partner_type</code></td><td>Select</td><td>Funding broker, referral partner, affiliate partner, center of influence, operator.</td></tr>
+                  <tr><td><code>status</code></td><td>Select</td><td>Pending, active, paused, needs review, archived.</td></tr>
+                  <tr><td><code>approved_channels</code></td><td>Multi-select</td><td>Direct outreach, referrals, newsletter, social, events, widget.</td></tr>
+                  <tr><td><code>disclosure_acknowledged_at</code></td><td>DateTime</td><td>When affiliate/referral disclosure was accepted.</td></tr>
+                  <tr><td><code>compliance_notes</code></td><td>Text</td><td>Operator review notes.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="lead-fields">
+            <h2>Lead fields</h2>
+            <div class="mpc-table-wrap">
+              <table>
+                <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+                <tbody>
+                  <tr><td><code>lead_id</code></td><td>String</td><td>Unique backend ID.</td></tr>
+                  <tr><td><code>business_name</code></td><td>String</td><td>Required for routing.</td></tr>
+                  <tr><td><code>contact_name</code></td><td>String</td><td>Decision maker or authorized contact.</td></tr>
+                  <tr><td><code>funding_need</code></td><td>Number</td><td>Estimate only; not approved amount.</td></tr>
+                  <tr><td><code>status</code></td><td>Select</td><td>New, reviewing, needs info, submitted, funded, declined, archived.</td></tr>
+                  <tr><td><code>partner_id</code></td><td>String</td><td>Used for attribution and routing.</td></tr>
+                  <tr><td><code>consent_captured_at</code></td><td>DateTime</td><td>Required before live lead routing.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="sync-rules">
+            <h2>Sync rules</h2>
+            <ul class="public-list">
+              <li>Do not sync static demo records into production CRM by accident.</li>
+              <li>Validate partner ID before creating a live lead.</li>
+              <li>Capture consent source, timestamp, page URL, and partner ID.</li>
+              <li>Use immutable event logs for status changes.</li>
+              <li>Do not allow partners to overwrite underwriting or provider status fields directly.</li>
+              <li>Keep commission status separate from lead status.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-shell public-footer-inner">
+      <div>
+        <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+          <span class="public-logo-mark" aria-hidden="true">M</span>
+          <span>Moonshine Partner Command Center</span>
+        </a>
+        <p class="mt-4">
+          Developer documentation for the static-first Funding Partners OS.
+        </p>
+        <p>
+          No approval, funding, commission, or integration behavior is guaranteed by these static docs.
+        </p>
+      </div>
+
+      <div class="public-footer-links" aria-label="Footer links">
+        <a href="./quickstart.html">Quickstart</a>
+        <a href="./api-docs.html">API Docs</a>
+        <a href="./security.html">Security</a>
+        <a href="../compliance.html">Compliance</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/route-utils.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+</body>
+</html>
