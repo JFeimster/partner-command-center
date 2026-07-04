@@ -1,9 +1,5 @@
 {
   "version": 2,
-  "git": {
-    "deploymentEnabled": false
-  },
-  "ignoreCommand": "exit 0",
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
