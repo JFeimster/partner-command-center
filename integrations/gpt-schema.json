@@ -1,0 +1,322 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Moonshine Partner Command Center GPT Actions Schema",
+    "version": "0.1.0-static",
+    "description": "Example schema for future GPT Actions. These endpoints are not live until a backend is deployed."
+  },
+  "servers": [
+    {
+      "url": "https://your-backend-domain.example.com",
+      "description": "Replace with production backend before use."
+    }
+  ],
+  "paths": {
+    "/api/leads-submit": {
+      "post": {
+        "operationId": "submitPartnerLead",
+        "summary": "Submit a partner-attributed lead inquiry for review",
+        "description": "Creates a lead inquiry for review. Does not guarantee approval, funding, terms, or commissions.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeadSubmitRequest"
+              },
+              "example": {
+                "partner_id": "MS-FB-1024",
+                "source": "gpt-action",
+                "business": {
+                  "name": "Harbor Street HVAC",
+                  "industry": "Contractor",
+                  "monthly_revenue_estimate": 78000
+                },
+                "contact": {
+                  "name": "Marcus Reed",
+                  "email": "marcus@example.com",
+                  "phone": "(555) 010-0000"
+                },
+                "funding": {
+                  "requested_amount_estimate": 85000,
+                  "use_of_funds": "Equipment and payroll bridge",
+                  "timeline": "30 days"
+                },
+                "consent": {
+                  "confirmed": true,
+                  "method": "partner permission statement"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lead accepted for review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner-stats": {
+      "get": {
+        "operationId": "getPartnerStats",
+        "summary": "Get permitted partner dashboard stats",
+        "description": "Returns partner-scoped metrics. Example only until backend exists.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "partner_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Partner ID such as MS-FB-1024."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Partner stats response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "LeadSubmitRequest": {
+        "type": "object",
+        "required": [
+          "partner_id",
+          "business",
+          "contact",
+          "consent"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "partner_id": {
+            "type": "string",
+            "description": "Validated partner ID."
+          },
+          "source": {
+            "type": "string",
+            "description": "Submission source."
+          },
+          "business": {
+            "$ref": "#/components/schemas/Business"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/Contact"
+          },
+          "funding": {
+            "$ref": "#/components/schemas/FundingNeed"
+          },
+          "consent": {
+            "$ref": "#/components/schemas/Consent"
+          }
+        }
+      },
+      "Business": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "industry": {
+            "type": "string"
+          },
+          "monthly_revenue_estimate": {
+            "type": "number"
+          },
+          "time_in_business": {
+            "type": "string"
+          }
+        }
+      },
+      "Contact": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          }
+        }
+      },
+      "FundingNeed": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requested_amount_estimate": {
+            "type": "number"
+          },
+          "use_of_funds": {
+            "type": "string"
+          },
+          "timeline": {
+            "type": "string"
+          }
+        }
+      },
+      "Consent": {
+        "type": "object",
+        "required": [
+          "confirmed"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "confirmed": {
+            "type": "boolean"
+          },
+          "method": {
+            "type": "string"
+          },
+          "captured_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LeadSubmitResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "lead_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "reviewing",
+              "needsInfo",
+              "submitted",
+              "funded",
+              "declined",
+              "archived"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PartnerStatsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "partner_id": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "total_leads": {
+                "type": "integer"
+              },
+              "open_leads": {
+                "type": "integer"
+              },
+              "funded_examples": {
+                "type": "integer"
+              },
+              "estimated_commissions": {
+                "type": "number"
+              }
+            }
+          },
+          "disclaimer": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": false
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

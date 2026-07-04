@@ -1,0 +1,177 @@
+{
+  "info": {
+    "name": "Moonshine Partner Command Center API Examples",
+    "description": "Postman collection for future backend endpoints. These requests are examples only until a backend is deployed.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://your-backend-domain.example.com"
+    },
+    {
+      "key": "apiKey",
+      "value": "replace-with-api-key"
+    },
+    {
+      "key": "bearerToken",
+      "value": "replace-with-bearer-token"
+    },
+    {
+      "key": "partnerId",
+      "value": "MS-FB-1024"
+    },
+    {
+      "key": "leadId",
+      "value": "lead_abc123"
+    }
+  ],
+  "item": [
+    {
+      "name": "Submit Partner Lead",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/leads-submit",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leads-submit"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"partner_id\": \"MS-FB-1024\",\n  \"source\": \"gpt-action\",\n  \"business\": {\n    \"name\": \"Harbor Street HVAC\",\n    \"industry\": \"Contractor\",\n    \"monthly_revenue_estimate\": 78000\n  },\n  \"contact\": {\n    \"name\": \"Marcus Reed\",\n    \"email\": \"marcus@example.com\",\n    \"phone\": \"(555) 010-0000\"\n  },\n  \"funding\": {\n    \"requested_amount_estimate\": 85000,\n    \"use_of_funds\": \"Equipment and payroll bridge\",\n    \"timeline\": \"30 days\"\n  },\n  \"consent\": {\n    \"confirmed\": true,\n    \"method\": \"partner permission statement\"\n  }\n}"
+        },
+        "description": "Creates a partner-attributed lead inquiry for review. No approval or funding is guaranteed."
+      }
+    },
+    {
+      "name": "Get Lead Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bearerToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/lead-status/{{leadId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "lead-status",
+            "{{leadId}}"
+          ]
+        },
+        "description": "Returns partner-visible lead status only."
+      }
+    },
+    {
+      "name": "Get Partner Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bearerToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/partner-stats?partner_id={{partnerId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "partner-stats"
+          ],
+          "query": [
+            {
+              "key": "partner_id",
+              "value": "{{partnerId}}"
+            }
+          ]
+        },
+        "description": "Returns partner-scoped dashboard stats."
+      }
+    },
+    {
+      "name": "External Lead Webhook",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Moonshine-Signature",
+            "value": "replace-with-signature"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/external-lead-webhook",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "external-lead-webhook"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": \"evt_123\",\n  \"event_type\": \"widget.inquiry.created\",\n  \"created_at\": \"2026-07-04T12:00:00Z\",\n  \"source\": \"partner-widget\",\n  \"partner_id\": \"MS-FB-1024\",\n  \"data\": {\n    \"business_name\": \"Harbor Street HVAC\",\n    \"contact_name\": \"Marcus Reed\",\n    \"consent_confirmed\": true\n  },\n  \"metadata\": {\n    \"page_url\": \"https://example.com/funding\"\n  }\n}"
+        },
+        "description": "Receives a signed external lead event."
+      }
+    },
+    {
+      "name": "Tally Signup Webhook",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Moonshine-Signature",
+            "value": "replace-with-signature"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/tally-signup-webhook",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "tally-signup-webhook"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_type\": \"partner.signup.created\",\n  \"source\": \"tally\",\n  \"submitted_at\": \"2026-07-04T12:00:00Z\",\n  \"form_id\": \"FORM_ID\",\n  \"submission_id\": \"SUBMISSION_ID\",\n  \"partner\": {\n    \"contact_name\": \"Jordan Ellis\",\n    \"email\": \"jordan@example.com\",\n    \"company\": \"Marcus Funding Desk\",\n    \"partner_type\": \"funding-broker\",\n    \"partner_path\": \"submit-leads\",\n    \"primary_audience\": \"Contractors and local service businesses\"\n  },\n  \"acknowledgments\": {\n    \"agreement_acknowledged\": true,\n    \"compliance_acknowledged\": true,\n    \"permission_acknowledged\": true\n  }\n}"
+        },
+        "description": "Receives a Tally partner signup event."
+      }
+    }
+  ]
+}

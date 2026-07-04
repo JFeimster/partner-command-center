@@ -1,0 +1,164 @@
+{
+  "name": "Moonshine Partner Command Center \u2014 Make Scenario Blueprint",
+  "version": "0.1.0-static",
+  "status": "blueprint_only",
+  "description": "Planning blueprint for future Make.com scenarios. This is not an import-ready production scenario until accounts, webhook URLs, credentials, and mappings are configured.",
+  "compliance_notice": "Funding options may vary. Automations must not promise approval, funding, rates, terms, timelines, income, or commissions.",
+  "scenarios": [
+    {
+      "id": "scenario_tally_partner_signup",
+      "name": "Tally Partner Signup to Partner Review Queue",
+      "trigger": {
+        "module": "Webhooks",
+        "event": "Custom webhook",
+        "expected_event_type": "partner.signup.created"
+      },
+      "steps": [
+        {
+          "order": 1,
+          "module": "Webhook",
+          "action": "Receive Tally submission"
+        },
+        {
+          "order": 2,
+          "module": "Tools",
+          "action": "Validate required fields and acknowledgments"
+        },
+        {
+          "order": 3,
+          "module": "Router",
+          "action": "Route low-risk submissions to pending review and risky submissions to compliance review"
+        },
+        {
+          "order": 4,
+          "module": "CRM or Google Sheets",
+          "action": "Create or update Partner record"
+        },
+        {
+          "order": 5,
+          "module": "Notification",
+          "action": "Notify operator review queue"
+        }
+      ],
+      "required_fields": [
+        "contact_name",
+        "email",
+        "company",
+        "partner_type",
+        "partner_path",
+        "primary_audience",
+        "agreement_acknowledged",
+        "compliance_acknowledged",
+        "permission_acknowledged"
+      ],
+      "stop_conditions": [
+        "missing email",
+        "missing partner type",
+        "missing required acknowledgment",
+        "spam or obvious abuse"
+      ]
+    },
+    {
+      "id": "scenario_widget_inquiry",
+      "name": "Widget Inquiry to Lead Review Queue",
+      "trigger": {
+        "module": "Webhooks",
+        "event": "Custom webhook",
+        "expected_event_type": "widget.inquiry.created"
+      },
+      "steps": [
+        {
+          "order": 1,
+          "module": "Webhook",
+          "action": "Receive widget inquiry payload"
+        },
+        {
+          "order": 2,
+          "module": "Tools",
+          "action": "Validate partner ID, business name, contact name, and consent"
+        },
+        {
+          "order": 3,
+          "module": "CRM",
+          "action": "Lookup Partner by partner_id"
+        },
+        {
+          "order": 4,
+          "module": "CRM",
+          "action": "Create Lead with status New"
+        },
+        {
+          "order": 5,
+          "module": "CRM",
+          "action": "Create Activity Event"
+        },
+        {
+          "order": 6,
+          "module": "Notification",
+          "action": "Notify operator without sensitive data"
+        }
+      ],
+      "required_fields": [
+        "partner_id",
+        "business_name",
+        "contact_name",
+        "consent_confirmed"
+      ],
+      "security_requirements": [
+        "verify shared secret or signature",
+        "rate limit by IP or source",
+        "detect sensitive data in free text",
+        "preserve consent timestamp"
+      ]
+    },
+    {
+      "id": "scenario_compliance_review",
+      "name": "Copy Compliance Review",
+      "trigger": {
+        "module": "Watch Records",
+        "event": "New content draft or partner campaign submitted"
+      },
+      "restricted_phrases": [
+        "guaranteed funding",
+        "guaranteed approval",
+        "everyone qualifies",
+        "risk-free funding",
+        "guaranteed commissions",
+        "automatic approval",
+        "earn guaranteed income"
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "module": "Text parser",
+          "action": "Search for restricted phrases"
+        },
+        {
+          "order": 2,
+          "module": "Router",
+          "action": "If phrase found, create compliance queue record"
+        },
+        {
+          "order": 3,
+          "module": "Notification",
+          "action": "Notify reviewer"
+        },
+        {
+          "order": 4,
+          "module": "CRM or Notion",
+          "action": "Block campaign approval until resolved"
+        }
+      ]
+    }
+  ],
+  "production_requirements": [
+    "real webhook URLs",
+    "environment-specific secrets",
+    "signature verification",
+    "idempotency keys",
+    "CRM/database credentials",
+    "error handling route",
+    "audit logging",
+    "operator review queue"
+  ]
+}

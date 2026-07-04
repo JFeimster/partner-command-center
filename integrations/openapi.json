@@ -1,0 +1,617 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Moonshine Partner Command Center API",
+    "version": "0.1.0-static",
+    "description": "Example OpenAPI contract for the future Moonshine Partner Command Center backend. The current repo is static and these endpoints are not live.",
+    "x-static-prototype": true
+  },
+  "servers": [
+    {
+      "url": "https://your-backend-domain.example.com",
+      "description": "Replace with deployed backend."
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Optional local backend during future development."
+    }
+  ],
+  "tags": [
+    {
+      "name": "Leads",
+      "description": "Partner-attributed lead inquiry workflows."
+    },
+    {
+      "name": "Partners",
+      "description": "Partner profile and metrics workflows."
+    },
+    {
+      "name": "Webhooks",
+      "description": "Inbound events from forms, widgets, CRM, and automation."
+    }
+  ],
+  "paths": {
+    "/api/leads-submit": {
+      "post": {
+        "tags": [
+          "Leads"
+        ],
+        "operationId": "submitLead",
+        "summary": "Submit a partner-attributed lead inquiry",
+        "description": "Creates a lead inquiry for review. This endpoint must validate consent and partner ID before live use.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeadSubmitRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lead accepted for review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadSubmitResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "lead_id": "lead_abc123",
+                  "status": "new",
+                  "message": "Lead received for review. No approval, funding, terms, or timeline is guaranteed."
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api/lead-status/{lead_id}": {
+      "get": {
+        "tags": [
+          "Leads"
+        ],
+        "operationId": "getLeadStatus",
+        "summary": "Get permitted lead status",
+        "description": "Returns a partner-visible status only. Does not expose underwriting details.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lead status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/partner-stats": {
+      "get": {
+        "tags": [
+          "Partners"
+        ],
+        "operationId": "getPartnerStats",
+        "summary": "Get partner dashboard stats",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "partner_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Partner stats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerStatsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/external-lead-webhook": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "operationId": "receiveExternalLeadWebhook",
+        "summary": "Receive external lead webhook",
+        "security": [
+          {
+            "WebhookSignature": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Moonshine-Signature",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "HMAC signature for webhook verification."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEnvelope"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/tally-signup-webhook": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "operationId": "receiveTallySignupWebhook",
+        "summary": "Receive Tally partner signup webhook",
+        "security": [
+          {
+            "WebhookSignature": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TallySignupWebhook"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signup webhook accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "WebhookSignature": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Moonshine-Signature"
+      }
+    },
+    "responses": {
+      "ValidationError": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Rate limited",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "LeadSubmitRequest": {
+        "type": "object",
+        "required": [
+          "partner_id",
+          "business",
+          "contact",
+          "consent"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "partner_id": {
+            "type": "string",
+            "description": "Validated partner ID."
+          },
+          "source": {
+            "type": "string",
+            "description": "Submission source."
+          },
+          "business": {
+            "$ref": "#/components/schemas/Business"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/Contact"
+          },
+          "funding": {
+            "$ref": "#/components/schemas/FundingNeed"
+          },
+          "consent": {
+            "$ref": "#/components/schemas/Consent"
+          }
+        }
+      },
+      "Business": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "industry": {
+            "type": "string"
+          },
+          "monthly_revenue_estimate": {
+            "type": "number"
+          },
+          "time_in_business": {
+            "type": "string"
+          }
+        }
+      },
+      "Contact": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          }
+        }
+      },
+      "FundingNeed": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requested_amount_estimate": {
+            "type": "number"
+          },
+          "use_of_funds": {
+            "type": "string"
+          },
+          "timeline": {
+            "type": "string"
+          }
+        }
+      },
+      "Consent": {
+        "type": "object",
+        "required": [
+          "confirmed"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "confirmed": {
+            "type": "boolean"
+          },
+          "method": {
+            "type": "string"
+          },
+          "captured_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LeadSubmitResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "lead_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "reviewing",
+              "needsInfo",
+              "submitted",
+              "funded",
+              "declined",
+              "archived"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PartnerStatsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "partner_id": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "total_leads": {
+                "type": "integer"
+              },
+              "open_leads": {
+                "type": "integer"
+              },
+              "funded_examples": {
+                "type": "integer"
+              },
+              "estimated_commissions": {
+                "type": "number"
+              }
+            }
+          },
+          "disclaimer": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": false
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "LeadStatusResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "lead_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "next_action": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "disclaimer": {
+            "type": "string"
+          }
+        }
+      },
+      "WebhookEnvelope": {
+        "type": "object",
+        "required": [
+          "event_id",
+          "event_type",
+          "created_at",
+          "source",
+          "data"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string"
+          },
+          "event_type": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string"
+          },
+          "partner_id": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "TallySignupWebhook": {
+        "type": "object",
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "example": "partner.signup.created"
+          },
+          "source": {
+            "type": "string",
+            "example": "tally"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "form_id": {
+            "type": "string"
+          },
+          "submission_id": {
+            "type": "string"
+          },
+          "partner": {
+            "type": "object"
+          },
+          "acknowledgments": {
+            "type": "object"
+          },
+          "attribution": {
+            "type": "object"
+          }
+        }
+      },
+      "WebhookResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "received": {
+            "type": "boolean"
+          },
+          "event_id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "x-compliance-notice": "Funding options may vary. API responses must not be interpreted as approval, funding, rate, term, timeline, income, or commission guarantees."
+}
