@@ -1,0 +1,312 @@
+/*
+  Moonshine Partner Command Center
+  Batch 02 — Global Design System Tokens
+
+  Static-first CSS custom properties.
+  No framework dependency.
+*/
+
+:root {
+  color-scheme: dark;
+
+  /* Brand identity */
+  --brand-name: "Moonshine Partner Command Center";
+
+  /* Core palette */
+  --color-ink-950: #020617;
+  --color-ink-925: #050b16;
+  --color-ink-900: #07111f;
+  --color-ink-850: #0a1424;
+  --color-ink-800: #0b1728;
+  --color-ink-750: #0f1b2e;
+  --color-ink-700: #13233a;
+  --color-ink-650: #172a45;
+  --color-ink-600: #1e3354;
+
+  --color-slate-500: #64748b;
+  --color-slate-400: #94a3b8;
+  --color-slate-300: #cbd5e1;
+  --color-slate-200: #e2e8f0;
+  --color-slate-100: #f1f5f9;
+  --color-white: #ffffff;
+
+  --color-emerald-950: #022c22;
+  --color-emerald-900: #064e3b;
+  --color-emerald-800: #065f46;
+  --color-emerald-700: #047857;
+  --color-emerald-600: #059669;
+  --color-emerald-500: #10b981;
+  --color-emerald-400: #34d399;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-100: #d1fae5;
+
+  --color-amber-950: #451a03;
+  --color-amber-900: #78350f;
+  --color-amber-800: #92400e;
+  --color-amber-700: #b45309;
+  --color-amber-600: #d97706;
+  --color-amber-500: #f59e0b;
+  --color-amber-400: #fbbf24;
+  --color-amber-300: #fcd34d;
+  --color-amber-200: #fde68a;
+  --color-amber-100: #fef3c7;
+
+  --color-rose-600: #e11d48;
+  --color-rose-500: #f43f5e;
+  --color-rose-400: #fb7185;
+  --color-red-500: #ef4444;
+
+  --color-blue-500: #3b82f6;
+  --color-cyan-400: #22d3ee;
+  --color-violet-400: #a78bfa;
+
+  /* Semantic surfaces */
+  --page-bg: var(--color-ink-950);
+  --page-bg-soft: var(--color-ink-900);
+  --surface-1: rgba(15, 27, 46, 0.92);
+  --surface-2: rgba(19, 35, 58, 0.86);
+  --surface-3: rgba(30, 51, 84, 0.76);
+  --surface-raised: rgba(15, 23, 42, 0.94);
+  --surface-glass: rgba(15, 27, 46, 0.72);
+  --surface-muted: rgba(100, 116, 139, 0.12);
+
+  --border-subtle: rgba(148, 163, 184, 0.16);
+  --border-default: rgba(148, 163, 184, 0.24);
+  --border-strong: rgba(203, 213, 225, 0.34);
+  --border-emerald: rgba(52, 211, 153, 0.36);
+  --border-amber: rgba(245, 158, 11, 0.38);
+  --border-danger: rgba(251, 113, 133, 0.4);
+
+  /* Text */
+  --text-primary: #e5eefb;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --text-inverse: #03120d;
+  --text-emerald: #a7f3d0;
+  --text-amber: #fde68a;
+  --text-danger: #fecdd3;
+
+  /* Intent */
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --success-border: rgba(52, 211, 153, 0.36);
+  --success-text: #a7f3d0;
+
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-border: rgba(245, 158, 11, 0.38);
+  --warning-text: #fde68a;
+
+  --danger-bg: rgba(244, 63, 94, 0.12);
+  --danger-border: rgba(251, 113, 133, 0.38);
+  --danger-text: #fecdd3;
+
+  --info-bg: rgba(34, 211, 238, 0.12);
+  --info-border: rgba(34, 211, 238, 0.34);
+  --info-text: #cffafe;
+
+  /* Gradients */
+  --gradient-page:
+    radial-gradient(circle at top left, rgba(16, 185, 129, 0.16), transparent 34rem),
+    radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.12), transparent 32rem),
+    linear-gradient(135deg, var(--color-ink-950), var(--color-ink-900));
+
+  --gradient-hero:
+    radial-gradient(circle at 18% 20%, rgba(52, 211, 153, 0.22), transparent 28rem),
+    radial-gradient(circle at 86% 10%, rgba(245, 158, 11, 0.16), transparent 24rem),
+    linear-gradient(135deg, rgba(7, 17, 31, 0.98), rgba(11, 23, 40, 0.94));
+
+  --gradient-card:
+    linear-gradient(145deg, rgba(15, 27, 46, 0.96), rgba(8, 19, 34, 0.9));
+
+  --gradient-card-hover:
+    linear-gradient(145deg, rgba(19, 35, 58, 0.98), rgba(10, 20, 36, 0.94));
+
+  --gradient-primary:
+    linear-gradient(135deg, var(--color-emerald-400), var(--color-emerald-200));
+
+  --gradient-secondary:
+    linear-gradient(135deg, var(--color-amber-500), var(--color-amber-200));
+
+  --gradient-danger:
+    linear-gradient(135deg, var(--color-rose-500), var(--color-rose-400));
+
+  --gradient-border:
+    linear-gradient(135deg, rgba(52, 211, 153, 0.58), rgba(245, 158, 11, 0.42), rgba(148, 163, 184, 0.2));
+
+  /* Typography */
+  --font-sans:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  --font-mono:
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    monospace;
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-md: 1.0625rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: clamp(1.85rem, 4vw, 2.75rem);
+  --font-size-4xl: clamp(2.4rem, 6vw, 4.6rem);
+  --font-size-5xl: clamp(3rem, 8vw, 6.75rem);
+
+  --line-height-tight: 1.05;
+  --line-height-heading: 1.15;
+  --line-height-base: 1.6;
+  --line-height-loose: 1.78;
+
+  --letter-tight: -0.06em;
+  --letter-heading: -0.04em;
+  --letter-label: 0.08em;
+
+  /* Layout */
+  --container-xs: 42rem;
+  --container-sm: 58rem;
+  --container-md: 76rem;
+  --container-lg: 92rem;
+  --container-xl: 112rem;
+
+  --page-gutter: clamp(1rem, 3vw, 2rem);
+  --section-pad-y: clamp(3.5rem, 8vw, 7.5rem);
+  --section-pad-y-sm: clamp(2.25rem, 5vw, 4rem);
+
+  /* Spacing scale */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-14: 3.5rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* Radius */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.375rem;
+  --radius-2xl: 1.75rem;
+  --radius-3xl: 2.25rem;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.22);
+  --shadow-md: 0 18px 42px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 26px 70px rgba(0, 0, 0, 0.38);
+  --shadow-xl: 0 36px 110px rgba(0, 0, 0, 0.46);
+  --shadow-emerald: 0 18px 48px rgba(16, 185, 129, 0.24);
+  --shadow-amber: 0 18px 48px rgba(245, 158, 11, 0.18);
+
+  /* Motion */
+  --duration-fast: 140ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-lift: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Focus */
+  --focus-ring: 0 0 0 4px rgba(52, 211, 153, 0.24);
+  --focus-ring-amber: 0 0 0 4px rgba(245, 158, 11, 0.24);
+
+  /* Z-index */
+  --z-base: 1;
+  --z-sticky: 20;
+  --z-dropdown: 40;
+  --z-modal: 80;
+  --z-toast: 120;
+
+  /* Form controls */
+  --control-height: 2.875rem;
+  --control-height-lg: 3.25rem;
+  --control-bg: rgba(2, 6, 23, 0.42);
+  --control-border: rgba(148, 163, 184, 0.26);
+  --control-border-hover: rgba(203, 213, 225, 0.4);
+  --control-placeholder: rgba(148, 163, 184, 0.72);
+
+  /* Dashboard sizing */
+  --dashboard-sidebar-width: 18rem;
+  --dashboard-topbar-height: 4.5rem;
+  --dashboard-card-min: 17rem;
+}
+
+/* Optional light mode support for future theme toggle. Dark remains the premium default. */
+:root[data-theme="light"],
+[data-theme="light"] {
+  color-scheme: light;
+
+  --page-bg: #f6f8fb;
+  --page-bg-soft: #edf2f7;
+  --surface-1: rgba(255, 255, 255, 0.94);
+  --surface-2: rgba(248, 250, 252, 0.94);
+  --surface-3: rgba(241, 245, 249, 0.94);
+  --surface-raised: rgba(255, 255, 255, 0.98);
+  --surface-glass: rgba(255, 255, 255, 0.78);
+  --surface-muted: rgba(15, 23, 42, 0.06);
+
+  --border-subtle: rgba(15, 23, 42, 0.1);
+  --border-default: rgba(15, 23, 42, 0.16);
+  --border-strong: rgba(15, 23, 42, 0.24);
+
+  --text-primary: #08111f;
+  --text-secondary: #172033;
+  --text-muted: #475569;
+  --text-subtle: #64748b;
+  --text-inverse: #02110c;
+
+  --gradient-page:
+    radial-gradient(circle at top left, rgba(16, 185, 129, 0.16), transparent 34rem),
+    radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.14), transparent 32rem),
+    linear-gradient(135deg, #f8fafc, #edf2f7);
+
+  --gradient-hero:
+    radial-gradient(circle at 18% 20%, rgba(52, 211, 153, 0.2), transparent 28rem),
+    radial-gradient(circle at 86% 10%, rgba(245, 158, 11, 0.16), transparent 24rem),
+    linear-gradient(135deg, #f8fafc, #eef4f9);
+
+  --gradient-card:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.92));
+
+  --gradient-card-hover:
+    linear-gradient(145deg, #ffffff, #f1f5f9);
+
+  --control-bg: rgba(255, 255, 255, 0.86);
+  --control-border: rgba(15, 23, 42, 0.18);
+  --control-border-hover: rgba(15, 23, 42, 0.3);
+  --control-placeholder: rgba(71, 85, 105, 0.72);
+
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.08);
+  --shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.1);
+  --shadow-md: 0 18px 42px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 26px 70px rgba(15, 23, 42, 0.16);
+  --shadow-xl: 0 36px 110px rgba(15, 23, 42, 0.2);
+}
+
+/* Reduced motion should never punish the user for having a nervous system. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 1ms;
+    --duration-base: 1ms;
+    --duration-slow: 1ms;
+  }
+}
