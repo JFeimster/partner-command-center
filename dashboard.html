@@ -1,713 +1,486 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Moonshine Capital Partner Command Center</title>
-  <meta name="description" content="Static localStorage-powered partner dashboard for Moonshine Capital brokers, referral partners, and affiliate operators." />
-  <link rel="stylesheet" href="./dashboard.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Partner Dashboard | Moonshine Partner Command Center</title>
+  <meta name="description" content="Static partner dashboard demo for Moonshine Partner Command Center.">
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/components.css">
+  <link rel="stylesheet" href="./styles/utilities.css">
+  <link rel="stylesheet" href="./styles/dashboard-extensions.css">
+  <link rel="stylesheet" href="./dashboard.css">
 </head>
-<body>
-  <a class="skip-link" href="#mainContent">Skip to dashboard</a>
+<body class="dashboard-body">
+  <a class="skip-link" href="#dashboard-main">Skip to dashboard content</a>
 
-  <div class="app-shell">
-    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
-      <div class="brand-lockup" aria-label="Moonshine Capital">
-        <div class="brand-mark" aria-hidden="true">MC</div>
-        <div>
-          <p class="eyebrow">Moonshine Capital</p>
-          <h1>Command Center</h1>
-        </div>
-      </div>
+  <div class="dashboard-app" data-dashboard-root>
+    <aside class="dashboard-sidebar" aria-label="Dashboard navigation">
+      <a class="dashboard-brand" href="./index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="dashboard-brand-mark" aria-hidden="true">M</span>
+        <span>Partner Command</span>
+      </a>
 
-      <div class="partner-card">
-        <div class="avatar" aria-hidden="true" id="sidebarInitials">MP</div>
-        <div>
-          <strong id="sidebarName">Moonshine Partner</strong>
-          <span id="sidebarCompany">Partner Workspace</span>
-        </div>
-        <div class="badge-row">
-          <span class="badge badge-gold" id="sidebarPartnerType">Needs Setup</span>
-          <span class="badge badge-emerald" id="sidebarStatus">New</span>
-        </div>
-      </div>
-
-      <nav class="nav-list" aria-label="Dashboard sections">
-        <button class="nav-link active" type="button" data-view="overview">
-          <span aria-hidden="true">⌘</span> Dashboard
-        </button>
-        <button class="nav-link" type="button" data-view="onboarding">
-          <span aria-hidden="true">✓</span> Onboarding
-        </button>
-        <button class="nav-link" type="button" data-view="submit-lead">
-          <span aria-hidden="true">＋</span> Submit Lead
-        </button>
-        <button class="nav-link" type="button" data-view="lead-tracker">
-          <span aria-hidden="true">▦</span> Lead Tracker
-        </button>
-        <button class="nav-link" type="button" data-view="partner-links">
-          <span aria-hidden="true">↗</span> Partner Links
-        </button>
-        <button class="nav-link" type="button" data-view="training">
-          <span aria-hidden="true">▣</span> Training Hub
-        </button>
-        <button class="nav-link" type="button" data-view="commission">
-          <span aria-hidden="true">$</span> Commission Snapshot
-        </button>
-        <button class="nav-link" type="button" data-view="notes">
-          <span aria-hidden="true">✎</span> Notes
-        </button>
-        <button class="nav-link" type="button" data-view="settings">
-          <span aria-hidden="true">⚙</span> Settings
-        </button>
+      <nav class="dashboard-nav" data-dashboard-nav aria-label="Partner dashboard sections">
+        <a href="#overview">Overview</a>
+        <a href="#onboarding">Onboarding</a>
+        <a href="#submit-lead">Submit Lead</a>
+        <a href="#lead-tracker">Lead Tracker</a>
+        <a href="#marketplace">Marketplace</a>
+        <a href="#partner-links">Partner Links</a>
+        <a href="#resources">Resources</a>
+        <a href="#training">Training Hub</a>
+        <a href="#commissions">Commissions</a>
+        <a href="#partner-id">Partner ID</a>
+        <a href="#integrations">Integrations</a>
+        <a href="#notes">Notes</a>
+        <a href="#settings">Settings</a>
       </nav>
 
-      <div class="sidebar-footer">
-        <p>Static prototype. Data stays in this browser unless connected to secure infrastructure.</p>
+      <div class="dashboard-sidebar-footer">
+        <p class="dashboard-sidebar-note">
+          Static demo: localStorage only. No live CRM, lender system, underwriting, or payout engine.
+        </p>
+        <a class="mpc-button mpc-button-outline mpc-button-block" href="./partner-access.html">Edit Access Profile</a>
       </div>
     </aside>
 
-    <div class="mobile-scrim" id="mobileScrim" hidden></div>
-
-    <main class="main-panel" id="mainContent">
-      <header class="topbar">
-        <button class="icon-button mobile-menu" type="button" id="menuButton" aria-label="Open navigation" aria-expanded="false">
-          ☰
-        </button>
-
-        <div class="welcome-block">
-          <p class="eyebrow">Partner Ops Dashboard</p>
-          <h2 id="welcomeTitle">Welcome back, Partner</h2>
-          <p id="statusSummary">Select your partner path, complete setup, and start tracking capital opportunities.</p>
+    <main id="dashboard-main" class="dashboard-main">
+      <header class="dashboard-topbar">
+        <div>
+          <span class="mpc-kicker">Funding Partners OS</span>
+          <h1 class="dashboard-page-title">Partner Command Center</h1>
         </div>
-
-        <div class="topbar-actions">
-          <label class="search-wrap" for="globalSearch">
-            <span aria-hidden="true">⌕</span>
-            <input id="globalSearch" type="search" placeholder="Search leads, notes, links..." autocomplete="off" />
-          </label>
-          <button class="notification-button" type="button" aria-label="Notifications">
-            <span aria-hidden="true">●</span>
-            <strong id="notificationCount">3</strong>
-          </button>
-          <button class="button button-secondary" type="button" id="copyPrimaryLinkBtn">Copy Partner Link</button>
-          <button class="button button-primary" type="button" data-jump="submit-lead">Submit New Lead</button>
+        <div class="dashboard-topbar-actions">
+          <button class="mpc-button mpc-button-outline" type="button" data-export-dashboard>Export JSON</button>
+          <a class="mpc-button mpc-button-primary" href="./partner-access.html">Partner Access</a>
         </div>
       </header>
 
-      <section class="view active" id="overview" aria-labelledby="overviewTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Mission Control</p>
-            <h2 id="overviewTitle">Capital pipeline at a glance</h2>
-          </div>
-          <div class="section-actions">
-            <button class="button button-secondary" type="button" id="exportDataBtn">Export Local Data</button>
-            <label class="button button-ghost import-label" for="importDataInput">Import Data</label>
-            <input class="sr-only" type="file" id="importDataInput" accept="application/json" />
-          </div>
-        </div>
-
-        <div class="metrics-grid" id="metricsGrid" aria-label="Dashboard metrics">
-          <article class="metric-card">
-            <p>Leads Submitted</p>
-            <strong id="metricLeads">0</strong>
-            <span>Local pipeline volume</span>
-          </article>
-          <article class="metric-card">
-            <p>Leads In Review</p>
-            <strong id="metricReview">0</strong>
-            <span>Manual status tracking</span>
-          </article>
-          <article class="metric-card">
-            <p>Approved / Funded</p>
-            <strong id="metricFunded">0</strong>
-            <span>Closed capital outcomes</span>
-          </article>
-          <article class="metric-card gold">
-            <p>Estimated Commission</p>
-            <strong id="metricCommission">$0</strong>
-            <span>Personal estimate only</span>
-          </article>
-          <article class="metric-card">
-            <p>Onboarding Progress</p>
-            <strong id="metricProgress">0%</strong>
-            <span>Activation readiness</span>
-          </article>
-          <article class="metric-card">
-            <p>Active Partner Links</p>
-            <strong id="metricLinks">0</strong>
-            <span>Saved referral assets</span>
-          </article>
-        </div>
-
-        <div class="dashboard-grid">
-          <article class="card hero-card">
-            <div class="orb orb-one" aria-hidden="true"></div>
-            <div class="orb orb-two" aria-hidden="true"></div>
-            <p class="eyebrow">Partner Path</p>
-            <h3>Your Partner Path</h3>
-            <p class="muted">Choose the operating mode for this dashboard. The command center will adjust the recommended next actions, labels, and submission context.</p>
-
-            <div class="path-selector" id="pathSelector" role="radiogroup" aria-label="Partner path">
-              <button type="button" class="path-option" data-path="Direct Broker" role="radio" aria-checked="false">
-                <strong>Direct Broker</strong>
-                <span>Submit business funding leads directly through Moonshine Capital workflows.</span>
-              </button>
-              <button type="button" class="path-option" data-path="Affiliate Partner" role="radio" aria-checked="false">
-                <strong>Affiliate Partner</strong>
-                <span>Track indirect affiliate referrals, signup links, and external program activity.</span>
-              </button>
-              <button type="button" class="path-option" data-path="Hybrid Partner" role="radio" aria-checked="false">
-                <strong>Hybrid Partner</strong>
-                <span>Operate both direct lead submission and indirect affiliate referral lanes.</span>
-              </button>
+      <div class="dashboard-content">
+        <section id="overview" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Overview</span>
+              <h2>Partner operating snapshot</h2>
+              <p>Your local demo profile, partner pipeline, resource progress, and activity feed.</p>
             </div>
-          </article>
+          </div>
 
-          <article class="card next-actions-card">
-            <div class="card-header">
-              <div>
-                <p class="eyebrow">Next Best Actions</p>
-                <h3 id="nextActionsTitle">Activate your dashboard</h3>
+          <div class="dashboard-grid dashboard-overview-grid">
+            <div data-render-profile></div>
+            <div class="dashboard-card dashboard-card-pad">
+              <div class="dashboard-card-header">
+                <div>
+                  <h3 class="dashboard-card-title">Next actions</h3>
+                  <p class="dashboard-card-subtitle">The short list. No mystery meat.</p>
+                </div>
+                <span class="mpc-badge mpc-badge-success">Live local</span>
               </div>
-              <span class="badge badge-blue" id="partnerPathBadge">Unselected</span>
+              <div data-render-next-actions></div>
             </div>
-            <ul class="action-list" id="nextActionsList"></ul>
-          </article>
+          </div>
 
-          <article class="card">
-            <div class="card-header">
-              <div>
-                <p class="eyebrow">Onboarding</p>
-                <h3>Setup progress</h3>
+          <div class="dashboard-grid dashboard-grid-metrics" data-render-metrics></div>
+
+          <div class="dashboard-grid dashboard-grid-2">
+            <article class="dashboard-card dashboard-card-pad">
+              <div class="dashboard-card-header">
+                <div>
+                  <h3 class="dashboard-card-title">Recent activity</h3>
+                  <p class="dashboard-card-subtitle">Local browser activity feed.</p>
+                </div>
               </div>
-              <strong id="overviewProgressLabel">0%</strong>
-            </div>
-            <div class="progress-track" aria-label="Onboarding progress">
-              <div class="progress-fill" id="overviewProgressFill"></div>
-            </div>
-            <p class="muted">Finish the core steps before moving serious lead flow through the dashboard.</p>
-            <button class="button button-secondary full-width" type="button" data-jump="onboarding">Complete Onboarding</button>
-          </article>
+              <div data-render-events></div>
+            </article>
 
-          <article class="card activity-card">
-            <div class="card-header">
-              <div>
-                <p class="eyebrow">Activity Feed</p>
-                <h3>Recent movement</h3>
+            <article class="dashboard-card dashboard-card-pad">
+              <div class="dashboard-card-header">
+                <div>
+                  <h3 class="dashboard-card-title">Compliance reminder</h3>
+                  <p class="dashboard-card-subtitle">Keep the growth machine clean.</p>
+                </div>
+                <a class="mpc-button mpc-button-outline mpc-button-sm" href="./compliance.html">Rules</a>
               </div>
-              <span class="badge badge-emerald">Live Local</span>
-            </div>
-            <ul class="activity-list" id="activityList"></ul>
-          </article>
-        </div>
-      </section>
-
-      <section class="view" id="onboarding" aria-labelledby="onboardingTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Activation</p>
-            <h2 id="onboardingTitle">Onboarding checklist</h2>
-            <p>Save your profile, select a partner path, add links, and review compliance guidance before pushing lead volume.</p>
-          </div>
-        </div>
-
-        <div class="split-grid">
-          <article class="card">
-            <div class="card-header">
-              <div>
-                <p class="eyebrow">Checklist</p>
-                <h3>Partner readiness</h3>
+              <div class="mpc-disclaimer" data-compliance-notice>
+                Funding options may vary. Do not promise approval, funding, rates, terms, timelines, income, or commissions.
               </div>
-              <strong id="checklistPercentLabel">0%</strong>
+            </article>
+          </div>
+        </section>
+
+        <section id="onboarding" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Onboarding</span>
+              <h2>Partner setup checklist</h2>
+              <p>Turn “I signed up” into “I know what to do next.”</p>
             </div>
-            <div class="progress-track">
-              <div class="progress-fill" id="checklistProgressFill"></div>
+          </div>
+          <div class="dashboard-card dashboard-card-pad">
+            <div class="dashboard-progress" aria-label="Onboarding progress">
+              <span data-onboarding-progress style="--progress: 0%"></span>
             </div>
-            <div class="checklist" id="checklistContainer"></div>
-          </article>
+            <div class="dashboard-checklist mt-6" data-render-onboarding></div>
+          </div>
+        </section>
 
-          <article class="card compliance-card">
-            <p class="eyebrow">Guardrails</p>
-            <h3>Responsible partner language</h3>
-            <p>Use capital-focused positioning without making promises. Avoid guaranteed approval, guaranteed funding, guaranteed commissions, or fixed income claims.</p>
-            <div class="callout">
-              <strong>Local data warning</strong>
-              <p>Data entered into this version is stored locally in this browser. Do not enter sensitive personal information unless the tool is connected to a secure backend and appropriate safeguards.</p>
+        <section id="submit-lead" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Submit Lead</span>
+              <h2>Create a demo referral record</h2>
+              <p>Use clean business basics only. Do not enter sensitive borrower, bank, tax, credential, or document data.</p>
             </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="view" id="submit-lead" aria-labelledby="submitLeadTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Pipeline Intake</p>
-            <h2 id="submitLeadTitle">Submit a business funding lead</h2>
-            <p>Local prototype only. Use sample or non-sensitive details until a secure backend is connected.</p>
-          </div>
-        </div>
-
-        <form class="card form-grid" id="leadForm">
-          <div class="form-field">
-            <label for="ownerName">Business owner name</label>
-            <input id="ownerName" name="ownerName" type="text" placeholder="Jordan Smith" required />
-          </div>
-          <div class="form-field">
-            <label for="businessName">Business name</label>
-            <input id="businessName" name="businessName" type="text" placeholder="Smith Logistics LLC" required />
-          </div>
-          <div class="form-field">
-            <label for="leadPhone">Phone</label>
-            <input id="leadPhone" name="phone" type="tel" placeholder="(555) 555-0100" />
-          </div>
-          <div class="form-field">
-            <label for="leadEmail">Email</label>
-            <input id="leadEmail" name="email" type="email" placeholder="owner@example.com" />
-          </div>
-          <div class="form-field">
-            <label for="industry">Industry</label>
-            <input id="industry" name="industry" type="text" placeholder="Trucking, retail, restaurant..." />
-          </div>
-          <div class="form-field">
-            <label for="revenueRange">Monthly revenue range</label>
-            <select id="revenueRange" name="revenueRange">
-              <option value="">Select range</option>
-              <option>$5k - $15k</option>
-              <option>$15k - $50k</option>
-              <option>$50k - $100k</option>
-              <option>$100k - $250k</option>
-              <option>$250k+</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="timeInBusiness">Time in business</label>
-            <select id="timeInBusiness" name="timeInBusiness">
-              <option value="">Select time</option>
-              <option>Under 6 months</option>
-              <option>6 - 12 months</option>
-              <option>1 - 2 years</option>
-              <option>2 - 5 years</option>
-              <option>5+ years</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="fundingAmount">Funding amount requested</label>
-            <input id="fundingAmount" name="fundingAmount" type="number" min="0" step="500" placeholder="50000" />
-          </div>
-          <div class="form-field">
-            <label for="fundingPurpose">Funding purpose</label>
-            <input id="fundingPurpose" name="fundingPurpose" type="text" placeholder="Working capital, equipment, expansion..." />
-          </div>
-          <div class="form-field">
-            <label for="creditProfile">Credit profile estimate</label>
-            <select id="creditProfile" name="creditProfile">
-              <option value="">Select estimate</option>
-              <option>Excellent</option>
-              <option>Good</option>
-              <option>Fair</option>
-              <option>Challenged</option>
-              <option>Unknown</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="existingDebt">Existing debt / advances</label>
-            <input id="existingDebt" name="existingDebt" type="text" placeholder="None, one MCA, SBA loan..." />
-          </div>
-          <div class="form-field">
-            <label for="urgency">Urgency level</label>
-            <select id="urgency" name="urgency">
-              <option>Normal</option>
-              <option>High</option>
-              <option>Immediate</option>
-              <option>Follow-up later</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="leadSource">Lead source</label>
-            <input id="leadSource" name="leadSource" type="text" placeholder="Referral, cold outreach, affiliate link..." />
-          </div>
-          <div class="form-field">
-            <label for="leadPartnerPath">Partner path</label>
-            <select id="leadPartnerPath" name="partnerPath">
-              <option>Direct Broker</option>
-              <option>Affiliate Partner</option>
-              <option>Hybrid Partner</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="leadStatus">Status</label>
-            <select id="leadStatus" name="status">
-              <option>New</option>
-              <option>Contacted</option>
-              <option>In Review</option>
-              <option>Submitted</option>
-              <option>Approved</option>
-              <option>Funded</option>
-              <option>Declined</option>
-              <option>Follow-Up Needed</option>
-            </select>
-          </div>
-          <div class="form-field full">
-            <label for="leadNotes">Notes</label>
-            <textarea id="leadNotes" name="notes" rows="4" placeholder="Context, next step, documents needed..."></textarea>
           </div>
 
-          <div class="form-actions full">
-            <p class="helper-text">Submitted lead data is stored locally in this browser only.</p>
-            <button class="button button-primary" type="submit">Save Lead Locally</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="view" id="lead-tracker" aria-labelledby="leadTrackerTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">CRM Lite</p>
-            <h2 id="leadTrackerTitle">Lead tracker</h2>
-            <p>Search, filter, update, and delete locally saved opportunities.</p>
-          </div>
-          <div class="section-actions">
-            <input class="compact-input" id="leadSearch" type="search" placeholder="Search lead table" />
-            <select class="compact-input" id="statusFilter" aria-label="Filter by status">
-              <option value="">All statuses</option>
-              <option>New</option>
-              <option>Contacted</option>
-              <option>In Review</option>
-              <option>Submitted</option>
-              <option>Approved</option>
-              <option>Funded</option>
-              <option>Declined</option>
-              <option>Follow-Up Needed</option>
-            </select>
-          </div>
-        </div>
-
-        <article class="card table-card">
-          <div class="table-wrap">
-            <table>
-              <caption class="sr-only">Locally stored business funding leads</caption>
-              <thead>
-                <tr>
-                  <th>Business</th>
-                  <th>Contact</th>
-                  <th>Funding</th>
-                  <th>Status</th>
-                  <th>Source</th>
-                  <th>Date Added</th>
-                  <th>Next Step</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="leadTableBody"></tbody>
-            </table>
-          </div>
-          <div class="empty-state" id="leadEmptyState" hidden>
-            <strong>No leads yet.</strong>
-            <p>Submit your first test lead to activate the tracker.</p>
-            <button class="button button-secondary" type="button" data-jump="submit-lead">Submit Lead</button>
-          </div>
-        </article>
-      </section>
-
-      <section class="view" id="partner-links" aria-labelledby="partnerLinksTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Referral Assets</p>
-            <h2 id="partnerLinksTitle">Partner links center</h2>
-            <p>Save important Moonshine, affiliate, calendar, community, and training links.</p>
-          </div>
-        </div>
-
-        <div class="split-grid">
-          <form class="card form-stack" id="linkForm">
-            <p class="eyebrow">Add Link</p>
-            <h3>Store a partner asset</h3>
-            <div class="form-field">
-              <label for="linkTitle">Link title</label>
-              <input id="linkTitle" name="title" type="text" placeholder="DAC affiliate signup" required />
-            </div>
-            <div class="form-field">
-              <label for="linkUrl">URL</label>
-              <input id="linkUrl" name="url" type="url" placeholder="https://example.com/signup" required />
-            </div>
-            <div class="form-field">
-              <label for="linkCategory">Category</label>
-              <select id="linkCategory" name="category">
-                <option>Moonshine Capital broker resources</option>
-                <option>Lead submission link</option>
-                <option>DAC affiliate signup link</option>
-                <option>Calendar booking link</option>
-                <option>Training video links</option>
-                <option>Partner community link</option>
-                <option>Downloadable resources</option>
-                <option>Custom</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label for="linkNotes">Notes</label>
-              <textarea id="linkNotes" name="notes" rows="4" placeholder="Who this link is for, when to use it..."></textarea>
-            </div>
-            <button class="button button-primary" type="submit">Save Link</button>
-            <p class="helper-text">Some links may be affiliate or referral links. Partner participation, approval, payouts, and program terms may vary by provider.</p>
-          </form>
-
-          <article class="card">
-            <div class="card-header">
-              <div>
-                <p class="eyebrow">Saved Links</p>
-                <h3>Quick access</h3>
+          <form class="dashboard-card dashboard-card-pad dashboard-form" data-lead-form novalidate>
+            <div class="dashboard-form-row">
+              <div class="mpc-field">
+                <label for="businessName">Business name *</label>
+                <input id="businessName" name="businessName" type="text" required placeholder="Example: Harbor Street HVAC">
               </div>
-              <span class="badge badge-gold" id="linkCountBadge">0 links</span>
-            </div>
-            <div class="link-list" id="linksList"></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="view" id="training" aria-labelledby="trainingTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Enablement</p>
-            <h2 id="trainingTitle">Training hub</h2>
-            <p>Track broker basics, compliance, funding products, follow-up scripts, and affiliate setup.</p>
-          </div>
-        </div>
-        <div class="training-grid" id="trainingGrid"></div>
-      </section>
-
-      <section class="view" id="commission" aria-labelledby="commissionTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Personal Tracking</p>
-            <h2 id="commissionTitle">Commission snapshot</h2>
-            <p>Use this area for your own estimates only. Final payouts and terms may vary.</p>
-          </div>
-        </div>
-
-        <div class="split-grid">
-          <article class="card form-stack">
-            <p class="eyebrow">Estimate Inputs</p>
-            <h3>Update commission placeholders</h3>
-            <div class="form-field">
-              <label for="pendingCommission">Estimated pending commissions</label>
-              <input id="pendingCommission" type="number" min="0" step="100" placeholder="2500" />
-            </div>
-            <div class="form-field">
-              <label for="closedDeals">Closed deals</label>
-              <input id="closedDeals" type="number" min="0" step="1" placeholder="2" />
-            </div>
-            <div class="form-field">
-              <label for="referralSignups">Referral signups</label>
-              <input id="referralSignups" type="number" min="0" step="1" placeholder="8" />
-            </div>
-            <button class="button button-primary" id="saveCommissionBtn" type="button">Save Snapshot</button>
-            <p class="helper-text">Estimated values are for personal tracking only and may not reflect final payout, approval, or partner program terms.</p>
-          </article>
-
-          <article class="card">
-            <div class="card-header">
-              <div>
-                <p class="eyebrow">Monthly Activity</p>
-                <h3>Pipeline pulse</h3>
+              <div class="mpc-field">
+                <label for="contactName">Contact name *</label>
+                <input id="contactName" name="contactName" type="text" required placeholder="Owner or decision maker">
               </div>
-              <span class="badge badge-blue">Static Chart</span>
-            </div>
-            <div class="bar-chart" id="activityChart" aria-label="Monthly activity placeholder chart"></div>
-            <div class="commission-kpis">
-              <div>
-                <span>Pending</span>
-                <strong id="commissionPendingLabel">$0</strong>
+              <div class="mpc-field">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" placeholder="owner@example.com">
               </div>
-              <div>
-                <span>Closed Deals</span>
-                <strong id="closedDealsLabel">0</strong>
+              <div class="mpc-field">
+                <label for="phone">Phone</label>
+                <input id="phone" name="phone" type="tel" placeholder="(555) 010-0000">
               </div>
-              <div>
-                <span>Referral Signups</span>
-                <strong id="referralSignupsLabel">0</strong>
+              <div class="mpc-field">
+                <label for="industry">Industry</label>
+                <input id="industry" name="industry" type="text" placeholder="Contractor, trucking, restaurant, ecommerce...">
+              </div>
+              <div class="mpc-field">
+                <label for="timeInBusiness">Time in business</label>
+                <input id="timeInBusiness" name="timeInBusiness" type="text" placeholder="2 years">
+              </div>
+              <div class="mpc-field">
+                <label for="monthlyRevenue">Monthly revenue estimate</label>
+                <input id="monthlyRevenue" name="monthlyRevenue" type="text" inputmode="decimal" placeholder="$50,000">
+              </div>
+              <div class="mpc-field">
+                <label for="fundingNeed">Funding need estimate</label>
+                <input id="fundingNeed" name="fundingNeed" type="text" inputmode="decimal" placeholder="$75,000">
+              </div>
+              <div class="mpc-field">
+                <label for="urgency">Urgency</label>
+                <select id="urgency" name="urgency">
+                  <option value="">Choose timing</option>
+                  <option>Immediate</option>
+                  <option>2 weeks</option>
+                  <option>30 days</option>
+                  <option>60–90 days</option>
+                  <option>Planning ahead</option>
+                </select>
+              </div>
+              <div class="mpc-field">
+                <label for="source">Source</label>
+                <select id="source" name="source">
+                  <option>Dashboard demo</option>
+                  <option>Warm referral</option>
+                  <option>Partner link</option>
+                  <option>Website widget</option>
+                  <option>Affiliate content</option>
+                  <option>COI intro</option>
+                </select>
               </div>
             </div>
-          </article>
-        </div>
-      </section>
 
-      <section class="view" id="notes" aria-labelledby="notesTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">CRM Notes</p>
-            <h2 id="notesTitle">Notes and follow-ups</h2>
-            <p>Track prospect context, referral sources, training takeaways, and questions for Moonshine Capital.</p>
-          </div>
-        </div>
+            <div class="mpc-field">
+              <label for="useOfFunds">Use of funds</label>
+              <textarea id="useOfFunds" name="useOfFunds" placeholder="Inventory, equipment, payroll bridge, marketing, expansion, receivables gap..."></textarea>
+            </div>
 
-        <div class="split-grid">
-          <form class="card form-stack" id="noteForm">
-            <p class="eyebrow">Add Note</p>
-            <h3>Capture context</h3>
-            <div class="form-field">
-              <label for="noteTitle">Title</label>
-              <input id="noteTitle" name="title" type="text" placeholder="Restaurant owner follow-up" required />
+            <div class="mpc-field">
+              <label for="notes">Partner notes</label>
+              <textarea id="notes" name="notes" placeholder="Context, next step, documents to request. No sensitive private records."></textarea>
             </div>
-            <div class="form-field">
-              <label for="noteTag">Tag</label>
-              <select id="noteTag" name="tag">
-                <option>Prospect</option>
-                <option>Referral Source</option>
-                <option>Follow-Up</option>
-                <option>Training</option>
-                <option>Question</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label for="noteBody">Note</label>
-              <textarea id="noteBody" name="body" rows="6" placeholder="Write the next action, objection, or reminder..." required></textarea>
-            </div>
-            <button class="button button-primary" type="submit">Save Note</button>
-          </form>
 
-          <article class="card">
-            <div class="card-header">
-              <div>
-                <p class="eyebrow">Saved Notes</p>
-                <h3>Local knowledge base</h3>
-              </div>
-              <input class="compact-input" id="notesSearch" type="search" placeholder="Search notes" />
+            <div class="mpc-disclaimer">
+              Demo lead records are stored locally in your browser. This does not create a live application, underwriting review, funding decision, CRM record, or commission event.
             </div>
-            <div class="notes-list" id="notesList"></div>
-          </article>
-        </div>
-      </section>
 
-      <section class="view" id="settings" aria-labelledby="settingsTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Workspace</p>
-            <h2 id="settingsTitle">Settings and profile</h2>
-            <p>Personalize the dashboard labels, partner link, contact details, and theme preference.</p>
-          </div>
-        </div>
-
-        <div class="split-grid">
-          <form class="card form-grid" id="profileForm">
-            <div class="form-field">
-              <label for="profileName">Name</label>
-              <input id="profileName" name="name" type="text" placeholder="Moonshine Partner" />
-            </div>
-            <div class="form-field">
-              <label for="profileEmail">Email</label>
-              <input id="profileEmail" name="email" type="email" placeholder="partner@example.com" />
-            </div>
-            <div class="form-field">
-              <label for="profilePhone">Phone</label>
-              <input id="profilePhone" name="phone" type="tel" placeholder="(555) 555-0100" />
-            </div>
-            <div class="form-field">
-              <label for="profileCompany">Company name</label>
-              <input id="profileCompany" name="company" type="text" placeholder="Partner Growth Co." />
-            </div>
-            <div class="form-field">
-              <label for="profilePartnerType">Partner type</label>
-              <select id="profilePartnerType" name="partnerType">
-                <option>Direct Broker</option>
-                <option>Affiliate Partner</option>
-                <option>Hybrid Partner</option>
-                <option>Needs Setup</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label for="profileStatus">Status</label>
-              <select id="profileStatus" name="status">
-                <option>New</option>
-                <option>Active</option>
-                <option>Training</option>
-                <option>Needs Setup</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label for="calendarLink">Calendar link</label>
-              <input id="calendarLink" name="calendarLink" type="url" placeholder="https://calendly.com/..." />
-            </div>
-            <div class="form-field">
-              <label for="primaryLink">Primary affiliate/referral link</label>
-              <input id="primaryLink" name="primaryLink" type="url" placeholder="https://example.com/ref/..." />
-            </div>
-            <div class="form-field">
-              <label for="preferredCta">Preferred CTA label</label>
-              <input id="preferredCta" name="preferredCta" type="text" placeholder="Book Strategy Call" />
-            </div>
-            <div class="form-field">
-              <label for="themePreference">Theme preference</label>
-              <select id="themePreference" name="theme">
-                <option value="dark">Dark command center</option>
-                <option value="light">Light operator mode</option>
-              </select>
-            </div>
-            <div class="form-actions full">
-              <button class="button button-primary" type="submit">Save Profile</button>
-              <button class="button button-danger" id="resetDashboardBtn" type="button">Reset Local Dashboard</button>
+            <div class="mpc-actions">
+              <button class="mpc-button mpc-button-primary" type="submit">Save Demo Lead</button>
+              <button class="mpc-button mpc-button-outline" type="button" data-fill-demo-lead>Fill Demo Lead</button>
+              <button class="mpc-button mpc-button-ghost" type="reset">Reset</button>
             </div>
           </form>
+        </section>
 
-          <article class="card compliance-card">
-            <p class="eyebrow">Disclosure</p>
-            <h3>Important disclaimer</h3>
-            <p>Moonshine Capital Partner Command Center is an internal tracking and onboarding tool. It does not guarantee loan approval, funding, commissions, partner acceptance, or specific financial outcomes. Funding decisions, program terms, partner payouts, and approvals may vary by lender, provider, affiliate program, and applicant qualifications. This dashboard is for educational, organizational, and tracking purposes only and is not legal, tax, credit, or financial advice.</p>
-            <div class="callout">
-              <strong>Prototype storage</strong>
-              <p>Data entered into this version is stored locally in this browser. Do not enter sensitive personal information unless connected to a secure backend.</p>
+        <section id="lead-tracker" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Lead Tracker</span>
+              <h2>Demo pipeline records</h2>
+              <p>Review, update, and remove local demo leads. These are not lender statuses.</p>
             </div>
-          </article>
-        </div>
-      </section>
+            <div class="dashboard-topbar-actions">
+              <select data-lead-filter aria-label="Filter leads by status">
+                <option value="all">All statuses</option>
+                <option value="new">New</option>
+                <option value="reviewing">Reviewing</option>
+                <option value="needsInfo">Needs Info</option>
+                <option value="submitted">Submitted</option>
+                <option value="funded">Funded</option>
+                <option value="declined">Declined</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+          </div>
+          <div class="dashboard-grid" data-render-leads></div>
+        </section>
 
-      <footer class="dashboard-footer">
-        <p>Moonshine Capital Partner Command Center is a static prototype for partner organization, onboarding, and local tracking. No backend, authentication, lender approval, or payout verification is included.</p>
-      </footer>
+        <section id="marketplace" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Marketplace</span>
+              <h2>Partner offer shelf</h2>
+              <p>Save offers, copy partner links, and review compliance notes before promotion.</p>
+            </div>
+            <a class="mpc-button mpc-button-outline" href="./marketplace.html">Public Marketplace</a>
+          </div>
+          <div class="dashboard-grid" data-render-marketplace></div>
+        </section>
+
+        <section id="partner-links" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Partner Links</span>
+              <h2>Build attribution-ready links</h2>
+              <p>Generate local demo links with partner ID, source, channel, and campaign parameters.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-grid dashboard-grid-2">
+            <form class="dashboard-card dashboard-card-pad dashboard-form" data-link-builder-form>
+              <div class="mpc-field">
+                <label for="linkDestination">Destination</label>
+                <select id="linkDestination" name="destination">
+                  <option value="./index.html">Homepage</option>
+                  <option value="./partner-access.html">Partner Access</option>
+                  <option value="./marketplace.html">Marketplace</option>
+                  <option value="./resources.html">Resources</option>
+                  <option value="./tools/funding-readiness-checklist.html">Funding Readiness Checklist</option>
+                </select>
+              </div>
+              <div class="dashboard-form-row">
+                <div class="mpc-field">
+                  <label for="linkSource">Source</label>
+                  <input id="linkSource" name="source" type="text" value="dashboard">
+                </div>
+                <div class="mpc-field">
+                  <label for="linkCampaign">Campaign</label>
+                  <input id="linkCampaign" name="campaign" type="text" placeholder="q3_partner_push">
+                </div>
+              </div>
+              <button class="mpc-button mpc-button-primary" type="submit">Build Link</button>
+              <div class="dashboard-copy-row">
+                <input type="text" data-built-link readonly aria-label="Generated partner link">
+                <button class="mpc-button mpc-button-outline" type="button" data-copy-built-link>Copy</button>
+              </div>
+            </form>
+
+            <div data-render-partner-links></div>
+          </div>
+        </section>
+
+        <section id="resources" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Resources</span>
+              <h2>Partner enablement library</h2>
+              <p>Save scripts, checklists, templates, and blueprints for your partner motion.</p>
+            </div>
+            <a class="mpc-button mpc-button-outline" href="./resources.html">Public Resources</a>
+          </div>
+          <div class="dashboard-grid" data-render-resources></div>
+        </section>
+
+        <section id="training" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Training Hub</span>
+              <h2>Training checklist</h2>
+              <p>Track local progress through partner orientation, compliance, intake, links, and integration basics.</p>
+            </div>
+          </div>
+          <div class="dashboard-grid" data-render-training></div>
+        </section>
+
+        <section id="commissions" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Commission Snapshot</span>
+              <h2>Educational payout examples</h2>
+              <p>Fictional examples only. This is not a payable balance, earnings statement, or promise.</p>
+            </div>
+            <a class="mpc-button mpc-button-outline" href="./tools/commission-simulator.html">Open Simulator</a>
+          </div>
+          <div data-render-commissions></div>
+        </section>
+
+        <section id="partner-id" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Partner ID</span>
+              <h2>Local partner identity</h2>
+              <p>Your demo partner ID powers local attribution links. Future production needs real partner authentication.</p>
+            </div>
+          </div>
+          <div class="dashboard-grid dashboard-grid-2">
+            <div class="dashboard-card dashboard-card-pad" data-render-partner-id></div>
+            <form class="dashboard-card dashboard-card-pad dashboard-form" data-profile-form>
+              <h3 class="dashboard-card-title">Update profile</h3>
+              <div class="dashboard-form-row">
+                <div class="mpc-field">
+                  <label for="profileName">Name</label>
+                  <input id="profileName" name="contactName" type="text">
+                </div>
+                <div class="mpc-field">
+                  <label for="profileCompany">Company</label>
+                  <input id="profileCompany" name="company" type="text">
+                </div>
+                <div class="mpc-field">
+                  <label for="profileType">Partner type</label>
+                  <select id="profileType" name="partnerType">
+                    <option value="funding-broker">Funding Broker</option>
+                    <option value="referral-partner">Referral Partner</option>
+                    <option value="affiliate-partner">Affiliate Partner</option>
+                    <option value="center-of-influence">Center of Influence</option>
+                    <option value="operator">Moonshine Operator</option>
+                  </select>
+                </div>
+                <div class="mpc-field">
+                  <label for="profileAudience">Audience</label>
+                  <input id="profileAudience" name="primaryAudience" type="text">
+                </div>
+              </div>
+              <button class="mpc-button mpc-button-primary" type="submit">Save Profile</button>
+            </form>
+          </div>
+        </section>
+
+        <section id="integrations" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Integrations</span>
+              <h2>Future connection map</h2>
+              <p>Tally, CRM, widgets, GPT schemas, webhooks, and API examples. Blueprints only until wired.</p>
+            </div>
+            <a class="mpc-button mpc-button-outline" href="./developers/index.html">Developer Docs</a>
+          </div>
+          <div class="dashboard-grid" data-render-integrations></div>
+        </section>
+
+        <section id="notes" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Notes / CRM Lite</span>
+              <h2>Local follow-up notes</h2>
+              <p>Keep lightweight context in browser storage. Not a CRM, not secure recordkeeping.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-grid dashboard-grid-2">
+            <form class="dashboard-card dashboard-card-pad dashboard-form" data-note-form>
+              <div class="mpc-field">
+                <label for="noteTitle">Note title</label>
+                <input id="noteTitle" name="title" type="text" placeholder="Follow up with HVAC lead">
+              </div>
+              <div class="mpc-field">
+                <label for="noteRelatedTo">Related to</label>
+                <input id="noteRelatedTo" name="relatedTo" type="text" placeholder="Lead, partner, resource, or campaign">
+              </div>
+              <div class="mpc-field">
+                <label for="noteBody">Note</label>
+                <textarea id="noteBody" name="body" placeholder="Keep it useful. Keep it non-sensitive."></textarea>
+              </div>
+              <button class="mpc-button mpc-button-primary" type="submit">Save Note</button>
+            </form>
+
+            <div class="dashboard-card dashboard-card-pad">
+              <h3 class="dashboard-card-title">Saved notes</h3>
+              <div class="mt-5 stack" data-render-notes></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="settings" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header">
+            <div>
+              <span class="mpc-eyebrow">Settings</span>
+              <h2>Local demo controls</h2>
+              <p>Theme, import/export, reset, seed data, and browser-only state management.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-grid dashboard-grid-2">
+            <article class="dashboard-card dashboard-card-pad dashboard-form">
+              <h3 class="dashboard-card-title">Appearance</h3>
+              <div class="mpc-field">
+                <label for="themeSelect">Theme</label>
+                <select id="themeSelect" data-theme-select>
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                </select>
+              </div>
+              <div class="mpc-disclaimer">
+                Theme preference is stored locally in your browser.
+              </div>
+            </article>
+
+            <article class="dashboard-card dashboard-card-pad dashboard-form">
+              <h3 class="dashboard-card-title">Data controls</h3>
+              <div class="mpc-actions">
+                <button class="mpc-button mpc-button-primary" type="button" data-export-dashboard>Export Dashboard JSON</button>
+                <label class="mpc-button mpc-button-outline" for="importDashboard">Import JSON</label>
+                <input class="sr-only" id="importDashboard" type="file" accept="application/json,.json" data-import-dashboard>
+                <button class="mpc-button mpc-button-danger" type="button" data-reset-dashboard>Reset Local Demo</button>
+              </div>
+              <div class="mpc-disclaimer">
+                Exported files are demo data only. Do not treat them as CRM records, funding applications, or commission reports.
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
     </main>
   </div>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./data/compliance-copy.js"></script>
+  <script src="./data/partner-paths.js"></script>
+  <script src="./data/dashboard-nav.js"></script>
+  <script src="./data/marketplace-offers.js"></script>
+  <script src="./data/resources.js"></script>
+  <script src="./data/training-modules.js"></script>
+  <script src="./data/sample-leads.js"></script>
+  <script src="./data/sample-partners.js"></script>
+  <script src="./data/sample-commissions.js"></script>
+  <script src="./data/sample-events.js"></script>
 
-  <dialog class="edit-dialog" id="leadDialog" aria-labelledby="leadDialogTitle">
-    <form method="dialog" class="dialog-card" id="leadEditForm">
-      <div class="card-header">
-        <div>
-          <p class="eyebrow">Lead Detail</p>
-          <h3 id="leadDialogTitle">Update lead</h3>
-        </div>
-        <button class="icon-button" type="button" id="closeLeadDialog" aria-label="Close lead dialog">×</button>
-      </div>
-      <input type="hidden" id="editLeadId" />
-      <div class="form-field">
-        <label for="editLeadStatus">Status</label>
-        <select id="editLeadStatus">
-          <option>New</option>
-          <option>Contacted</option>
-          <option>In Review</option>
-          <option>Submitted</option>
-          <option>Approved</option>
-          <option>Funded</option>
-          <option>Declined</option>
-          <option>Follow-Up Needed</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label for="editLeadNextStep">Next step</label>
-        <input id="editLeadNextStep" type="text" placeholder="Request statements, follow up Friday..." />
-      </div>
-      <div class="form-field">
-        <label for="editLeadNote">Add note</label>
-        <textarea id="editLeadNote" rows="4" placeholder="Additional context"></textarea>
-      </div>
-      <div class="form-actions">
-        <button class="button button-secondary" value="cancel" type="button" id="cancelLeadEdit">Cancel</button>
-        <button class="button button-primary" value="default" type="submit">Save Updates</button>
-      </div>
-    </form>
-  </dialog>
+  <script src="./scripts/config.js"></script>
+  <script src="./scripts/storage.js"></script>
+  <script src="./scripts/ui-utils.js"></script>
+  <script src="./scripts/form-utils.js"></script>
+  <script src="./scripts/route-utils.js"></script>
+  <script src="./scripts/affiliate-tracking.js"></script>
+  <script src="./scripts/analytics-lite.js"></script>
 
+  <script src="./dashboard/dashboard-config.js"></script>
+  <script src="./dashboard/dashboard-seed-data.js"></script>
+  <script src="./dashboard/dashboard-state.js"></script>
+  <script src="./dashboard/partner-store.js"></script>
+  <script src="./dashboard/lead-store.js"></script>
+  <script src="./dashboard/resource-store.js"></script>
+  <script src="./dashboard/affiliate-store.js"></script>
+  <script src="./dashboard/dashboard-renderers.js"></script>
   <script src="./dashboard.js"></script>
 </body>
 </html>
