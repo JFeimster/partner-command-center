@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Static partner program and dashboard demo.
+# API, webhook, and admin routes are documentation/prototype areas until a backend is connected.
+Disallow: /api/
+Disallow: /admin/
+
+Sitemap: https://partner-command-center.vercel.app/sitemap.xml
