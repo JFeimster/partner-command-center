@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Partner Resources | Moonshine Partner Command Center</title>
+  <meta name="description" content="Browse funding partner resources, scripts, checklists, templates, compliance guides, and integration blueprints.">
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/public.css">
+  <link rel="stylesheet" href="./styles/utilities.css">
+</head>
+<body class="public-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="public-header">
+    <div class="public-shell public-header-inner">
+      <a class="public-logo" href="./index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="public-logo-mark" aria-hidden="true">M</span>
+        <span>Moonshine Partner Command Center</span>
+      </a>
+
+      <nav class="public-nav" data-nav aria-label="Primary navigation">
+        <a href="./index.html">Home</a>
+        <a href="./marketplace.html">Marketplace</a>
+        <a href="./resources.html">Resources</a>
+        <a href="./pricing.html">Pricing</a>
+        <a href="./about.html">About</a>
+      </nav>
+
+      <div class="public-header-actions">
+        <a class="mpc-button mpc-button-outline mpc-button-sm" href="./dashboard.html" data-track="cta_dashboard_header">View Dashboard</a>
+        <a class="mpc-button mpc-button-primary mpc-button-sm" href="./partner-access.html" data-preserve-attribution data-track="cta_join_header">Join the Partner Program</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="public-page">
+    <section class="public-hero" aria-labelledby="resources-title">
+      <div class="public-shell public-hero-inner">
+        <div class="public-hero-copy">
+          <span class="mpc-eyebrow">Resource + training hub</span>
+          <h1 id="resources-title">Scripts, checklists, and partner enablement without the guru glitter.</h1>
+          <p class="lead">
+            Use the resource library to equip brokers, affiliates, referral partners, and centers of influence with safer language, better intake questions, and practical next steps.
+          </p>
+          <div class="mpc-actions">
+            <a class="mpc-button mpc-button-primary" href="./partner-access.html" data-preserve-attribution>Join the Partner Program</a>
+            <a class="mpc-button mpc-button-outline" href="./dashboard.html#resources">View Dashboard Resources</a>
+          </div>
+        </div>
+
+        <aside class="public-hero-card">
+          <span class="mpc-badge mpc-badge-success">Enablement stack</span>
+          <h2>What partners get</h2>
+          <ul class="public-list">
+            <li>Funding education guides</li>
+            <li>Referral scripts and templates</li>
+            <li>Readiness checklists</li>
+            <li>Affiliate disclosure guidance</li>
+            <li>CRM and integration planning assets</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-section" aria-labelledby="library-title">
+      <div class="public-shell">
+        <div class="public-section-header">
+          <span class="mpc-eyebrow">Library</span>
+          <h2 id="library-title">Find the right asset for the right partner motion.</h2>
+          <p>
+            Filter by category and route partners into the dashboard when they are ready to use these assets inside their workflow.
+          </p>
+        </div>
+
+        <div class="mpc-panel mpc-panel-pad mb-8">
+          <label for="resource-filter">Filter resources</label>
+          <select id="resource-filter" data-resource-filter>
+            <option value="all">All categories</option>
+            <option value="Funding Education">Funding Education</option>
+            <option value="Sales Enablement">Sales Enablement</option>
+            <option value="Readiness">Readiness</option>
+            <option value="Lead Quality">Lead Quality</option>
+            <option value="Referral Partner">Referral Partner</option>
+            <option value="Compliance">Compliance</option>
+            <option value="Affiliate Marketing">Affiliate Marketing</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Integration">Integration</option>
+          </select>
+        </div>
+
+        <div class="mpc-grid mpc-grid-3" id="resources-grid" aria-live="polite">
+          <article class="public-resource-card">
+            <h3>Loading resources…</h3>
+            <p>Static data will render here when JavaScript is available.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="public-section-sm" aria-labelledby="training-title">
+      <div class="public-shell">
+        <div class="public-section-header">
+          <span class="mpc-eyebrow">Training preview</span>
+          <h2 id="training-title">Partner training is not optional decoration. It is how you keep growth from becoming a liability piñata.</h2>
+        </div>
+
+        <div class="mpc-grid mpc-grid-4" id="training-preview" aria-live="polite">
+          <article class="mpc-card mpc-card-pad">
+            <h3>Partner Orientation</h3>
+            <p>Training modules load from static data when JavaScript is available.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-shell public-footer-inner">
+      <div>
+        <a class="public-logo" href="./index.html" aria-label="Moonshine Partner Command Center home">
+          <span class="public-logo-mark" aria-hidden="true">M</span>
+          <span>Moonshine Partner Command Center</span>
+        </a>
+        <p class="mt-4">
+          Static-first partner command center for funding partners, referral partners, affiliates, and operators. Built for partner action, not brochure cosplay.
+        </p>
+        <p>
+          Funding availability, approvals, terms, timelines, commissions, and partner outcomes are not guaranteed.
+        </p>
+      </div>
+
+      <div class="public-footer-links" aria-label="Footer links">
+        <a href="./partner-access.html">Partner Access</a>
+        <a href="./dashboard.html">Dashboard</a>
+        <a href="./compliance.html">Compliance</a>
+        <a href="./affiliate-disclosure.html">Affiliate Disclosure</a>
+        <a href="./privacy.html">Privacy</a>
+        <a href="./terms.html">Terms</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./data/resources.js"></script>
+  <script src="./data/training-modules.js"></script>
+  <script src="./scripts/config.js"></script>
+  <script src="./scripts/storage.js"></script>
+  <script src="./scripts/ui-utils.js"></script>
+  <script src="./scripts/route-utils.js"></script>
+  <script src="./scripts/affiliate-tracking.js"></script>
+  <script src="./scripts/analytics-lite.js"></script>
+  <script>
+    (function resourcesPage() {
+      function ready(callback) {
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", callback);
+        } else {
+          callback();
+        }
+      }
+
+      function renderResources(category) {
+        var ui = window.MoonshineOS && window.MoonshineOS.ui;
+        var resources = (window.MoonshineData && window.MoonshineData.resources) || [];
+        var grid = ui && ui.qs("#resources-grid");
+        if (!ui || !grid) return;
+
+        var filtered = category && category !== "all"
+          ? resources.filter(function resourceFilter(resource) { return resource.category === category; })
+          : resources;
+
+        grid.innerHTML = filtered.map(function resourceCard(resource) {
+          var tags = (resource.tags || []).slice(0, 4).map(function tag(tagValue) {
+            return '<span class="mpc-badge">' + ui.escapeHTML(tagValue) + '</span>';
+          }).join(" ");
+
+          return [
+            '<article class="public-resource-card" id="' + ui.escapeHTML(resource.id) + '">',
+            '<span class="mpc-badge mpc-badge-info">' + ui.escapeHTML(resource.type) + '</span>',
+            '<h3>' + ui.escapeHTML(resource.title) + '</h3>',
+            '<p>' + ui.escapeHTML(resource.summary) + '</p>',
+            '<p class="mpc-muted">' + ui.escapeHTML(resource.description) + '</p>',
+            '<div class="cluster">' + tags + '</div>',
+            '<small><strong>Format:</strong> ' + ui.escapeHTML(resource.format) + ' · <strong>Time:</strong> ' + ui.escapeHTML(resource.estimatedTime) + '</small>',
+            '<small>' + ui.escapeHTML(resource.complianceNote) + '</small>',
+            '<a class="mpc-button mpc-button-outline" href="' + ui.escapeHTML(resource.href) + '">Open resource</a>',
+            '</article>'
+          ].join("");
+        }).join("");
+      }
+
+      function renderTraining() {
+        var ui = window.MoonshineOS && window.MoonshineOS.ui;
+        var modules = (window.MoonshineData && window.MoonshineData.trainingModules) || [];
+        var grid = ui && ui.qs("#training-preview");
+        if (!ui || !grid) return;
+
+        grid.innerHTML = modules.slice(0, 4).map(function moduleCard(module) {
+          return [
+            '<article class="mpc-card mpc-card-pad">',
+            '<span class="mpc-badge ' + (module.level === "Required" ? 'mpc-badge-warning' : 'mpc-badge-success') + '">' + ui.escapeHTML(module.level) + '</span>',
+            '<h3>' + ui.escapeHTML(module.title) + '</h3>',
+            '<p>' + ui.escapeHTML(module.summary) + '</p>',
+            '<small>' + ui.escapeHTML(module.track) + ' · ' + ui.escapeHTML(module.durationMinutes) + ' min</small>',
+            '</article>'
+          ].join("");
+        }).join("");
+      }
+
+      ready(function onReady() {
+        var ui = window.MoonshineOS && window.MoonshineOS.ui;
+        var filter = ui && ui.qs("[data-resource-filter]");
+
+        renderResources("all");
+        renderTraining();
+
+        if (filter) {
+          filter.addEventListener("change", function onFilterChange() {
+            renderResources(filter.value);
+          });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

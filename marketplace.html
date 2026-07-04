@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Partner Marketplace | Moonshine Partner Command Center</title>
+  <meta name="description" content="Browse example partner offers, resources, widgets, funding paths, automation assets, and integration blueprints.">
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/public.css">
+  <link rel="stylesheet" href="./styles/utilities.css">
+</head>
+<body class="public-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="public-header">
+    <div class="public-shell public-header-inner">
+      <a class="public-logo" href="./index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="public-logo-mark" aria-hidden="true">M</span>
+        <span>Moonshine Partner Command Center</span>
+      </a>
+
+      <nav class="public-nav" data-nav aria-label="Primary navigation">
+        <a href="./index.html">Home</a>
+        <a href="./marketplace.html">Marketplace</a>
+        <a href="./resources.html">Resources</a>
+        <a href="./pricing.html">Pricing</a>
+        <a href="./about.html">About</a>
+      </nav>
+
+      <div class="public-header-actions">
+        <a class="mpc-button mpc-button-outline mpc-button-sm" href="./dashboard.html" data-track="cta_dashboard_header">View Dashboard</a>
+        <a class="mpc-button mpc-button-primary mpc-button-sm" href="./partner-access.html" data-preserve-attribution data-track="cta_join_header">Join the Partner Program</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="public-page">
+    <section class="public-hero" aria-labelledby="marketplace-title">
+      <div class="public-shell public-hero-inner">
+        <div class="public-hero-copy">
+          <span class="mpc-eyebrow">Partner marketplace</span>
+          <h1 id="marketplace-title">Offer inventory partners can actually understand.</h1>
+          <p class="lead">
+            Browse example funding paths, widgets, automation assets, content resources, and integration blueprints. Every offer includes positioning and compliance notes so partners do not start selling fairy dust in a fintech trench coat.
+          </p>
+          <div class="mpc-actions">
+            <a class="mpc-button mpc-button-primary" href="./partner-access.html" data-preserve-attribution>Join the Partner Program</a>
+            <a class="mpc-button mpc-button-outline" href="./dashboard.html">View Partner Dashboard</a>
+          </div>
+        </div>
+
+        <aside class="public-hero-card">
+          <span class="mpc-badge mpc-badge-warning">Example-only marketplace</span>
+          <h2>Offer rules</h2>
+          <ul class="public-list">
+            <li>Offers are static examples until verified.</li>
+            <li>Eligibility, payout, and terms may vary.</li>
+            <li>No partner should promise approval or funding.</li>
+            <li>Future backend can manage live offer availability.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-section" aria-labelledby="offers-title">
+      <div class="public-shell">
+        <div class="public-section-header">
+          <span class="mpc-eyebrow">Browse offers</span>
+          <h2 id="offers-title">Funding, education, automation, widgets, marketing, and integration assets.</h2>
+          <p>
+            Filter by category, then send partners into the access flow or dashboard when they are ready.
+          </p>
+        </div>
+
+        <div class="mpc-panel mpc-panel-pad mb-8">
+          <label for="offer-filter">Filter offers</label>
+          <select id="offer-filter" data-offer-filter>
+            <option value="all">All categories</option>
+            <option value="Funding">Funding</option>
+            <option value="Education">Education</option>
+            <option value="Automation">Automation</option>
+            <option value="Widget">Widget</option>
+            <option value="Integration">Integration</option>
+            <option value="Marketing">Marketing</option>
+          </select>
+        </div>
+
+        <div class="mpc-grid mpc-grid-3" id="offers-grid" aria-live="polite">
+          <article class="public-offer-card">
+            <h3>Loading marketplace offers…</h3>
+            <p>Static data will render here when JavaScript is available.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="public-section-sm" aria-labelledby="marketplace-disclosure-title">
+      <div class="public-shell">
+        <div class="mpc-disclaimer">
+          <strong id="marketplace-disclosure-title">Marketplace disclosure:</strong>
+          Marketplace listings are examples of partner resources and offers. Availability, eligibility, pricing, payouts, and terms may change and must be verified before use. No approval, funding, income, or commission outcome is guaranteed.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-shell public-footer-inner">
+      <div>
+        <a class="public-logo" href="./index.html" aria-label="Moonshine Partner Command Center home">
+          <span class="public-logo-mark" aria-hidden="true">M</span>
+          <span>Moonshine Partner Command Center</span>
+        </a>
+        <p class="mt-4">
+          Static-first partner command center for funding partners, referral partners, affiliates, and operators. Built for partner action, not brochure cosplay.
+        </p>
+        <p>
+          Funding availability, approvals, terms, timelines, commissions, and partner outcomes are not guaranteed.
+        </p>
+      </div>
+
+      <div class="public-footer-links" aria-label="Footer links">
+        <a href="./partner-access.html">Partner Access</a>
+        <a href="./dashboard.html">Dashboard</a>
+        <a href="./compliance.html">Compliance</a>
+        <a href="./affiliate-disclosure.html">Affiliate Disclosure</a>
+        <a href="./privacy.html">Privacy</a>
+        <a href="./terms.html">Terms</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./data/marketplace-offers.js"></script>
+  <script src="./scripts/config.js"></script>
+  <script src="./scripts/storage.js"></script>
+  <script src="./scripts/ui-utils.js"></script>
+  <script src="./scripts/route-utils.js"></script>
+  <script src="./scripts/affiliate-tracking.js"></script>
+  <script src="./scripts/analytics-lite.js"></script>
+  <script>
+    (function marketplacePage() {
+      function ready(callback) {
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", callback);
+        } else {
+          callback();
+        }
+      }
+
+      function renderOffers(category) {
+        var ui = window.MoonshineOS && window.MoonshineOS.ui;
+        var offers = (window.MoonshineData && window.MoonshineData.marketplaceOffers) || [];
+        var grid = ui && ui.qs("#offers-grid");
+        if (!ui || !grid) return;
+
+        var filtered = category && category !== "all"
+          ? offers.filter(function offerFilter(offer) { return offer.category === category; })
+          : offers;
+
+        if (!filtered.length) {
+          grid.innerHTML = '<div class="mpc-empty"><div><strong>No offers found.</strong><p>Try a different category.</p></div></div>';
+          return;
+        }
+
+        grid.innerHTML = filtered.map(function offerCard(offer) {
+          var tags = (offer.tags || []).slice(0, 4).map(function tag(tagValue) {
+            return '<span class="mpc-badge">' + ui.escapeHTML(tagValue) + '</span>';
+          }).join(" ");
+
+          return [
+            '<article class="public-offer-card" id="' + ui.escapeHTML(offer.id) + '">',
+            '<div class="split">',
+            '<span class="mpc-badge ' + (offer.featured ? 'mpc-badge-success' : '') + '">' + ui.escapeHTML(offer.category) + '</span>',
+            '<span class="mpc-badge mpc-badge-warning">' + ui.escapeHTML(offer.status) + '</span>',
+            '</div>',
+            '<h3>' + ui.escapeHTML(offer.title) + '</h3>',
+            '<p>' + ui.escapeHTML(offer.summary) + '</p>',
+            '<p class="mpc-muted">' + ui.escapeHTML(offer.description) + '</p>',
+            '<div class="cluster">' + tags + '</div>',
+            '<small><strong>Example payout:</strong> ' + ui.escapeHTML(offer.exampleCommissionRange) + '</small>',
+            '<small>' + ui.escapeHTML(offer.complianceNote) + '</small>',
+            '<a class="mpc-button mpc-button-outline" href="' + ui.escapeHTML(offer.ctaUrl) + '" data-preserve-attribution>' + ui.escapeHTML(offer.ctaLabel) + '</a>',
+            '</article>'
+          ].join("");
+        }).join("");
+
+        if (window.MoonshineOS.analytics) {
+          window.MoonshineOS.analytics.track("marketplace_rendered", { category: category || "all", count: filtered.length });
+        }
+      }
+
+      ready(function onReady() {
+        var ui = window.MoonshineOS && window.MoonshineOS.ui;
+        var filter = ui && ui.qs("[data-offer-filter]");
+
+        renderOffers("all");
+
+        if (filter) {
+          filter.addEventListener("change", function onFilterChange() {
+            renderOffers(filter.value);
+          });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy | Moonshine Partner Command Center</title>
+  <meta name="description" content="Privacy basics for the static Moonshine Partner Command Center demo, localStorage usage, and future data handling expectations.">
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/public.css">
+  <link rel="stylesheet" href="./styles/utilities.css">
+</head>
+<body class="public-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="public-header">
+    <div class="public-shell public-header-inner">
+      <a class="public-logo" href="./index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="public-logo-mark" aria-hidden="true">M</span>
+        <span>Moonshine Partner Command Center</span>
+      </a>
+
+      <nav class="public-nav" data-nav aria-label="Primary navigation">
+        <a href="./index.html">Home</a>
+        <a href="./marketplace.html">Marketplace</a>
+        <a href="./resources.html">Resources</a>
+        <a href="./pricing.html">Pricing</a>
+        <a href="./about.html">About</a>
+      </nav>
+
+      <div class="public-header-actions">
+        <a class="mpc-button mpc-button-outline mpc-button-sm" href="./dashboard.html" data-track="cta_dashboard_header">View Dashboard</a>
+        <a class="mpc-button mpc-button-primary mpc-button-sm" href="./partner-access.html" data-preserve-attribution data-track="cta_join_header">Join the Partner Program</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="public-page">
+    <section class="public-hero" aria-labelledby="privacy-title">
+      <div class="public-shell public-hero-inner">
+        <div class="public-hero-copy">
+          <span class="mpc-eyebrow">Privacy basics</span>
+          <h1 id="privacy-title">Static demo now. Real privacy work before real data.</h1>
+          <p class="lead">
+            This page explains how the static Partner Command Center uses browser-local demo state and what future backend versions must handle before live partner or lead data is collected.
+          </p>
+          <div class="mpc-actions">
+            <a class="mpc-button mpc-button-primary" href="./partner-access.html" data-preserve-attribution>Partner Access</a>
+            <a class="mpc-button mpc-button-outline" href="./terms.html">View Terms</a>
+          </div>
+        </div>
+
+        <aside class="public-hero-card">
+          <span class="mpc-badge mpc-badge-warning">Do not enter sensitive data</span>
+          <h2>Local browser storage</h2>
+          <p>
+            The static demo may store profile, lead, note, training, attribution, and analytics-like demo data in your browser. It is not secure backend storage.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-section" aria-label="Privacy content">
+      <div class="public-shell public-legal-layout">
+        <aside class="public-legal-nav" aria-label="Legal page sections">
+          <a href="./compliance.html">Compliance</a>
+          <a href="./affiliate-disclosure.html">Affiliate Disclosure</a>
+          <a href="./privacy.html">Privacy</a>
+          <a href="./terms.html">Terms</a>
+        </aside>
+
+        <div class="public-legal-content">
+          <section id="scope">
+            <h2>Scope of this privacy page</h2>
+            <p>
+              This privacy page applies to the static Moonshine Partner Command Center demo files in this repo. It is a practical privacy overview, not a final production privacy policy for a live financial services platform.
+            </p>
+            <p>
+              A production version connected to forms, authentication, CRM, analytics, APIs, widgets, or funding systems will need a reviewed privacy policy that matches the actual data flows.
+            </p>
+          </section>
+
+          <section id="local-storage">
+            <h2>Browser localStorage</h2>
+            <p>
+              The static dashboard may use `localStorage` to save demo state in your browser. This can include partner profile demo fields, sample leads, notes, resource favorites, training progress, attribution parameters, theme preferences, and local analytics events.
+            </p>
+            <ul class="public-list">
+              <li>Local demo data stays in your browser unless you export or share it.</li>
+              <li>Clearing browser data may delete local demo records.</li>
+              <li>Other users of the same browser profile may be able to see local demo data.</li>
+              <li>Do not treat localStorage as secure storage.</li>
+            </ul>
+          </section>
+
+          <section id="do-not-submit">
+            <h2>Information you should not enter</h2>
+            <p>
+              Do not enter sensitive personal, business, borrower, banking, tax, or credential data into the static demo.
+            </p>
+            <ul class="public-list">
+              <li>No Social Security numbers.</li>
+              <li>No full tax IDs or EIN records beyond harmless placeholders.</li>
+              <li>No bank account numbers.</li>
+              <li>No bank login credentials.</li>
+              <li>No full loan applications.</li>
+              <li>No tax returns, statements, or sensitive documents.</li>
+              <li>No private borrower files.</li>
+            </ul>
+          </section>
+
+          <section id="attribution">
+            <h2>Partner attribution</h2>
+            <p>
+              The static site may capture URL parameters such as partner ID, referral ID, affiliate ID, source, or UTM parameters and store them locally. This is for demo attribution and link-building behavior only.
+            </p>
+            <div class="mpc-disclaimer">
+              Static attribution does not create a live referral, payable commission, account record, or CRM record.
+            </div>
+          </section>
+
+          <section id="analytics">
+            <h2>Local analytics demo</h2>
+            <p>
+              The static script layer may record local browser-only page view and click events in localStorage. This is not connected to an external analytics provider in the static version.
+            </p>
+            <p>
+              Future production analytics should disclose what is collected, why it is collected, how long it is retained, and which vendors process it.
+            </p>
+          </section>
+
+          <section id="future-backend">
+            <h2>Future backend requirements</h2>
+            <p>
+              Before this system handles live partner or lead data, operators should define and review:
+            </p>
+            <ul class="public-list">
+              <li>Data collection purposes.</li>
+              <li>Required consent and authorization language.</li>
+              <li>Authentication and access controls.</li>
+              <li>CRM and vendor data flows.</li>
+              <li>Data retention and deletion process.</li>
+              <li>Audit logging.</li>
+              <li>Security controls and incident response.</li>
+              <li>Production privacy policy and terms.</li>
+            </ul>
+          </section>
+
+          <section id="contact">
+            <h2>Questions</h2>
+            <p>
+              For now, treat this repo as a static workflow prototype. If a live deployment starts collecting real data, replace or supplement this page with a production-ready privacy policy that matches the actual business, tools, vendors, and legal requirements.
+            </p>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-shell public-footer-inner">
+      <div>
+        <a class="public-logo" href="./index.html" aria-label="Moonshine Partner Command Center home">
+          <span class="public-logo-mark" aria-hidden="true">M</span>
+          <span>Moonshine Partner Command Center</span>
+        </a>
+        <p class="mt-4">
+          Static-first partner command center for funding partners, referral partners, affiliates, and Moonshine Capital operators.
+        </p>
+        <p>
+          Funding availability, approvals, terms, timelines, commissions, and partner outcomes are not guaranteed.
+        </p>
+      </div>
+
+      <div class="public-footer-links" aria-label="Footer links">
+        <a href="./partner-access.html">Partner Access</a>
+        <a href="./dashboard.html">Dashboard</a>
+        <a href="./compliance.html">Compliance</a>
+        <a href="./affiliate-disclosure.html">Affiliate Disclosure</a>
+        <a href="./privacy.html">Privacy</a>
+        <a href="./terms.html">Terms</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./scripts/config.js"></script>
+  <script src="./scripts/storage.js"></script>
+  <script src="./scripts/ui-utils.js"></script>
+  <script src="./scripts/route-utils.js"></script>
+  <script src="./scripts/affiliate-tracking.js"></script>
+  <script src="./scripts/analytics-lite.js"></script>
+</body>
+</html>

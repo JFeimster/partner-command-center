@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Welcome | Moonshine Partner Command Center</title>
+  <meta name="description" content="Welcome flow for new Moonshine Partner Command Center demo partners.">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/public.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/utilities.css">
+  <link rel="stylesheet" href="./welcome.css">
+</head>
+<body class="welcome-body">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="welcome-header">
+    <div class="welcome-shell welcome-header-inner">
+      <a class="public-logo" href="../index.html" aria-label="Moonshine Partner Command Center home">
+        <span class="public-logo-mark" aria-hidden="true">M</span>
+        <span>Moonshine Partner Command Center</span>
+      </a>
+
+      <nav class="public-nav" aria-label="Welcome navigation">
+        <a href="../index.html">Home</a>
+        <a href="../marketplace.html">Marketplace</a>
+        <a href="../resources.html">Resources</a>
+        <a href="../dashboard.html">Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="welcome-main">
+    <section class="welcome-shell welcome-hero" aria-labelledby="welcome-title">
+      <div class="welcome-copy">
+        <span class="mpc-eyebrow">Welcome aboard</span>
+        <h1 id="welcome-title">Your partner cockpit is staged.</h1>
+        <p class="lead" data-welcome-message>
+          Your local partner profile is ready. Next, review your partner ID, onboarding actions, and dashboard entry point.
+        </p>
+
+        <div class="mpc-actions">
+          <a class="mpc-button mpc-button-primary mpc-button-lg" href="../dashboard.html" data-track="welcome_enter_dashboard">Enter Dashboard</a>
+          <a class="mpc-button mpc-button-outline mpc-button-lg" href="../marketplace.html" data-track="welcome_marketplace">Browse Marketplace</a>
+        </div>
+
+        <div class="mpc-disclaimer">
+          This is a static demo. Your partner profile is stored locally in this browser and does not create a live account, funding application, CRM record, lender submission, or commission record.
+        </div>
+      </div>
+
+      <aside class="welcome-profile-card" aria-label="Partner profile summary">
+        <div class="welcome-avatar" data-profile-initials aria-hidden="true">MS</div>
+        <div>
+          <span class="mpc-badge mpc-badge-success">Local demo profile</span>
+          <h2 data-profile-name>Demo Partner</h2>
+          <p data-profile-company>Moonshine Partner</p>
+        </div>
+
+        <dl class="welcome-profile-list">
+          <div>
+            <dt>Partner ID</dt>
+            <dd data-profile-partner-id>MS-DEMO-0000</dd>
+          </div>
+          <div>
+            <dt>Partner type</dt>
+            <dd data-profile-type>Funding Partner</dd>
+          </div>
+          <div>
+            <dt>Primary audience</dt>
+            <dd data-profile-audience>Business owners seeking funding readiness</dd>
+          </div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="welcome-shell welcome-section" aria-labelledby="next-title">
+      <div class="public-section-header">
+        <span class="mpc-eyebrow">Next actions</span>
+        <h2 id="next-title">Start with the moves that make the dashboard useful.</h2>
+        <p>
+          The goal is simple: profile → partner ID → lead flow → resources → training. The machine does not need incense. It needs reps.
+        </p>
+      </div>
+
+      <div class="welcome-steps" id="welcome-steps" aria-live="polite">
+        <article class="welcome-step">
+          <span class="welcome-step-number">01</span>
+          <h3>Confirm partner ID</h3>
+          <p>Use your local demo partner ID to build attribution-ready links.</p>
+        </article>
+        <article class="welcome-step">
+          <span class="welcome-step-number">02</span>
+          <h3>Submit a demo lead</h3>
+          <p>Practice the lead flow without entering sensitive borrower data.</p>
+        </article>
+        <article class="welcome-step">
+          <span class="welcome-step-number">03</span>
+          <h3>Review compliance basics</h3>
+          <p>Promote funding resources without making promises you cannot control.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="welcome-shell welcome-section" aria-labelledby="links-title">
+      <div class="welcome-grid">
+        <article class="mpc-card mpc-card-pad">
+          <span class="mpc-badge">Partner link</span>
+          <h2 id="links-title">Your default referral link</h2>
+          <p>
+            This link includes your local demo partner ID. Future backend tracking will require signed partner IDs and real attribution validation.
+          </p>
+          <div class="dashboard-copy-row mt-4">
+            <input type="text" data-partner-link="../index.html" readonly aria-label="Default partner referral link">
+            <button class="mpc-button mpc-button-outline" type="button" data-copy-partner-link="../index.html">Copy Link</button>
+          </div>
+        </article>
+
+        <article class="mpc-card mpc-card-pad">
+          <span class="mpc-badge mpc-badge-warning">Compliance</span>
+          <h2>Before you share</h2>
+          <p>
+            Use permission-based referrals, clear disclosures, and no-guarantee language. Do not pitch “guaranteed funding.” That phrase is how a business model lights itself on fire.
+          </p>
+          <a class="mpc-button mpc-button-outline mt-4" href="../compliance.html">Review Compliance Rules</a>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script src="../data/partner-paths.js"></script>
+  <script src="../data/compliance-copy.js"></script>
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/storage.js"></script>
+  <script src="../scripts/ui-utils.js"></script>
+  <script src="../scripts/route-utils.js"></script>
+  <script src="../scripts/affiliate-tracking.js"></script>
+  <script src="../scripts/analytics-lite.js"></script>
+  <script src="./welcome.js"></script>
+</body>
+</html>
