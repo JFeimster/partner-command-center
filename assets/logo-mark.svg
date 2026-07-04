@@ -1,0 +1,20 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Moonshine Logo Mark</title>
+  <desc id="desc">Moonshine Capital M mark with emerald and amber gradient.</desc>
+  <defs>
+    <linearGradient id="markGradient" x1="10" y1="10" x2="86" y2="86" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#34D399"/>
+      <stop offset="0.56" stop-color="#A7F3D0"/>
+      <stop offset="1" stop-color="#FBBF24"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.2039 0 0 0 0 0.8274 0 0 0 0 0.6 0 0 0 0.35 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect width="96" height="96" rx="28" fill="#020617"/>
+  <rect x="1" y="1" width="94" height="94" rx="27" stroke="#1E293B"/>
+  <rect x="18" y="18" width="60" height="60" rx="20" fill="url(#markGradient)" filter="url(#glow)"/>
+  <path d="M31 62V34H40.5L48 47L55.5 34H65V62H56.8V46.2L50 57H46L39.2 46.2V62H31Z" fill="#02110C"/>
+</svg>
