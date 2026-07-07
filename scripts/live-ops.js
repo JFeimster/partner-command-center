@@ -1,9 +1,9 @@
 /*
   Moonshine Partner Command Center
-  Sprint 04 — Browser-safe live operations
+  Sprints 04-05 — Browser-safe live operations
 
-  Browser actions queue link/resource intent locally.
-  Trusted server/API calls write to Notion. No browser API keys.
+  Browser actions queue link/resource/lead-router intent locally.
+  Trusted server/API calls write to Notion or route funding fit. No browser API keys.
 */
 
 (function initLiveOps(window, document) {
@@ -59,13 +59,7 @@
       trustedEndpoint: "/api/partner-links"
     }), 80);
 
-    return Promise.resolve({
-      ok: false,
-      queued: true,
-      reason: "trusted_write_required",
-      message: "Tracking link intent queued locally. Trusted server-side call is required to write Notion tracking records.",
-      payload: payload
-    });
+    return Promise.resolve({ ok: false, queued: true, reason: "trusted_write_required", message: "Tracking link intent queued locally. Trusted server-side call is required to write Notion tracking records.", payload: payload });
   }
 
   function assignPartnerResources(input) {
@@ -79,19 +73,42 @@
       resources: input && input.resources || profile && profile.resourceRecommendations || []
     };
 
-    pushQueue("resourceAssignments", Object.assign({}, payload, {
+    pushQueue("resourceAssignments", Object.assign({}, payload, { localOnly: !isLiveReady(profile), trustedWriteRequired: true, trustedAction: "assignPartnerResources" }), 80);
+    return Promise.resolve({ ok: false, queued: true, reason: "trusted_write_required", message: "Resource assignment intent queued locally. Trusted router call is required to write Notion resource records.", payload: payload });
+  }
+
+  function buildLeadPayload(input) {
+    var profile = getProfile() || {};
+    input = input || {};
+    return {
+      partner_id: profile.partnerId,
+      business_name: input.businessName || input.business_name || "",
+      contact_name: input.contactName || input.contact_name || "",
+      email: input.email || "",
+      phone: input.phone || "",
+      industry: input.industry || "",
+      monthly_revenue: input.monthlyRevenue || input.monthly_revenue || 0,
+      time_in_business: input.timeInBusiness || input.time_in_business || "",
+      funding_need: input.fundingNeed || input.funding_need || 0,
+      use_of_funds: input.useOfFunds || input.use_of_funds || "",
+      urgency: input.urgency || "",
+      source: input.source || "partner_dashboard",
+      notes: input.notes || "",
+      created_at: now()
+    };
+  }
+
+  function queueLeadRouterIntent(input) {
+    var profile = getProfile() || {};
+    var payload = buildLeadPayload(input || {});
+
+    pushQueue("leadRouterQueue", Object.assign({}, payload, {
       localOnly: !isLiveReady(profile),
       trustedWriteRequired: true,
-      trustedAction: "assignPartnerResources"
+      trustedEndpoint: "/api/lead-router"
     }), 80);
 
-    return Promise.resolve({
-      ok: false,
-      queued: true,
-      reason: "trusted_write_required",
-      message: "Resource assignment intent queued locally. Trusted router call is required to write Notion resource records.",
-      payload: payload
-    });
+    return Promise.resolve({ ok: false, queued: true, reason: "trusted_write_required", message: "Lead routing intent queued locally. Trusted server-side call is required to route and log lead submissions.", payload: payload });
   }
 
   function recordBuiltLinkFromForm(form) {
@@ -100,33 +117,32 @@
     var data = os.forms && os.forms.serializeForm ? os.forms.serializeForm(form) : {};
     var trackingUrl = output && output.value ? output.value : data.destination || "./index.html";
 
-    return createTrackingLink({
-      destinationUrl: data.destination || "./index.html",
-      trackingUrl: trackingUrl,
-      source: data.source || "dashboard",
-      campaign: data.campaign || "",
-      medium: "partner_dashboard"
-    });
+    return createTrackingLink({ destinationUrl: data.destination || "./index.html", trackingUrl: trackingUrl, source: data.source || "dashboard", campaign: data.campaign || "", medium: "partner_dashboard" });
   }
 
   function bindDashboardActions() {
     document.addEventListener("submit", function onSubmit(event) {
-      var form = event.target && event.target.closest ? event.target.closest("[data-link-builder-form]") : null;
-      if (!form) return;
+      var linkForm = event.target && event.target.closest ? event.target.closest("[data-link-builder-form]") : null;
+      if (linkForm) {
+        window.setTimeout(function afterLocalBuild() {
+          recordBuiltLinkFromForm(linkForm).then(function done(result) { if (result && result.queued) toast("Partner link queued for trusted tracking sync.", "success"); });
+        }, 50);
+        return;
+      }
 
-      window.setTimeout(function afterLocalBuild() {
-        recordBuiltLinkFromForm(form).then(function done(result) {
-          if (result && result.queued) toast("Partner link queued for trusted tracking sync.", "success");
-        });
-      }, 50);
+      var leadForm = event.target && event.target.closest ? event.target.closest("[data-lead-form]") : null;
+      if (leadForm) {
+        window.setTimeout(function afterLocalLeadSave() {
+          var data = os.forms && os.forms.serializeForm ? os.forms.serializeForm(leadForm) : {};
+          queueLeadRouterIntent(data).then(function done(result) { if (result && result.queued) toast("Lead queued for trusted funding-fit routing.", "success"); });
+        }, 50);
+      }
     }, true);
 
     document.addEventListener("click", function onClick(event) {
       var syncResources = event.target && event.target.closest ? event.target.closest("[data-sync-partner-resources]") : null;
       if (syncResources) {
-        assignPartnerResources({}).then(function done(result) {
-          if (result && result.queued) toast("Resource assignment queued for trusted sync.", "success");
-        });
+        assignPartnerResources({}).then(function done(result) { if (result && result.queued) toast("Resource assignment queued for trusted sync.", "success"); });
         return;
       }
 
@@ -141,7 +157,17 @@
     }, true);
   }
 
-  os.liveOps = { getMode: getMode, getProfile: getProfile, isLiveReady: isLiveReady, buildTrackingLinkPayload: buildTrackingLinkPayload, createTrackingLink: createTrackingLink, assignPartnerResources: assignPartnerResources, recordBuiltLinkFromForm: recordBuiltLinkFromForm };
+  os.liveOps = {
+    getMode: getMode,
+    getProfile: getProfile,
+    isLiveReady: isLiveReady,
+    buildTrackingLinkPayload: buildTrackingLinkPayload,
+    createTrackingLink: createTrackingLink,
+    assignPartnerResources: assignPartnerResources,
+    buildLeadPayload: buildLeadPayload,
+    queueLeadRouterIntent: queueLeadRouterIntent,
+    recordBuiltLinkFromForm: recordBuiltLinkFromForm
+  };
 
   ready(bindDashboardActions);
 })(window, document);
