@@ -2,11 +2,11 @@
   Moonshine Partner Command Center
   Sprint 04 — Browser-safe live operations
 
-  Uses /api/router public partner-scoped actions only.
+  Uses /api/router partner-scoped actions only.
   No API keys. No Notion secrets. No raw CRM pages.
 */
 
-(function initLiveOps(window) {
+(function initLiveOps(window, document) {
   "use strict";
 
   window.MoonshineOS = window.MoonshineOS || {};
@@ -15,6 +15,16 @@
 
   function now() {
     return new Date().toISOString();
+  }
+
+  function ready(callback) {
+    if (!document) return;
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", callback);
+    else callback();
+  }
+
+  function toast(message, tone) {
+    if (os.ui && os.ui.toast) os.ui.toast(message, { tone: tone || "success" });
   }
 
   function getMode() {
@@ -40,6 +50,7 @@
   }
 
   function buildTrackingLinkPayload(input) {
+    input = input || {};
     var profile = input.profile || getProfile() || {};
     var destinationUrl = input.destinationUrl || input.destination || "./index.html";
     var trackingUrl = input.trackingUrl || input.tracking_url || destinationUrl;
@@ -63,6 +74,16 @@
 
   function createTrackingLink(input) {
     var profile = input && input.profile || getProfile();
+    var payload = buildTrackingLinkPayload(Object.assign({}, input || {}, { profile: profile }));
+
+    saveLocalTrackingLink({
+      partnerId: payload.partner_id,
+      destinationUrl: payload.destination_url,
+      trackingUrl: payload.tracking_url,
+      source: payload.source,
+      campaign: payload.campaign,
+      medium: payload.medium
+    });
 
     if (!isLiveReady(profile)) {
       return Promise.resolve({
@@ -73,7 +94,7 @@
       });
     }
 
-    return os.apiClient.requestRouter("createTrackingLink", buildTrackingLinkPayload(Object.assign({}, input || {}, { profile: profile })));
+    return os.apiClient.requestRouter("createTrackingLink", payload);
   }
 
   function assignPartnerResources(input) {
@@ -110,6 +131,65 @@
     return record;
   }
 
+  function recordBuiltLinkFromForm(form) {
+    if (!form) return Promise.resolve({ skipped: true });
+    var output = document.querySelector("[data-built-link]");
+    var data = os.forms && os.forms.serializeForm ? os.forms.serializeForm(form) : {};
+    var trackingUrl = output && output.value ? output.value : data.destination || "./index.html";
+
+    return createTrackingLink({
+      destinationUrl: data.destination || "./index.html",
+      trackingUrl: trackingUrl,
+      source: data.source || "dashboard",
+      campaign: data.campaign || "",
+      medium: "partner_dashboard"
+    });
+  }
+
+  function bindDashboardActions() {
+    document.addEventListener("submit", function onSubmit(event) {
+      var form = event.target && event.target.closest ? event.target.closest("[data-link-builder-form]") : null;
+      if (!form) return;
+
+      window.setTimeout(function afterLocalBuild() {
+        recordBuiltLinkFromForm(form).then(function done(result) {
+          if (result && result.ok) toast("Tracking link recorded in Notion.", "success");
+          else if (result && result.skipped) toast("Partner link saved locally. Live tracking record skipped.", "warning");
+          else toast("Partner link built. Tracking record may need review.", "warning");
+        });
+      }, 50);
+    }, true);
+
+    document.addEventListener("click", function onClick(event) {
+      var syncResources = event.target && event.target.closest ? event.target.closest("[data-sync-partner-resources]") : null;
+      if (syncResources) {
+        assignPartnerResources({}).then(function done(result) {
+          if (result && result.ok) toast("Partner resources assigned in Notion.", "success");
+          else if (result && result.skipped) toast("Live resource assignment skipped. Activate live mode first.", "warning");
+          else toast("Resource assignment failed or needs review.", "danger");
+        });
+        return;
+      }
+
+      var copyOffer = event.target && event.target.closest ? event.target.closest("[data-copy-offer-link]") : null;
+      if (copyOffer) {
+        var destination = copyOffer.getAttribute("data-copy-offer-link") || "./marketplace.html";
+        window.setTimeout(function afterCopyOffer() {
+          var link = os.dashboard && os.dashboard.affiliateStore && os.dashboard.affiliateStore.buildLink
+            ? os.dashboard.affiliateStore.buildLink(destination, { source: "dashboard_marketplace" })
+            : destination;
+          createTrackingLink({
+            destinationUrl: destination,
+            trackingUrl: link,
+            source: "dashboard_marketplace",
+            campaign: "marketplace_offer",
+            medium: "partner_dashboard"
+          });
+        }, 50);
+      }
+    }, true);
+  }
+
   os.liveOps = {
     getMode: getMode,
     getProfile: getProfile,
@@ -117,6 +197,9 @@
     buildTrackingLinkPayload: buildTrackingLinkPayload,
     createTrackingLink: createTrackingLink,
     assignPartnerResources: assignPartnerResources,
-    saveLocalTrackingLink: saveLocalTrackingLink
+    saveLocalTrackingLink: saveLocalTrackingLink,
+    recordBuiltLinkFromForm: recordBuiltLinkFromForm
   };
-})(window);
+
+  ready(bindDashboardActions);
+})(window, document);
