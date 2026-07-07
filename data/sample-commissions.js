@@ -108,7 +108,7 @@
       {
         id: "pending-review",
         label: "Pending Review",
-        description: "Potential commission placeholder; not earned or payable in the static demo."
+        description: "Potential commission placeholder; not earned or payable in the partner workspace."
       },
       {
         id: "needs-info",
@@ -123,3 +123,4 @@
     ]
   };
 })(window);
+

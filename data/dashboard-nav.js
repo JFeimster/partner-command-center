@@ -37,7 +37,7 @@
       label: "Lead Tracker",
       href: "#lead-tracker",
       icon: "pipeline",
-      description: "Review and update demo lead status."
+      description: "Review and update referral lead status."
     },
     {
       id: "marketplace",
@@ -79,7 +79,7 @@
       label: "Partner ID",
       href: "#partner-id",
       icon: "fingerprint",
-      description: "View and manage local demo partner identity."
+      description: "View and manage partner workspace partner identity."
     },
     {
       id: "integrations",
@@ -100,7 +100,8 @@
       label: "Settings",
       href: "#settings",
       icon: "settings",
-      description: "Theme, export/import, reset, and local demo controls."
+      description: "Theme, export/import, reset, and partner workspace controls."
     }
   ];
 })(window);
+

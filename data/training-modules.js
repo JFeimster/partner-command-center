@@ -18,16 +18,16 @@
       level: "Required",
       durationMinutes: 8,
       summary:
-        "Understand what the Partner Command Center is, what it is not, and how to use the static demo responsibly.",
+        "Understand what the Partner Command Center is, what it is not, and how to use the partner workspace responsibly.",
       objectives: [
         "Identify the primary partner workflow",
-        "Understand local demo storage",
-        "Know where to submit and track demo leads"
+        "Understand partner workspace storage",
+        "Know where to submit and track referral leads"
       ],
       checklist: [
         "Review partner program overview",
         "Save dashboard link",
-        "Confirm local demo disclaimer"
+        "Confirm partner workspace disclaimer"
       ],
       resourceIds: ["permission-based-referrals"],
       order: 1
@@ -43,7 +43,7 @@
       objectives: [
         "Avoid funding and income guarantees",
         "Use permission-based referral practices",
-        "Know what not to enter into the static demo"
+        "Know what not to enter into the partner workspace"
       ],
       checklist: [
         "Read no-guarantee language",
@@ -69,7 +69,7 @@
       checklist: [
         "Open submit lead section",
         "Review required fields",
-        "Create one demo lead",
+        "Create one referral lead",
         "Update lead status"
       ],
       resourceIds: ["lead-intake-scorecard", "document-checklist"],
@@ -148,10 +148,10 @@
       level: "Advanced",
       durationMinutes: 14,
       summary:
-        "Understand how localStorage, mock data, export/import, and future backend seams fit together.",
+        "Understand how localStorage, sample data, export/import, and future backend seams fit together.",
       objectives: [
         "Understand local data keys",
-        "Export local demo data",
+        "Export partner workspace data",
         "Reset demo state safely"
       ],
       checklist: [
@@ -187,3 +187,4 @@
     }
   ];
 })(window);
+

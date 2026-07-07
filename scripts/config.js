@@ -83,7 +83,7 @@
     ui: { toastDuration: 3600, themeAttribute: "data-theme", defaultTheme: "dark", activeClass: "is-active", hiddenClass: "hidden", busyClass: "is-busy" },
 
     compliance: {
-      staticDemoNotice: "This static demo stores information locally in your browser. It is not connected to a live CRM, lender system, underwriting process, or partner payout system.",
+      staticDemoNotice: "This partner workspace stores information locally in your browser. It is not connected to a live CRM, lender system, underwriting process, or partner payout system.",
       fundingNotice: "Funding options may vary. Submission does not guarantee approval, funding, commissions, or any specific outcome.",
       partnerNotice: "Partners are responsible for accurate, permission-based referrals and should not promise approval, funding, rates, terms, income, or commissions."
     },
@@ -253,7 +253,7 @@
     var banner = document.createElement("div");
     banner.setAttribute("data-activation-banner", "");
     banner.style.cssText = "position:sticky;top:0;z-index:9999;padding:.65rem 1rem;background:#101820;color:#fff;border-bottom:1px solid rgba(255,255,255,.16);font:600 14px/1.4 system-ui, sans-serif;";
-    banner.textContent = mode === "live" ? "Live activation mode: dashboard surfaces use /api/router when available. No browser secrets are stored." : "Local demo mode: profile and dashboard state are browser-local only.";
+    banner.textContent = mode === "live" ? "Live activation mode: dashboard surfaces use /api/router when available. No browser secrets are stored." : "Partner workspace mode: profile and dashboard state are browser-local only.";
     document.body.insertBefore(banner, document.body.firstChild);
   }
 
@@ -324,3 +324,4 @@
     loadLiveOps();
   });
 })(window, document);
+

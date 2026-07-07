@@ -27,12 +27,12 @@
     {
       id: "event_demo_002",
       type: "lead.created",
-      label: "New demo lead submitted",
+      label: "New referral lead submitted",
       actor: "Jordan Ellis",
       actorRole: "Funding Broker",
       partnerId: "MS-FB-1024",
       target: "Harbor Street HVAC",
-      message: "Submitted a demo lead for local browser tracking.",
+      message: "Submitted a referral lead for local browser tracking.",
       createdAt: "2026-07-01T14:20:00.000Z",
       icon: "send",
       tone: "info"
@@ -79,12 +79,12 @@
     {
       id: "event_demo_006",
       type: "lead.created",
-      label: "Widget demo lead captured",
+      label: "Widget referral lead captured",
       actor: "Static Widget",
       actorRole: "Widget Prototype",
       partnerId: "MS-RP-3110",
       target: "Keystone Mobile Detailing",
-      message: "Captured a fictional widget lead. Static demo only; no backend was called.",
+      message: "Captured a fictional widget lead. Partner workspace only; no backend was called.",
       createdAt: "2026-07-03T11:05:00.000Z",
       icon: "widget",
       tone: "warning"
@@ -97,7 +97,7 @@
       actorRole: "Center of Influence",
       partnerId: "MS-COI-7331",
       target: "Compliance Basics",
-      message: "Completed a required compliance training module in local demo progress.",
+      message: "Completed a required compliance training module in partner workspace progress.",
       createdAt: "2026-07-03T13:10:00.000Z",
       icon: "academy",
       tone: "success"
@@ -118,7 +118,7 @@
     {
       id: "event_demo_009",
       type: "settings.exported",
-      label: "Local demo data exported",
+      label: "Partner workspace data exported",
       actor: "Moonshine Operator",
       actorRole: "Operator",
       partnerId: "MS-OPS-0001",
@@ -130,3 +130,4 @@
     }
   ];
 })(window);
+

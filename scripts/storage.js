@@ -2,7 +2,7 @@
   Moonshine Partner Command Center
   Batch 03 — Storage Helpers
 
-  Local demo persistence only. Do not store sensitive borrower data.
+  Partner workspace persistence only. Do not store sensitive borrower data.
 */
 
 (function initMoonshineStorage(window) {
@@ -131,7 +131,7 @@
       exportedAt: new Date().toISOString(),
       namespace: namespace,
       data: entries(),
-      disclaimer: "Local demo export only. This file is not a live CRM, underwriting record, application record, or commission report."
+      disclaimer: "Partner workspace export only. This file is not a live CRM, underwriting record, application record, or commission report."
     };
   }
 
@@ -246,3 +246,4 @@
     upsertById: upsertById
   };
 })(window);
+

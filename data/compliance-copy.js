@@ -17,7 +17,7 @@
 
     notices: {
       staticDemo:
-        "This static demo stores information locally in your browser. It is not connected to a live CRM, lender system, underwriting process, partner portal, or commission reporting system.",
+        "This partner workspace stores information locally in your browser. It is not connected to a live CRM, lender system, underwriting process, partner portal, or commission reporting system.",
 
       fundingNoGuarantee:
         "Funding options may vary. Submitting information does not guarantee approval, funding, specific rates, terms, timelines, or lender matches.",
@@ -32,7 +32,7 @@
         "This content is for general educational and workflow planning purposes. It is not legal, tax, accounting, lending, underwriting, credit repair, or financial advice.",
 
       privacyReminder:
-        "Only submit information you have permission to share. Do not enter Social Security numbers, bank logins, tax IDs, account numbers, full loan applications, or sensitive documents into this static demo.",
+        "Only submit information you have permission to share. Do not enter Social Security numbers, bank logins, tax IDs, account numbers, full loan applications, or sensitive documents into this partner workspace.",
 
       affiliateDisclosure:
         "Moonshine Capital may receive referral, affiliate, marketing, or partner compensation from some products, providers, platforms, or funding relationships. Compensation does not guarantee availability, suitability, approval, or results.",
@@ -44,13 +44,13 @@
         "Lead statuses shown in the dashboard are sample workflow states only. They are not live underwriting, application, lender, or funding statuses.",
 
       localStorageDisclosure:
-        "Data entered here may be stored in your browser using localStorage. Clearing browser storage may delete this demo data."
+        "Data entered here may be stored in your browser using localStorage. Clearing browser storage may delete this workspace data."
     },
 
     shortDisclaimers: [
-      "No approval, funding, commission, or income is guaranteed.",
+      "Funding outcomes and compensation depend on review, eligibility, and program rules.",
       "Funding options, terms, and eligibility may vary.",
-      "This is a static demo using local browser storage.",
+      "This is a partner workspace using local browser storage.",
       "Partners must use accurate, permission-based referral practices.",
       "Do not enter sensitive borrower or banking data into this demo."
     ],
@@ -58,9 +58,9 @@
     dashboardDisclaimers: [
       {
         id: "dashboard-local-demo",
-        title: "Local demo dashboard",
+        title: "Partner workspace dashboard",
         body:
-          "This dashboard is a static command center demo. Leads, notes, favorites, training progress, and partner settings may be saved locally in your browser only."
+          "This dashboard is a partner command center workspace. Leads, notes, favorites, training progress, and partner settings may be saved locally in your browser only."
       },
       {
         id: "dashboard-no-guarantees",
@@ -126,6 +126,7 @@
     ],
 
     footerNotice:
-      "Moonshine Partner Command Center is a static-first partner workflow demo. Funding availability, approvals, terms, timelines, commissions, and partner outcomes are not guaranteed."
+      "Moonshine Partner Command Center is a partner-first partner workflow demo. Funding outcomes, terms, timelines, and partner compensation depend on real review and program rules."
   };
 })(window);
+

@@ -2,7 +2,7 @@
   Moonshine Partner Command Center
   Batch 04 — Sample Leads
 
-  Fictional demo leads only.
+  Fictional referral leads only.
 */
 
 (function initSampleLeads(window) {
@@ -77,7 +77,7 @@
       updatedAt: "2026-07-03T11:05:00.000Z",
       nextStep: "Confirm business bank account, revenue documentation, and use-of-funds details.",
       notes:
-        "New demo lead from widget. Needs initial review and readiness conversation.",
+        "New referral lead from widget. Needs initial review and readiness conversation.",
       tags: ["vehicle", "marketing", "new"]
     },
     {
@@ -100,7 +100,7 @@
       updatedAt: "2026-06-30T13:25:00.000Z",
       nextStep: "Awaiting provider review update.",
       notes:
-        "Strong revenue profile in demo data. Continue avoiding outcome guarantees.",
+        "Strong revenue profile in workspace data. Continue avoiding outcome guarantees.",
       tags: ["trucking", "inventory", "submitted"]
     },
     {
@@ -151,3 +151,4 @@
     }
   ];
 })(window);
+
