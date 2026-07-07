@@ -16,7 +16,7 @@ Do not expose these values in browser JavaScript.
 | `NOTION_PARTNER_RESOURCES_DB_ID` | Yes | Partner resources | Database ID for the `Partner Resources` database. |
 | `NOTION_TRACKING_LINKS_DB_ID` | Yes | Tracking links | Database ID for the `Tracking Links` database. |
 | `PARTNER_COMMAND_API_KEY` | Reserved | Sprint 02 router/admin calls | API key for trusted manual/admin API requests. |
-| `TALLY_WEBHOOK_SECRET` | Reserved | Sprint 02 Tally webhook | Secret used to validate Tally webhook requests. |
+| `MOONSHINE_TALLY_WEBHOOK_SECRET` | Reserved | Sprint 02 Tally webhook | Secret used to validate Tally webhook requests. |
 
 ## Local development example
 
@@ -29,8 +29,12 @@ NOTION_PARTNER_EVENTS_DB_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 NOTION_PARTNER_RESOURCES_DB_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 NOTION_TRACKING_LINKS_DB_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 PARTNER_COMMAND_API_KEY=replace_with_strong_random_value
-TALLY_WEBHOOK_SECRET=replace_with_tally_webhook_secret
+MOONSHINE_TALLY_WEBHOOK_SECRET=replace_with_tally_webhook_secret
 ```
+
+## Tally webhook naming note
+
+Use `MOONSHINE_TALLY_WEBHOOK_SECRET` because the existing Tally webhook example already reads that variable. If a future sprint intentionally renames it, update the handler and docs in the same change.
 
 ## Vercel setup checklist
 
