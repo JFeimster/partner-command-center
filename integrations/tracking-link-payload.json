@@ -1,0 +1,12 @@
+{
+  "partner_id": "MS-P-20260707-ABC12345",
+  "destination_url": "https://distilledfunding.com/partners",
+  "tracking_url": "https://distilledfunding.com/partners?partner_id=MS-P-20260707-ABC12345&utm_source=dashboard&utm_medium=partner_dashboard&utm_campaign=affiliate_launch",
+  "source": "dashboard",
+  "medium": "partner_dashboard",
+  "campaign": "affiliate_launch",
+  "utm_source": "dashboard",
+  "utm_medium": "partner_dashboard",
+  "utm_campaign": "affiliate_launch",
+  "status": "active"
+}
