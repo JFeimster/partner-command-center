@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Partner Access | Moonshine Partner Command Center</title>
-  <meta name="description" content="Create a local demo partner profile and enter the Moonshine Partner Command Center welcome flow.">
+  <meta name="description" content="Create your Moonshine Partner Command Center profile and enter the partner dashboard.">
   <link rel="stylesheet" href="./styles/base.css">
   <link rel="stylesheet" href="./styles/public.css">
   <link rel="stylesheet" href="./styles/utilities.css">
@@ -38,9 +38,9 @@
       <div class="public-shell public-hero-inner">
         <div class="public-hero-copy">
           <span class="mpc-eyebrow">Partner access</span>
-          <h1 id="access-title">Build your partner profile and enter the cockpit.</h1>
+          <h1 id="access-title">Create your partner profile and enter the command center.</h1>
           <p class="lead">
-            Create a local demo profile for the Moonshine Partner Command Center. This routes you into the welcome flow, then the dashboard, without pretending there is a live login system hiding behind the curtain.
+            Tell us who you are, how you send opportunity, and what partner path fits you best. Then jump into the dashboard with your profile, resources, link tools, and referral workflow ready to move.
           </p>
           <div class="mpc-actions">
             <a class="mpc-button mpc-button-outline" href="./marketplace.html">Explore Marketplace First</a>
@@ -49,13 +49,13 @@
         </div>
 
         <aside class="public-hero-card" aria-label="Access flow notes">
-          <span class="mpc-badge mpc-badge-warning">Local demo only</span>
+          <span class="mpc-badge mpc-badge-warning">Partner cockpit</span>
           <h2>What happens next</h2>
           <ul class="public-list">
-            <li>Your profile saves to browser localStorage.</li>
-            <li>No live account is created.</li>
-            <li>No CRM or lender system is contacted.</li>
-            <li>You will be routed to welcome, then dashboard.</li>
+            <li>Build your partner profile.</li>
+            <li>Get routed into the welcome flow.</li>
+            <li>Open your dashboard workspace.</li>
+            <li>Use links, resources, and referral tools.</li>
           </ul>
         </aside>
       </div>
@@ -64,10 +64,10 @@
     <section class="public-section" aria-labelledby="partner-form-title">
       <div class="public-shell">
         <div class="public-section-header">
-          <span class="mpc-eyebrow">Create local demo profile</span>
+          <span class="mpc-eyebrow">Partner profile</span>
           <h2 id="partner-form-title">Tell the system who you are and how you route opportunity.</h2>
           <p>
-            Keep this clean. Do not enter sensitive borrower data, banking data, tax IDs, or private client files. This form creates a browser-local demo partner profile.
+            This is the fast-start profile that powers your partner dashboard. Keep it focused on your business, your audience, and your referral motion.
           </p>
         </div>
 
@@ -156,39 +156,30 @@
             </div>
 
             <fieldset class="mpc-form-grid">
-              <legend>Partner acknowledgments *</legend>
-
-              <div class="mpc-check-row">
-                <input id="ackDemo" name="ackDemo" type="checkbox" required>
-                <label for="ackDemo">I understand this is a static demo and does not create a live account, CRM record, lender submission, funding application, or commission event.</label>
-              </div>
+              <legend>Partner operating standards *</legend>
 
               <div class="mpc-check-row">
                 <input id="ackPermission" name="ackPermission" type="checkbox" required>
-                <label for="ackPermission">I will only submit referral information I have permission to share.</label>
+                <label for="ackPermission">I only share referral information I have permission to share.</label>
               </div>
 
               <div class="mpc-check-row">
                 <input id="ackNoGuarantees" name="ackNoGuarantees" type="checkbox" required>
-                <label for="ackNoGuarantees">I will not promise approval, funding, rates, terms, timelines, income, or commissions.</label>
+                <label for="ackNoGuarantees">I understand funding outcomes, approval, terms, timelines, income, and commissions are not guaranteed.</label>
               </div>
 
               <div class="mpc-check-row">
                 <input id="ackPrivacy" name="ackPrivacy" type="checkbox" required>
-                <label for="ackPrivacy">I will not enter sensitive borrower, bank, tax, credential, or private document data into this static demo.</label>
+                <label for="ackPrivacy">I will not enter bank credentials, tax IDs, private documents, or sensitive borrower files here.</label>
               </div>
             </fieldset>
 
-            <div class="mpc-disclaimer">
-              Funding options may vary. Partner activity does not guarantee approval, funding, commissions, income, or any specific outcome. This form saves a local demo profile in your browser.
-            </div>
-
             <div class="mpc-actions">
               <button class="mpc-button mpc-button-primary mpc-button-lg" type="submit" data-track="partner_access_submit">
-                Create Local Partner Profile
+                Create Partner Profile
               </button>
               <button class="mpc-button mpc-button-outline mpc-button-lg" type="button" data-fill-demo-profile>
-                Fill Demo Profile
+                Fill Sample Profile
               </button>
               <button class="mpc-button mpc-button-ghost mpc-button-lg" type="reset">
                 Reset
@@ -295,23 +286,21 @@
         if (fillDemoButton) {
           fillDemoButton.addEventListener("click", function fillDemoProfile() {
             forms.hydrateForm(form, {
-              contactName: "Demo Partner",
+              contactName: "Jason Test Partner",
               email: "partner@example.com",
               phone: "(555) 010-2026",
-              company: "Demo Growth Partners",
+              company: "Growth Partners Group",
               partnerType: "funding-broker",
               partnerPath: "submit-leads",
               primaryAudience: "Contractors, service businesses, and local operators",
               channels: ["direct-outreach", "referrals", "social"],
               city: "Washington",
               state: "DC",
-              goals: "Submit cleaner leads, track referrals, and use partner resources without making funding promises.",
-              ackDemo: true,
-              ackPermission: true,
+              goals: "Submit cleaner leads, track referrals, and use partner resources to move faster.",              ackPermission: true,
               ackNoGuarantees: true,
               ackPrivacy: true
             });
-            ui.toast("Demo partner profile filled.", { tone: "success" });
+            ui.toast("Jason Test Partner profile filled.", { tone: "success" });
           });
         }
 
@@ -329,11 +318,11 @@
           var profile = Object.assign({}, existing, data, {
             id: existing.id || "partner_" + Date.now().toString(36),
             partnerId: partnerId,
-            status: "active-demo",
+            status: "active",
             createdAt: existing.createdAt || now,
             updatedAt: now,
             attribution: attributionData,
-            localDemo: true,
+            localDemo: false,
             dashboardUrl: "./dashboard.html",
             welcomeUrl: "./welcome/index.html"
           });
@@ -346,7 +335,7 @@
             actor: profile.contactName,
             partnerId: partnerId,
             target: profile.company,
-            message: "Saved a local demo partner profile from partner-access.html.",
+            message: "Saved a local Jason Test Partner profile from partner-access.html.",
             createdAt: now,
             tone: "success"
           }, 120);
@@ -369,3 +358,4 @@
   </script>
 </body>
 </html>
+
