@@ -1,0 +1,15 @@
+{
+  "partner_id": "MS-P-20260707-ABC12345",
+  "business_name": "Demo Main Street Services",
+  "contact_name": "Casey Morgan",
+  "email": "owner@example.com",
+  "phone": "555-010-2424",
+  "industry": "Local services",
+  "monthly_revenue": 62000,
+  "time_in_business": "3 years",
+  "funding_need": 48000,
+  "use_of_funds": "Inventory, payroll bridge, and marketing runway.",
+  "urgency": "30 days",
+  "source": "partner_dashboard",
+  "notes": "No restricted documents collected."
+}
