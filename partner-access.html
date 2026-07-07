@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Partner Access | Moonshine Partner Command Center</title>
-  <meta name="description" content="Create your Moonshine Partner Command Center profile and enter the partner dashboard.">
+  <title>Join the Partner Program | Moonshine Partner Command Center</title>
+  <meta name="description" content="Join the Moonshine Capital partner program and get routed into the Partner Command Center.">
   <link rel="stylesheet" href="./styles/base.css">
   <link rel="stylesheet" href="./styles/public.css">
   <link rel="stylesheet" href="./styles/utilities.css">
@@ -28,7 +28,7 @@
       </nav>
 
       <div class="public-header-actions">
-        <a class="mpc-button mpc-button-outline mpc-button-sm" href="./dashboard.html" data-track="cta_dashboard_header">View Dashboard</a>
+        <a class="mpc-button mpc-button-outline mpc-button-sm" href="./dashboard.html">View Dashboard</a>
       </div>
     </div>
   </header>
@@ -37,156 +37,65 @@
     <section class="public-hero" aria-labelledby="access-title">
       <div class="public-shell public-hero-inner">
         <div class="public-hero-copy">
-          <span class="mpc-eyebrow">Partner access</span>
-          <h1 id="access-title">Create your partner profile and enter the command center.</h1>
+          <span class="mpc-eyebrow">Partner intake</span>
+          <h1 id="access-title">Join the Moonshine partner program.</h1>
           <p class="lead">
-            Tell us who you are, how you send opportunity, and what partner path fits you best. Then jump into the dashboard with your profile, resources, link tools, and referral workflow ready to move.
+            Start with the partner intake form. We’ll use your profile to understand your partner type, audience, referral motion, onboarding path, resource needs, and next best action.
           </p>
           <div class="mpc-actions">
-            <a class="mpc-button mpc-button-outline" href="./marketplace.html">Explore Marketplace First</a>
-            <a class="mpc-button mpc-button-ghost" href="./compliance.html">Read Partner Rules</a>
+            <a class="mpc-button mpc-button-primary mpc-button-lg" href="#partner-intake-form">
+              Start Partner Intake
+            </a>
+            <a class="mpc-button mpc-button-outline mpc-button-lg" href="https://tally.so/r/mOe658" target="_blank" rel="noopener">
+              Open Full Form
+            </a>
           </div>
         </div>
 
-        <aside class="public-hero-card" aria-label="Access flow notes">
-          <span class="mpc-badge mpc-badge-warning">Partner cockpit</span>
+        <aside class="public-hero-card" aria-label="Partner onboarding flow">
+          <span class="mpc-badge mpc-badge-success">Partner workflow</span>
           <h2>What happens next</h2>
           <ul class="public-list">
-            <li>Build your partner profile.</li>
-            <li>Get routed into the welcome flow.</li>
-            <li>Open your dashboard workspace.</li>
-            <li>Use links, resources, and referral tools.</li>
+            <li>Submit your partner intake.</li>
+            <li>Your profile is routed into the partner system.</li>
+            <li>Get matched to an onboarding path.</li>
+            <li>Use the dashboard for links, resources, referrals, and activity.</li>
           </ul>
         </aside>
       </div>
     </section>
 
-    <section class="public-section" aria-labelledby="partner-form-title">
+    <section class="public-section" id="partner-intake-form" aria-labelledby="form-title">
       <div class="public-shell">
         <div class="public-section-header">
-          <span class="mpc-eyebrow">Partner profile</span>
-          <h2 id="partner-form-title">Tell the system who you are and how you route opportunity.</h2>
+          <span class="mpc-eyebrow">Application form</span>
+          <h2 id="form-title">Tell us how you want to partner.</h2>
           <p>
-            This is the fast-start profile that powers your partner dashboard. Keep it focused on your business, your audience, and your referral motion.
+            Use the form below to start the partner intake flow. If the embedded form does not load, open the full form in a new tab.
           </p>
         </div>
 
-        <form class="mpc-card mpc-card-pad" id="partner-access-form" data-partner-access-form novalidate>
-          <div class="mpc-form-grid mpc-form-grid-2">
-            <div class="mpc-field">
-              <label for="contactName">Your name *</label>
-              <input id="contactName" name="contactName" type="text" autocomplete="name" required placeholder="Jason Partner">
-            </div>
+        <div class="mpc-card mpc-card-pad">
+          <iframe
+            data-tally-src="https://tally.so/embed/mOe658?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+            loading="lazy"
+            width="100%"
+            height="500"
+            frameborder="0"
+            marginheight="0"
+            marginwidth="0"
+            title="Join the #1 B2B Funding Platform!">
+          </iframe>
+        </div>
 
-            <div class="mpc-field">
-              <label for="email">Email *</label>
-              <input id="email" name="email" type="email" autocomplete="email" required placeholder="partner@example.com">
-            </div>
-
-            <div class="mpc-field">
-              <label for="phone">Phone</label>
-              <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="(555) 010-0000">
-            </div>
-
-            <div class="mpc-field">
-              <label for="company">Company / brand *</label>
-              <input id="company" name="company" type="text" autocomplete="organization" required placeholder="Your agency, brand, or practice">
-            </div>
-
-            <div class="mpc-field">
-              <label for="partnerType">Partner type *</label>
-              <select id="partnerType" name="partnerType" required>
-                <option value="">Choose one</option>
-                <option value="funding-broker">Funding Broker</option>
-                <option value="referral-partner">Referral Partner</option>
-                <option value="affiliate-partner">Affiliate Partner</option>
-                <option value="center-of-influence">Center of Influence</option>
-                <option value="operator">Moonshine Operator</option>
-              </select>
-            </div>
-
-            <div class="mpc-field">
-              <label for="partnerPath">Primary path *</label>
-              <select id="partnerPath" name="partnerPath" required>
-                <option value="">Choose path</option>
-                <option value="submit-leads">Submit qualified business funding leads</option>
-                <option value="make-intros">Make warm introductions</option>
-                <option value="promote-links">Promote partner links and content</option>
-                <option value="client-readiness">Help clients prepare for funding conversations</option>
-                <option value="ops-review">Review workflows as an operator</option>
-              </select>
-            </div>
-
-            <div class="mpc-field">
-              <label for="primaryAudience">Primary audience *</label>
-              <input id="primaryAudience" name="primaryAudience" type="text" required placeholder="Contractors, ecommerce sellers, local businesses, etc.">
-              <p class="mpc-field-help">Who do you already reach or serve?</p>
-            </div>
-
-            <div class="mpc-field">
-              <label for="channels">Main channels</label>
-              <select id="channels" name="channels" multiple>
-                <option value="direct-outreach">Direct outreach</option>
-                <option value="referrals">Referrals</option>
-                <option value="newsletter">Newsletter</option>
-                <option value="youtube">YouTube</option>
-                <option value="social">Social media</option>
-                <option value="events">Events</option>
-                <option value="client-advisory">Client advisory</option>
-                <option value="website-widget">Website widget</option>
-              </select>
-              <p class="mpc-field-help">Hold Ctrl/Cmd to select multiple.</p>
-            </div>
-
-            <div class="mpc-field">
-              <label for="city">City</label>
-              <input id="city" name="city" type="text" autocomplete="address-level2" placeholder="Washington">
-            </div>
-
-            <div class="mpc-field">
-              <label for="state">State</label>
-              <input id="state" name="state" type="text" autocomplete="address-level1" placeholder="DC">
-            </div>
-          </div>
-
-          <div class="mpc-form-grid mt-6">
-            <div class="mpc-field">
-              <label for="goals">What do you want this partner system to help you do?</label>
-              <textarea id="goals" name="goals" placeholder="Example: submit better leads, track referrals, share funding readiness resources, or build an affiliate funnel."></textarea>
-            </div>
-
-            <fieldset class="mpc-form-grid">
-              <legend>Partner operating standards *</legend>
-
-              <div class="mpc-check-row">
-                <input id="ackPermission" name="ackPermission" type="checkbox" required>
-                <label for="ackPermission">I only share referral information I have permission to share.</label>
-              </div>
-
-              <div class="mpc-check-row">
-                <input id="ackNoGuarantees" name="ackNoGuarantees" type="checkbox" required>
-                <label for="ackNoGuarantees">I understand funding outcomes, approval, terms, timelines, income, and commissions are not guaranteed.</label>
-              </div>
-
-              <div class="mpc-check-row">
-                <input id="ackPrivacy" name="ackPrivacy" type="checkbox" required>
-                <label for="ackPrivacy">I will not enter bank credentials, tax IDs, private documents, or sensitive borrower files here.</label>
-              </div>
-            </fieldset>
-
-            <div class="mpc-actions">
-              <button class="mpc-button mpc-button-primary mpc-button-lg" type="submit" data-track="partner_access_submit">
-                Create Partner Profile
-              </button>
-              <button class="mpc-button mpc-button-outline mpc-button-lg" type="button" data-fill-demo-profile>
-                Fill Sample Profile
-              </button>
-              <button class="mpc-button mpc-button-ghost mpc-button-lg" type="reset">
-                Reset
-              </button>
-            </div>
-          </div>
-        </form>
+        <div class="mpc-actions mt-6">
+          <a class="mpc-button mpc-button-outline" href="https://tally.so/r/mOe658" target="_blank" rel="noopener">
+            Open Form Directly
+          </a>
+          <a class="mpc-button mpc-button-ghost" href="./dashboard.html">
+            Already onboarded? View Dashboard
+          </a>
+        </div>
       </div>
     </section>
   </main>
@@ -199,15 +108,12 @@
           <span>Moonshine Partner Command Center</span>
         </a>
         <p class="mt-4">
-          Partner access flow for a partner-first Funding Partners OS.
-        </p>
-        <p>
-          Funding outcomes, terms, timelines, and partner compensation depend on real review and program rules.
+          Partner intake, onboarding, referral links, resources, and workflow tools for Moonshine Capital partners.
         </p>
       </div>
 
       <div class="public-footer-links" aria-label="Footer links">
-        <a href="./compliance.html">Compliance</a>
+        <a href="./compliance.html">Partner Rules</a>
         <a href="./affiliate-disclosure.html">Affiliate Disclosure</a>
         <a href="./privacy.html">Privacy</a>
         <a href="./terms.html">Terms</a>
@@ -215,148 +121,20 @@
     </div>
   </footer>
 
-  <script src="./data/partner-paths.js"></script>
-  <script src="./data/compliance-copy.js"></script>
-  <script src="./scripts/config.js"></script>
-  <script src="./scripts/storage.js"></script>
-  <script src="./scripts/ui-utils.js"></script>
-  <script src="./scripts/form-utils.js"></script>
-  <script src="./scripts/route-utils.js"></script>
-  <script src="./scripts/affiliate-tracking.js"></script>
-  <script src="./scripts/analytics-lite.js"></script>
   <script>
-    (function partnerAccessPage(window, document) {
-      "use strict";
-
-      function ready(callback) {
-        if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", callback);
-        } else {
-          callback();
-        }
-      }
-
-      function makePartnerId(data) {
-        var typeMap = {
-          "funding-broker": "FB",
-          "referral-partner": "RP",
-          "affiliate-partner": "AF",
-          "center-of-influence": "COI",
-          "operator": "OPS"
-        };
-
-        var prefix = typeMap[data.partnerType] || "PT";
-        var source = [data.company, data.contactName, data.email].join("-");
-        var slug = (window.MoonshineOS.ui && window.MoonshineOS.ui.slugify)
-          ? window.MoonshineOS.ui.slugify(source)
-          : String(Date.now());
-
-        var checksum = 0;
-        for (var i = 0; i < slug.length; i += 1) {
-          checksum = (checksum + slug.charCodeAt(i) * (i + 1)) % 9999;
-        }
-
-        return "MS-" + prefix + "-" + String(checksum || Date.now() % 9999).padStart(4, "0");
-      }
-
-      ready(function initPartnerAccess() {
-        var os = window.MoonshineOS || {};
-        var ui = os.ui;
-        var forms = os.forms;
-        var storage = os.storage;
-        var routes = os.routes;
-        var attribution = os.affiliateTracking;
-        var form = document.querySelector("[data-partner-access-form]");
-        var fillDemoButton = document.querySelector("[data-fill-demo-profile]");
-
-        if (!form || !ui || !forms || !storage) return;
-
-        var query = routes ? routes.getQueryObject() : {};
-        var storedProfile = storage.get("partnerProfile", null);
-
-        if (storedProfile) {
-          forms.hydrateForm(form, storedProfile);
-        }
-
-        if (query.path) {
-          var partnerType = document.getElementById("partnerType");
-          if (partnerType) partnerType.value = query.path;
-        }
-
-        if (fillDemoButton) {
-          fillDemoButton.addEventListener("click", function fillDemoProfile() {
-            forms.hydrateForm(form, {
-              contactName: "Jason Test Partner",
-              email: "partner@example.com",
-              phone: "(555) 010-2026",
-              company: "Growth Partners Group",
-              partnerType: "funding-broker",
-              partnerPath: "submit-leads",
-              primaryAudience: "Contractors, service businesses, and local operators",
-              channels: ["direct-outreach", "referrals", "social"],
-              city: "Washington",
-              state: "DC",
-              goals: "Submit cleaner leads, track referrals, and use partner resources to move faster.",              ackPermission: true,
-              ackNoGuarantees: true,
-              ackPrivacy: true
-            });
-            ui.toast("Jason Test Partner profile filled.", { tone: "success" });
-          });
-        }
-
-        forms.bindSubmit(form, function handleProfileSubmit(data) {
-          if (data.email && !forms.validateEmail(data.email)) {
-            ui.toast("Use a valid email address before continuing.", { tone: "warning" });
-            return;
-          }
-
-          var now = new Date().toISOString();
-          var existing = storage.get("partnerProfile", {});
-          var partnerId = existing.partnerId || makePartnerId(data);
-          var attributionData = attribution ? attribution.getStoredAttribution() : {};
-
-          var profile = Object.assign({}, existing, data, {
-            id: existing.id || "partner_" + Date.now().toString(36),
-            partnerId: partnerId,
-            status: "active",
-            createdAt: existing.createdAt || now,
-            updatedAt: now,
-            attribution: attributionData,
-            localDemo: false,
-            dashboardUrl: "./dashboard.html",
-            welcomeUrl: "./welcome/index.html"
-          });
-
-          storage.set("partnerProfile", profile);
-          storage.pushToArray("events", {
-            id: "event_" + Date.now().toString(36),
-            type: "partner.profile_created",
-            label: "Partner profile saved",
-            actor: profile.contactName,
-            partnerId: partnerId,
-            target: profile.company,
-            message: "Saved a local Jason Test Partner profile from partner-access.html.",
-            createdAt: now,
-            tone: "success"
-          }, 120);
-
-          if (os.analytics) {
-            os.analytics.track("partner_profile_created", {
-              partnerType: profile.partnerType,
-              partnerPath: profile.partnerPath
-            });
-          }
-
-          ui.toast("Partner profile saved. Routing to welcome.", { tone: "success" });
-
-          window.setTimeout(function goWelcome() {
-            window.location.href = "./welcome/index.html";
-          }, 500);
-        });
-      });
-    })(window, document);
+    var d=document,w="https://tally.so/widgets/embed.js",v=function(){
+      "undefined"!=typeof Tally
+        ? Tally.loadEmbeds()
+        : d.querySelectorAll("iframe[data-tally-src]:not([src])").forEach(function(e){e.src=e.dataset.tallySrc});
+    };
+    if("undefined"!=typeof Tally)v();
+    else if(d.querySelector('script[src="'+w+'"]')==null){
+      var s=d.createElement("script");
+      s.src=w;
+      s.onload=v;
+      s.onerror=v;
+      d.body.appendChild(s);
+    }
   </script>
 </body>
 </html>
-
-
