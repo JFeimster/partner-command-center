@@ -71,7 +71,7 @@ archived
 
 ## Partner types
 
-Use these live-facing partner types for the first router implementation:
+Use these canonical live-facing partner types for stored Partner Command Center records:
 
 ```text
 funding_broker
@@ -85,6 +85,32 @@ unknown
 ```
 
 Partner Intake OS has a deeper enum set. Partner Command Center should map the deeper reference values into this cleaner live shell unless a later sprint needs more granularity.
+
+### Inbound Tally / legacy partner type aliases
+
+The existing Tally webhook example normalizes partner types as hyphenated values, such as `funding-broker`, `referral-partner`, `affiliate-partner`, and `center-of-influence`. Sprint 02 must normalize those inbound values into the canonical underscore values above before validation or Notion storage.
+
+| Inbound value | Canonical stored value |
+|---|---|
+| `funding-broker` | `funding_broker` |
+| `loan-broker` | `funding_broker` |
+| `broker` | `funding_broker` |
+| `referral-partner` | `referral_partner` |
+| `referral` | `referral_partner` |
+| `affiliate-partner` | `affiliate_partner` |
+| `affiliate` | `affiliate_partner` |
+| `center-of-influence` | `center_of_influence` |
+| `coi` | `center_of_influence` |
+| `accountant` | `center_of_influence` |
+| `attorney` | `center_of_influence` |
+| `business-broker` | `center_of_influence` |
+| `professional-service-provider` | `professional_service_provider` |
+| `community-connector` | `community_connector` |
+| `operator` | `internal_operator` |
+| `admin` | `internal_operator` |
+| empty/unrecognized | `unknown` |
+
+Router rule: do not reject a Tally payload simply because it arrives with a legacy hyphenated partner type. Normalize first, then validate against the canonical stored values.
 
 ## Onboarding paths
 
