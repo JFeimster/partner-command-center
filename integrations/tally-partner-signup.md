@@ -49,11 +49,11 @@ https://YOUR_DOMAIN.com/api/router
 ```
 
 5. Configure the event as `FORM_RESPONSE`.
-6. Configure a shared secret if Tally supports one in your webhook setup.
+6. Configure the Tally signing secret in your webhook setup.
 7. Store the same value server-side as:
 
 ```text
-TALLY_WEBHOOK_SECRET
+MOONSHINE_TALLY_WEBHOOK_SECRET
 ```
 
 8. Confirm Notion env vars from Sprint 01 are present.
@@ -77,13 +77,14 @@ tally-signature
 x-webhook-signature
 ```
 
-The signature path expects an HMAC-SHA256 digest of the normalized body using `TALLY_WEBHOOK_SECRET`. Direct shared-secret headers are also accepted for simple webhook setups.
+The Tally signature path expects a base64 HMAC-SHA256 digest of the raw JSON payload using `MOONSHINE_TALLY_WEBHOOK_SECRET`. Direct shared-secret headers are also accepted for simple webhook tests.
 
 ## Required request behavior
 
 - Method must be `POST`.
 - Response is JSON only.
 - Unsupported actions are rejected.
+- Consent fields are required before storage.
 - Sensitive data is rejected.
 - Notion credentials stay server-side.
 - Browser JavaScript never calls Notion directly.
@@ -169,7 +170,7 @@ X-API-Key: YOUR_PARTNER_COMMAND_API_KEY
 
 ### `receivePartnerSignup`
 
-Primary Tally webhook path. Normalizes raw Tally field data, classifies partner, assigns onboarding/resources/campaigns, upserts Partner record in Notion, logs event, and returns `partner_id`.
+Primary Tally webhook path. Normalizes raw Tally field data, decodes selected option IDs to labels when Tally sends dropdown/multiple-choice IDs, classifies partner, assigns onboarding/resources/campaigns, upserts Partner record in Notion, logs event, and returns `partner_id`.
 
 ### `createPartner`
 
@@ -200,6 +201,7 @@ Creates a Partner Event record in Notion.
 - [ ] `POST /api/router` rejects non-POST methods.
 - [ ] Missing auth returns unauthorized JSON.
 - [ ] Invalid action returns validation JSON.
+- [ ] Missing consent fields are rejected before Notion writes.
 - [ ] Valid Tally/manual payload returns a `partner_id`.
 - [ ] Partner appears in Notion Partners database.
 - [ ] Partner Event appears in Notion Partner Events database.
