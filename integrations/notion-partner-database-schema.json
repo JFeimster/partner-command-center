@@ -1,0 +1,135 @@
+{
+  "version": "2026-07-07.sprint-01",
+  "system": "Partner Command Center",
+  "purpose": "Notion database blueprint for the first live Partner CRM layer.",
+  "notes": [
+    "Create these databases manually in Notion, then share each database with the Partner Command Center integration.",
+    "Property names should match exactly unless the field map is updated at the same time.",
+    "This file is a setup contract, not a secret-bearing config file. Do not add API keys or real database IDs here."
+  ],
+  "databases": {
+    "partners": {
+      "env_var": "NOTION_PARTNERS_DB_ID",
+      "name": "Partners",
+      "description": "Primary live partner CRM table for partner identity, activation state, classification, onboarding, resources, and campaign recommendations.",
+      "properties": {
+        "Name": { "type": "title", "required": true, "description": "Primary display name for the partner." },
+        "Partner ID": { "type": "rich_text", "required": true, "description": "Stable partner identifier used for dashboard access, tracking links, events, and future lead attribution." },
+        "Email": { "type": "email", "required": true, "description": "Primary contact and lookup field." },
+        "Phone": { "type": "phone_number", "required": false },
+        "Company": { "type": "rich_text", "required": false },
+        "Website": { "type": "url", "required": false },
+        "Partner Type": {
+          "type": "select",
+          "required": true,
+          "options": [
+            "funding_broker",
+            "referral_partner",
+            "affiliate_partner",
+            "center_of_influence",
+            "professional_service_provider",
+            "community_connector",
+            "internal_operator",
+            "unknown"
+          ]
+        },
+        "Audience": { "type": "rich_text", "required": true },
+        "Referral Source": { "type": "rich_text", "required": false },
+        "Traffic Source": { "type": "rich_text", "required": false },
+        "Status": {
+          "type": "select",
+          "required": true,
+          "options": ["new", "intake_received", "needs_review", "approved", "active", "paused", "rejected", "archived"]
+        },
+        "Tier": {
+          "type": "select",
+          "required": true,
+          "options": ["tier_1", "tier_2", "tier_3", "tier_4", "manual_review", "watchlist", "reject", "unknown"]
+        },
+        "Onboarding Path": {
+          "type": "select",
+          "required": true,
+          "options": ["broker_fast_start", "affiliate_launch_path", "referral_partner_path", "coi_relationship_path", "manual_review_path"]
+        },
+        "Resource Recommendations": { "type": "multi_select", "required": false },
+        "Campaign Recommendations": { "type": "multi_select", "required": false },
+        "Tally Submission ID": { "type": "rich_text", "required": false },
+        "Created At": { "type": "date", "required": true },
+        "Updated At": { "type": "date", "required": true }
+      }
+    },
+    "partner_events": {
+      "env_var": "NOTION_PARTNER_EVENTS_DB_ID",
+      "name": "Partner Events",
+      "description": "Append-style event log for partner signup, classification, onboarding, resource, tracking link, and activation events.",
+      "properties": {
+        "Event ID": { "type": "title", "required": true },
+        "Partner ID": { "type": "rich_text", "required": true },
+        "Event Type": {
+          "type": "select",
+          "required": true,
+          "options": [
+            "signup_received",
+            "partner_created",
+            "partner_updated",
+            "classification_assigned",
+            "onboarding_assigned",
+            "resources_assigned",
+            "tracking_link_created",
+            "manual_review_required",
+            "status_changed",
+            "api_error"
+          ]
+        },
+        "Source": {
+          "type": "select",
+          "required": true,
+          "options": ["tally", "api", "dashboard", "admin", "system", "unknown"]
+        },
+        "Status": { "type": "select", "required": false, "options": ["new", "intake_received", "needs_review", "approved", "active", "paused", "rejected", "archived"] },
+        "Summary": { "type": "rich_text", "required": false },
+        "Metadata JSON": { "type": "rich_text", "required": false, "description": "Compact serialized JSON only. Do not store secrets or sensitive borrower data." },
+        "Created At": { "type": "date", "required": true }
+      }
+    },
+    "partner_resources": {
+      "env_var": "NOTION_PARTNER_RESOURCES_DB_ID",
+      "name": "Partner Resources",
+      "description": "Resource assignment table keyed by partner_id, partner type, and onboarding path.",
+      "properties": {
+        "Assignment ID": { "type": "title", "required": true },
+        "Partner ID": { "type": "rich_text", "required": true },
+        "Resource Title": { "type": "rich_text", "required": true },
+        "Resource Type": { "type": "select", "required": true, "options": ["guide", "checklist", "script", "campaign", "training", "tool", "template", "other"] },
+        "Resource URL": { "type": "url", "required": false },
+        "Partner Type": { "type": "select", "required": false, "options": ["funding_broker", "referral_partner", "affiliate_partner", "center_of_influence", "professional_service_provider", "community_connector", "internal_operator", "unknown"] },
+        "Onboarding Path": { "type": "select", "required": false, "options": ["broker_fast_start", "affiliate_launch_path", "referral_partner_path", "coi_relationship_path", "manual_review_path"] },
+        "Priority": { "type": "number", "required": false },
+        "Status": { "type": "select", "required": true, "options": ["assigned", "viewed", "completed", "archived"] },
+        "Reason": { "type": "rich_text", "required": false },
+        "Created At": { "type": "date", "required": true },
+        "Updated At": { "type": "date", "required": true }
+      }
+    },
+    "tracking_links": {
+      "env_var": "NOTION_TRACKING_LINKS_DB_ID",
+      "name": "Tracking Links",
+      "description": "Partner tracking links and UTM attribution records keyed by partner_id.",
+      "properties": {
+        "Tracking Link ID": { "type": "title", "required": true },
+        "Partner ID": { "type": "rich_text", "required": true },
+        "Destination URL": { "type": "url", "required": true },
+        "Tracking URL": { "type": "url", "required": true },
+        "Source": { "type": "rich_text", "required": false },
+        "Campaign": { "type": "rich_text", "required": false },
+        "Medium": { "type": "rich_text", "required": false },
+        "UTM Source": { "type": "rich_text", "required": false },
+        "UTM Medium": { "type": "rich_text", "required": false },
+        "UTM Campaign": { "type": "rich_text", "required": false },
+        "Status": { "type": "select", "required": true, "options": ["active", "paused", "archived"] },
+        "Created At": { "type": "date", "required": true },
+        "Updated At": { "type": "date", "required": true }
+      }
+    }
+  }
+}
