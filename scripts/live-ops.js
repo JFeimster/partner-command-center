@@ -2,8 +2,8 @@
   Moonshine Partner Command Center
   Sprint 04 — Browser-safe live operations
 
-  Uses /api/router partner-scoped actions only.
-  No API keys. No Notion secrets. No raw CRM pages.
+  Browser actions queue link/resource intent locally.
+  Trusted server/API calls write to Notion. No browser API keys.
 */
 
 (function initLiveOps(window, document) {
@@ -13,40 +13,18 @@
 
   var os = window.MoonshineOS;
 
-  function now() {
-    return new Date().toISOString();
-  }
+  function now() { return new Date().toISOString(); }
+  function ready(callback) { if (!document) return; if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", callback); else callback(); }
+  function toast(message, tone) { if (os.ui && os.ui.toast) os.ui.toast(message, { tone: tone || "success" }); }
+  function getMode() { return os.apiClient && os.apiClient.getMode ? os.apiClient.getMode() : "local"; }
+  function getProfile() { if (os.dashboard && os.dashboard.partnerStore && os.dashboard.partnerStore.getProfile) return os.dashboard.partnerStore.getProfile(); if (os.storage && os.storage.get) return os.storage.get("partnerProfile", null); return null; }
+  function isLiveProfile(profile) { return Boolean(profile && profile.liveMode && profile.partnerId); }
+  function isLiveReady(profile) { return getMode() === "live" && isLiveProfile(profile || getProfile()); }
 
-  function ready(callback) {
-    if (!document) return;
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", callback);
-    else callback();
-  }
-
-  function toast(message, tone) {
-    if (os.ui && os.ui.toast) os.ui.toast(message, { tone: tone || "success" });
-  }
-
-  function getMode() {
-    return os.apiClient && os.apiClient.getMode ? os.apiClient.getMode() : "local";
-  }
-
-  function isLiveProfile(profile) {
-    return Boolean(profile && profile.liveMode && profile.partnerId);
-  }
-
-  function getProfile() {
-    if (os.dashboard && os.dashboard.partnerStore && os.dashboard.partnerStore.getProfile) {
-      return os.dashboard.partnerStore.getProfile();
-    }
-    if (os.storage && os.storage.get) {
-      return os.storage.get("partnerProfile", null);
-    }
-    return null;
-  }
-
-  function isLiveReady(profile) {
-    return getMode() === "live" && isLiveProfile(profile || getProfile()) && os.apiClient && os.apiClient.requestRouter;
+  function pushQueue(key, item, limit) {
+    if (!os.storage || !os.storage.pushToArray) return item;
+    os.storage.pushToArray(key, Object.assign({ id: key + "_" + Date.now().toString(36), createdAt: now() }, item || {}), limit || 80);
+    return item;
   }
 
   function buildTrackingLinkPayload(input) {
@@ -54,7 +32,6 @@
     var profile = input.profile || getProfile() || {};
     var destinationUrl = input.destinationUrl || input.destination || "./index.html";
     var trackingUrl = input.trackingUrl || input.tracking_url || destinationUrl;
-    var nowIso = now();
 
     return {
       partner_id: profile.partnerId,
@@ -67,8 +44,8 @@
       utm_medium: input.utm_medium || input.medium || "partner_dashboard",
       utm_campaign: input.utm_campaign || input.campaign || "",
       status: input.status || "active",
-      created_at: nowIso,
-      updated_at: nowIso
+      created_at: now(),
+      updated_at: now()
     };
   }
 
@@ -76,59 +53,45 @@
     var profile = input && input.profile || getProfile();
     var payload = buildTrackingLinkPayload(Object.assign({}, input || {}, { profile: profile }));
 
-    saveLocalTrackingLink({
-      partnerId: payload.partner_id,
-      destinationUrl: payload.destination_url,
-      trackingUrl: payload.tracking_url,
-      source: payload.source,
-      campaign: payload.campaign,
-      medium: payload.medium
+    pushQueue("trackingLinks", Object.assign({}, payload, {
+      localOnly: !isLiveReady(profile),
+      trustedWriteRequired: true,
+      trustedEndpoint: "/api/partner-links"
+    }), 80);
+
+    return Promise.resolve({
+      ok: false,
+      queued: true,
+      reason: "trusted_write_required",
+      message: "Tracking link intent queued locally. Trusted server-side call is required to write Notion tracking records.",
+      payload: payload
     });
-
-    if (!isLiveReady(profile)) {
-      return Promise.resolve({
-        ok: false,
-        skipped: true,
-        reason: "live_mode_not_enabled",
-        message: "Tracking link stored locally only. Live mode is not enabled or partner is not activated."
-      });
-    }
-
-    return os.apiClient.requestRouter("createTrackingLink", payload);
   }
 
   function assignPartnerResources(input) {
     var profile = input && input.profile || getProfile();
-
-    if (!isLiveReady(profile)) {
-      return Promise.resolve({
-        ok: false,
-        skipped: true,
-        reason: "live_mode_not_enabled",
-        message: "Resources remain local recommendations. Live mode is not enabled or partner is not activated."
-      });
-    }
-
-    return os.apiClient.requestRouter("assignPartnerResources", {
+    var payload = {
       partner: {
-        partner_id: profile.partnerId,
-        partner_type: profile.partnerType || "unknown",
-        onboarding_path: profile.onboardingPath || "manual_review_path"
+        partner_id: profile && profile.partnerId,
+        partner_type: profile && profile.partnerType || "unknown",
+        onboarding_path: profile && profile.onboardingPath || "manual_review_path"
       },
-      resources: input && input.resources || profile.resourceRecommendations || []
+      resources: input && input.resources || profile && profile.resourceRecommendations || []
+    };
+
+    pushQueue("resourceAssignments", Object.assign({}, payload, {
+      localOnly: !isLiveReady(profile),
+      trustedWriteRequired: true,
+      trustedAction: "assignPartnerResources"
+    }), 80);
+
+    return Promise.resolve({
+      ok: false,
+      queued: true,
+      reason: "trusted_write_required",
+      message: "Resource assignment intent queued locally. Trusted router call is required to write Notion resource records.",
+      payload: payload
     });
-  }
-
-  function saveLocalTrackingLink(record) {
-    if (!os.storage || !os.storage.pushToArray) return record;
-
-    os.storage.pushToArray("trackingLinks", Object.assign({
-      id: "tracking_" + Date.now().toString(36),
-      createdAt: now(),
-      localOnly: getMode() !== "live"
-    }, record || {}), 80);
-
-    return record;
   }
 
   function recordBuiltLinkFromForm(form) {
@@ -153,9 +116,7 @@
 
       window.setTimeout(function afterLocalBuild() {
         recordBuiltLinkFromForm(form).then(function done(result) {
-          if (result && result.ok) toast("Tracking link recorded in Notion.", "success");
-          else if (result && result.skipped) toast("Partner link saved locally. Live tracking record skipped.", "warning");
-          else toast("Partner link built. Tracking record may need review.", "warning");
+          if (result && result.queued) toast("Partner link queued for trusted tracking sync.", "success");
         });
       }, 50);
     }, true);
@@ -164,9 +125,7 @@
       var syncResources = event.target && event.target.closest ? event.target.closest("[data-sync-partner-resources]") : null;
       if (syncResources) {
         assignPartnerResources({}).then(function done(result) {
-          if (result && result.ok) toast("Partner resources assigned in Notion.", "success");
-          else if (result && result.skipped) toast("Live resource assignment skipped. Activate live mode first.", "warning");
-          else toast("Resource assignment failed or needs review.", "danger");
+          if (result && result.queued) toast("Resource assignment queued for trusted sync.", "success");
         });
         return;
       }
@@ -175,31 +134,14 @@
       if (copyOffer) {
         var destination = copyOffer.getAttribute("data-copy-offer-link") || "./marketplace.html";
         window.setTimeout(function afterCopyOffer() {
-          var link = os.dashboard && os.dashboard.affiliateStore && os.dashboard.affiliateStore.buildLink
-            ? os.dashboard.affiliateStore.buildLink(destination, { source: "dashboard_marketplace" })
-            : destination;
-          createTrackingLink({
-            destinationUrl: destination,
-            trackingUrl: link,
-            source: "dashboard_marketplace",
-            campaign: "marketplace_offer",
-            medium: "partner_dashboard"
-          });
+          var link = os.dashboard && os.dashboard.affiliateStore && os.dashboard.affiliateStore.buildLink ? os.dashboard.affiliateStore.buildLink(destination, { source: "dashboard_marketplace" }) : destination;
+          createTrackingLink({ destinationUrl: destination, trackingUrl: link, source: "dashboard_marketplace", campaign: "marketplace_offer", medium: "partner_dashboard" });
         }, 50);
       }
     }, true);
   }
 
-  os.liveOps = {
-    getMode: getMode,
-    getProfile: getProfile,
-    isLiveReady: isLiveReady,
-    buildTrackingLinkPayload: buildTrackingLinkPayload,
-    createTrackingLink: createTrackingLink,
-    assignPartnerResources: assignPartnerResources,
-    saveLocalTrackingLink: saveLocalTrackingLink,
-    recordBuiltLinkFromForm: recordBuiltLinkFromForm
-  };
+  os.liveOps = { getMode: getMode, getProfile: getProfile, isLiveReady: isLiveReady, buildTrackingLinkPayload: buildTrackingLinkPayload, createTrackingLink: createTrackingLink, assignPartnerResources: assignPartnerResources, recordBuiltLinkFromForm: recordBuiltLinkFromForm };
 
   ready(bindDashboardActions);
 })(window, document);
