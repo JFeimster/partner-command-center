@@ -102,8 +102,10 @@ NOTION_PARTNER_EVENTS_DB_ID
 NOTION_PARTNER_RESOURCES_DB_ID
 NOTION_TRACKING_LINKS_DB_ID
 PARTNER_COMMAND_API_KEY
-TALLY_WEBHOOK_SECRET
+MOONSHINE_TALLY_WEBHOOK_SECRET
 ```
+
+Use `MOONSHINE_TALLY_WEBHOOK_SECRET` for the Tally webhook contract because the existing webhook example already reads `process.env.MOONSHINE_TALLY_WEBHOOK_SECRET`. If Sprint 02 intentionally renames this to `TALLY_WEBHOOK_SECRET`, the handler update and documentation update must land in the same change.
 
 These are not used in Sprint 00 because Sprint 00 does not add code.
 
