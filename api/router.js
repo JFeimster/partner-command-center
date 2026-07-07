@@ -1,5 +1,6 @@
 // Partner Command Center unified API router
 // Sprint 02: Tally partner signup -> validation/classification -> Notion Partner CRM.
+// Sprint 03: sanitized public activation lookup for partner access/welcome/dashboard.
 
 'use strict';
 
@@ -14,7 +15,6 @@ const {
 } = require('../lib/notion-client');
 const {
   validatePartnerForNotion,
-  validateEmail,
   findSensitiveData,
   PARTNER_TYPES,
   ONBOARDING_PATHS
@@ -34,11 +34,14 @@ const ROUTER_ACTIONS = [
   'receivePartnerSignup',
   'createPartner',
   'getPartner',
+  'getPartnerActivation',
   'classifyPartner',
   'assignOnboardingPath',
   'assignPartnerResources',
   'logPartnerEvent'
 ];
+
+const PUBLIC_ACTIONS = ['getPartnerActivation'];
 
 const TALLY_FIELD_MAP = {
   'first name': 'first_name',
@@ -69,172 +72,105 @@ const TALLY_FIELD_MAP = {
   'contact permission': 'contact_permission'
 };
 
-function normalizeHeaderValue(value) {
-  if (Array.isArray(value)) return value[0];
-  return value || '';
-}
-
+function normalizeHeaderValue(value) { return Array.isArray(value) ? value[0] : value || ''; }
 function getHeader(req, name) {
   const headers = req && req.headers ? req.headers : {};
-  const lowerName = name.toLowerCase();
-  const foundKey = Object.keys(headers).find((key) => key.toLowerCase() === lowerName);
+  const foundKey = Object.keys(headers).find((key) => key.toLowerCase() === name.toLowerCase());
   return foundKey ? normalizeHeaderValue(headers[foundKey]) : '';
 }
-
-function attachRawBody(parsed, rawBody) {
-  if (parsed && typeof parsed === 'object' && rawBody) {
-    Object.defineProperty(parsed, '__rawBody', {
-      value: rawBody,
-      enumerable: false,
-      configurable: false,
-      writable: false
-    });
-  }
-  return parsed;
-}
-
 function parseBody(req) {
   if (!req || req.body === undefined || req.body === null) return {};
   if (typeof req.body === 'string') {
-    try {
-      return attachRawBody(JSON.parse(req.body), req.body);
-    } catch (error) {
+    try { return JSON.parse(req.body); } catch (error) {
       const parseError = new Error('Invalid JSON request body.');
       parseError.code = 'invalid_json';
       throw parseError;
     }
   }
-  return attachRawBody(req.body, req.rawBody || req.bodyRaw || req.raw_body);
+  return req.body;
 }
-
 function stableStringify(value) {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']';
-  return '{' + Object.keys(value).sort().filter((key) => key !== '__rawBody').map((key) => JSON.stringify(key) + ':' + stableStringify(value[key])).join(',') + '}';
+  return '{' + Object.keys(value).sort().map((key) => JSON.stringify(key) + ':' + stableStringify(value[key])).join(',') + '}';
 }
-
 function constantTimeEqual(a, b) {
   const left = Buffer.from(String(a || ''));
   const right = Buffer.from(String(b || ''));
   if (left.length !== right.length) return false;
   return crypto.timingSafeEqual(left, right);
 }
-
-function getTallyWebhookSecret() {
-  return process.env.MOONSHINE_TALLY_WEBHOOK_SECRET || process.env.TALLY_WEBHOOK_SECRET;
+function preservedRawBody(req) {
+  if (!req) return null;
+  const candidates = [req.rawBody, req.bodyRaw, req.raw_body];
+  const raw = candidates.find((value) => typeof value === 'string' || Buffer.isBuffer(value));
+  return raw === undefined ? null : raw;
 }
-
-function getRawBodyForSignature(req, body) {
-  const rawBody = body && body.__rawBody ? body.__rawBody : req && (req.rawBody || req.bodyRaw || req.raw_body);
-  if (Buffer.isBuffer(rawBody)) return rawBody;
-  if (rawBody) return String(rawBody);
+function rawBodyForHmac(req, body) {
+  const raw = preservedRawBody(req);
+  if (raw !== null) return raw;
   if (req && typeof req.body === 'string') return req.body;
   return JSON.stringify(body || {});
 }
-
-function hmacForBody(secret, body, req) {
-  return crypto.createHmac('sha256', secret).update(getRawBodyForSignature(req, body)).digest('base64');
+function hmacForBody(secret, body) {
+  const hmacBody = typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body || {});
+  return crypto.createHmac('sha256', secret).update(hmacBody).digest('base64');
 }
-
-function hmacHexForBody(secret, body, req) {
-  return crypto.createHmac('sha256', secret).update(getRawBodyForSignature(req, body)).digest('hex');
-}
-
-function stripSignaturePrefix(signature) {
-  return String(signature || '').replace(/^sha256=/i, '').trim();
-}
-
+function stripSignaturePrefix(signature) { return String(signature || '').replace(/^sha256=/i, '').trim(); }
 function isValidTallySecret(req, body) {
-  const secret = getTallyWebhookSecret();
+  const secret = process.env.MOONSHINE_TALLY_WEBHOOK_SECRET || process.env.TALLY_WEBHOOK_SECRET;
   if (!secret) return false;
-
   const directSecret = getHeader(req, 'x-tally-webhook-secret') || getHeader(req, 'x-webhook-secret');
   if (directSecret && constantTimeEqual(directSecret, secret)) return true;
-
   const signature = getHeader(req, 'x-tally-signature') || getHeader(req, 'tally-signature') || getHeader(req, 'x-webhook-signature');
   if (!signature) return false;
-
-  const received = stripSignaturePrefix(signature);
-  const expectedBase64 = hmacForBody(secret, body, req);
-  const expectedHex = hmacHexForBody(secret, body, req);
-
-  return constantTimeEqual(received, expectedBase64) || constantTimeEqual(received, expectedHex);
+  return constantTimeEqual(stripSignaturePrefix(signature), hmacForBody(secret, rawBodyForHmac(req, body)));
 }
-
 function isValidApiKey(req) {
   const expected = process.env.PARTNER_COMMAND_API_KEY;
   if (!expected) return false;
   const provided = getHeader(req, 'x-api-key') || getHeader(req, 'authorization').replace(/^Bearer\s+/i, '');
   return provided ? constantTimeEqual(provided, expected) : false;
 }
-
-function isTallyPayload(body) {
-  return Boolean(
-    body &&
-    (
-      body.eventType === 'FORM_RESPONSE' ||
-      body.event_type === 'FORM_RESPONSE' ||
-      body.type === 'FORM_RESPONSE' ||
-      body.data ||
-      body.form_response
-    )
-  );
+function isTallyPayload(body) { return Boolean(body && (body.eventType === 'FORM_RESPONSE' || body.event_type === 'FORM_RESPONSE' || body.type === 'FORM_RESPONSE' || body.data || body.form_response)); }
+function resolveAction(body) { if (body && body.action) return body.action; if (isTallyPayload(body)) return 'receivePartnerSignup'; return ''; }
+function cleanString(value) { if (value === undefined || value === null) return ''; return String(value).trim(); }
+function normalizeKey(value) { return cleanString(value).toLowerCase().replace(/\s+/g, ' '); }
+function optionLabelById(field, id) {
+  const options = Array.isArray(field && field.options) ? field.options : [];
+  const wanted = cleanString(id);
+  const match = options.find((option) => {
+    if (!option) return false;
+    return [option.id, option.value, option.key].map(cleanString).some((candidate) => candidate && candidate === wanted);
+  });
+  return match ? cleanString(match.label || match.text || match.name || match.title || match.value) : '';
 }
-
-function resolveAction(body) {
-  if (body && body.action) return body.action;
-  if (isTallyPayload(body)) return 'receivePartnerSignup';
-  return '';
+function decodeTallyOptionValue(field, value) {
+  if (value === undefined || value === null) return value;
+  if (Array.isArray(value)) return value.map((item) => decodeTallyOptionValue(field, item));
+  if (typeof value === 'object') {
+    const selected = value.id || value.optionId || value.option_id || value.value;
+    const label = optionLabelById(field, selected);
+    return label || value;
+  }
+  return optionLabelById(field, value) || value;
 }
-
-function cleanString(value) {
+function tallyFieldValueToString(field) {
+  const value = field.value !== undefined ? field.value : field.answer;
+  return tallyValueToString(decodeTallyOptionValue(field, value));
+}
+function tallyValueToString(value) {
   if (value === undefined || value === null) return '';
-  return String(value).trim();
-}
-
-function normalizeKey(value) {
-  return cleanString(value).toLowerCase().replace(/\s+/g, ' ');
-}
-
-function getOptionValue(option) {
-  if (!option || typeof option !== 'object') return '';
-  return cleanString(option.id || option.value || option.key || option.uuid || option._id);
-}
-
-function getOptionLabel(option) {
-  if (!option || typeof option !== 'object') return '';
-  return cleanString(option.label || option.text || option.title || option.name || option.value);
-}
-
-function resolveTallyOptionLabel(field, rawValue) {
-  const value = cleanString(rawValue);
-  const options = field && Array.isArray(field.options) ? field.options : [];
-  if (!value || options.length === 0) return '';
-
-  const match = options.find((option) => getOptionValue(option) === value || getOptionLabel(option) === value);
-  return match ? getOptionLabel(match) : '';
-}
-
-function tallyValueToString(value, field) {
-  if (value === undefined || value === null) return '';
-  if (Array.isArray(value)) return value.map((item) => tallyValueToString(item, field)).filter(Boolean).join(', ');
+  if (Array.isArray(value)) return value.map(tallyValueToString).filter(Boolean).join(', ');
   if (typeof value === 'object') {
     if (value.label) return cleanString(value.label);
     if (value.name) return cleanString(value.name);
-    if (value.text) return cleanString(value.text);
-    if (value.value) return tallyValueToString(value.value, field);
-    if (value.id) return resolveTallyOptionLabel(field, value.id) || cleanString(value.id);
+    if (value.value) return tallyValueToString(value.value);
     return cleanString(JSON.stringify(value));
   }
-
-  const primitiveValue = cleanString(value);
-  return resolveTallyOptionLabel(field, primitiveValue) || primitiveValue;
+  return cleanString(value);
 }
-
-function getTallyData(body) {
-  return body.form_response || body.data || body;
-}
-
+function getTallyData(body) { return body.form_response || body.data || body; }
 function getTallyFields(body) {
   const data = getTallyData(body);
   if (Array.isArray(data.fields)) return data.fields;
@@ -242,67 +178,36 @@ function getTallyFields(body) {
   if (Array.isArray(body.fields)) return body.fields;
   return [];
 }
-
 function extractTallyFields(body) {
   const fields = getTallyFields(body);
   const normalized = {};
-
   fields.forEach((field) => {
     const label = field.label || field.question || field.title || field.key || field.name || '';
     const internalKey = TALLY_FIELD_MAP[normalizeKey(label)] || TALLY_FIELD_MAP[normalizeKey(field.key)] || field.key;
     if (!internalKey) return;
-    normalized[internalKey] = tallyValueToString(field.value !== undefined ? field.value : field.answer, field);
+    normalized[internalKey] = tallyFieldValueToString(field);
   });
-
   const data = getTallyData(body);
   const direct = data.values || data.fieldsByKey || data.answersByKey || {};
   Object.keys(direct).forEach((key) => {
     const internalKey = TALLY_FIELD_MAP[normalizeKey(key)] || key;
     normalized[internalKey] = tallyValueToString(direct[key]);
   });
-
   return normalized;
 }
-
 function getTallySubmissionId(body) {
   const data = getTallyData(body);
-  return cleanString(
-    body.submissionId ||
-    body.submission_id ||
-    body.responseId ||
-    body.response_id ||
-    data.submissionId ||
-    data.submission_id ||
-    data.responseId ||
-    data.response_id ||
-    data.id ||
-    ''
-  );
+  return cleanString(body.submissionId || body.submission_id || body.responseId || body.response_id || data.submissionId || data.submission_id || data.responseId || data.response_id || data.id || '');
 }
-
-function buildName(fields) {
-  const name = cleanString(fields.name || fields.full_name);
-  if (name) return name;
-  return [fields.first_name, fields.last_name].map(cleanString).filter(Boolean).join(' ');
-}
-
+function buildName(fields) { const name = cleanString(fields.name || fields.full_name); return name || [fields.first_name, fields.last_name].map(cleanString).filter(Boolean).join(' '); }
 function generatePartnerId(seedInput) {
   const seed = stableStringify(seedInput || {}) + ':' + Date.now();
   const hash = crypto.createHash('sha256').update(seed).digest('hex').slice(0, 8).toUpperCase();
   const stamp = new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14);
   return `MS-P-${stamp}-${hash}`;
 }
-
 function classifyPartner(input) {
-  const text = [
-    input.partner_type_claimed,
-    input.desired_partner_role,
-    input.audience,
-    input.industry,
-    input.funding_experience,
-    input.notes
-  ].map(cleanString).join(' ').toLowerCase();
-
+  const text = [input.partner_type_claimed, input.desired_partner_role, input.audience, input.industry, input.funding_experience, input.notes].map(cleanString).join(' ').toLowerCase();
   if (/internal|operator|admin|moonshine/.test(text)) return 'internal_operator';
   if (/broker|iso|funding advisor|commercial finance|business funding/.test(text)) return 'funding_broker';
   if (/affiliate|creator|influencer|publisher|newsletter|youtube|podcast|media/.test(text)) return 'affiliate_partner';
@@ -312,7 +217,6 @@ function classifyPartner(input) {
   if (/refer|referral|clients|network/.test(text)) return 'referral_partner';
   return 'unknown';
 }
-
 function estimateTier(input, partnerType, sensitiveMatches) {
   const text = [input.audience, input.funding_experience, input.referral_volume_estimate, input.launch_timeline, input.notes].map(cleanString).join(' ').toLowerCase();
   if (sensitiveMatches && sensitiveMatches.length > 0) return 'manual_review';
@@ -323,7 +227,6 @@ function estimateTier(input, partnerType, sensitiveMatches) {
   if (partnerType === 'affiliate_partner' || partnerType === 'center_of_influence') return 'tier_2';
   return 'tier_3';
 }
-
 function assignOnboardingPathForPartner(partnerType, tier) {
   if (tier === 'manual_review' || tier === 'watchlist' || tier === 'reject' || partnerType === 'unknown') return 'manual_review_path';
   if (partnerType === 'funding_broker') return 'broker_fast_start';
@@ -331,18 +234,15 @@ function assignOnboardingPathForPartner(partnerType, tier) {
   if (partnerType === 'center_of_influence' || partnerType === 'community_connector') return 'coi_relationship_path';
   return 'referral_partner_path';
 }
-
 function recommendResourcesForPartner(partner) {
   const base = ['Partner Program Overview', 'Compliance-Safe Referral Rules'];
   const path = partner.onboarding_path;
-
   if (path === 'broker_fast_start') return [...base, 'Broker Fast Start Checklist', 'Deal Handoff Playbook', 'Partner Link Setup Guide'];
   if (path === 'affiliate_launch_path') return [...base, 'Affiliate Launch Kit', 'Campaign Swipe File', 'Tracking Link Setup Guide'];
   if (path === 'coi_relationship_path') return [...base, 'COI Referral Intro Script', 'Relationship-Based Referral Guide'];
   if (path === 'referral_partner_path') return [...base, 'Referral Partner Quickstart', 'Warm Intro Script'];
   return ['Partner Program Overview', 'Manual Review Next Steps', 'Compliance-Safe Referral Rules'];
 }
-
 function recommendCampaignsForPartner(partner) {
   if (partner.onboarding_path === 'broker_fast_start') return ['Broker Deal Flow Reactivation'];
   if (partner.onboarding_path === 'affiliate_launch_path') return ['Affiliate Partner Launch Campaign'];
@@ -350,31 +250,6 @@ function recommendCampaignsForPartner(partner) {
   if (partner.onboarding_path === 'referral_partner_path') return ['Warm Referral Starter Campaign'];
   return ['Manual Review Follow-Up'];
 }
-
-function isAcceptedConsent(value) {
-  const normalized = cleanString(value).toLowerCase();
-  if (!normalized) return false;
-  if (/^(false|no|0|unchecked|decline|declined|not accepted|not agreed)$/i.test(normalized)) return false;
-  return true;
-}
-
-function validateSignupConsent(fields) {
-  const missing = [];
-
-  if (!isAcceptedConsent(fields.partner_acknowledgment)) {
-    missing.push('partner_acknowledgment');
-  }
-
-  if (!isAcceptedConsent(fields.contact_permission)) {
-    missing.push('contact_permission');
-  }
-
-  return {
-    valid: missing.length === 0,
-    missing
-  };
-}
-
 function normalizePartnerFromSignup(body) {
   const fields = extractTallyFields(body);
   const submittedAt = cleanString(getTallyData(body).createdAt || getTallyData(body).submittedAt || body.createdAt) || new Date().toISOString();
@@ -383,8 +258,6 @@ function normalizePartnerFromSignup(body) {
   const tier = estimateTier(fields, partnerType, sensitiveMatches);
   const onboardingPath = ONBOARDING_PATHS.includes(fields.onboarding_path) ? fields.onboarding_path : assignOnboardingPathForPartner(partnerType, tier);
   const status = tier === 'manual_review' || tier === 'watchlist' ? 'needs_review' : 'intake_received';
-  const consent = validateSignupConsent(fields);
-
   const partner = {
     partner_id: cleanString(fields.partner_id) || generatePartnerId({ email: fields.email, submission: getTallySubmissionId(body) }),
     name: buildName(fields) || cleanString(fields.company) || cleanString(fields.email),
@@ -405,245 +278,157 @@ function normalizePartnerFromSignup(body) {
     created_at: submittedAt,
     updated_at: new Date().toISOString()
   };
-
   partner.resource_recommendations = recommendResourcesForPartner(partner);
   partner.campaign_recommendations = recommendCampaignsForPartner(partner);
-
-  return { partner, raw_fields: fields, sensitive_matches: sensitiveMatches, consent };
+  return { partner, raw_fields: fields, sensitive_matches: sensitiveMatches };
 }
-
-function safePageSummary(page) {
-  if (!page) return null;
+function safePageSummary(page) { return page ? { id: page.id, url: page.url, created_time: page.created_time, last_edited_time: page.last_edited_time } : null; }
+function firstPlainText(items) { return Array.isArray(items) && items[0] && items[0].plain_text ? items[0].plain_text : ''; }
+function propertyText(prop) { if (!prop) return ''; if (prop.title) return firstPlainText(prop.title); if (prop.rich_text) return firstPlainText(prop.rich_text); return ''; }
+function propertySelect(prop) { return prop && prop.select && prop.select.name ? prop.select.name : ''; }
+function propertyEmail(prop) { return prop && prop.email ? prop.email : ''; }
+function propertyUrl(prop) { return prop && prop.url ? prop.url : ''; }
+function propertyPhone(prop) { return prop && prop.phone_number ? prop.phone_number : ''; }
+function propertyMultiSelect(prop) { return prop && Array.isArray(prop.multi_select) ? prop.multi_select.map((item) => item.name).filter(Boolean) : []; }
+function hasAffirmativeConsent(value) {
+  if (value === true) return true;
+  if (Array.isArray(value)) return value.some(hasAffirmativeConsent);
+  const text = cleanString(value).toLowerCase();
+  if (!text || ['false', 'no', 'unchecked', '0', 'off'].includes(text)) return false;
+  return true;
+}
+function validateSignupConsent(fields) {
+  const missing = [];
+  if (!hasAffirmativeConsent(fields.partner_acknowledgment)) missing.push('partner_acknowledgment');
+  if (!hasAffirmativeConsent(fields.contact_permission)) missing.push('contact_permission');
+  return missing;
+}
+function publicActivationProfile(partner) {
+  const { notion_page_id, notion_url, ...safePartner } = partner || {};
+  return safePartner;
+}
+function extractActivationProfile(page) {
+  const props = page && page.properties ? page.properties : {};
   return {
-    id: page.id,
-    url: page.url,
-    created_time: page.created_time,
-    last_edited_time: page.last_edited_time
+    partner_id: propertyText(props['Partner ID']),
+    name: propertyText(props.Name),
+    email: propertyEmail(props.Email),
+    phone: propertyPhone(props.Phone),
+    company: propertyText(props.Company),
+    website: propertyUrl(props.Website),
+    partner_type: propertySelect(props['Partner Type']) || 'unknown',
+    audience: propertyText(props.Audience),
+    status: propertySelect(props.Status) || 'needs_review',
+    tier: propertySelect(props.Tier) || 'manual_review',
+    onboarding_path: propertySelect(props['Onboarding Path']) || 'manual_review_path',
+    resource_recommendations: propertyMultiSelect(props['Resource Recommendations']),
+    campaign_recommendations: propertyMultiSelect(props['Campaign Recommendations']),
+    updated_at: page && page.last_edited_time
   };
 }
-
 function assertAuthorized(req, body, action) {
+  if (PUBLIC_ACTIONS.includes(action)) return { ok: true, mode: 'public_activation' };
   if (action === 'receivePartnerSignup' && isValidTallySecret(req, body)) return { ok: true, mode: 'tally_webhook' };
   if (isValidApiKey(req)) return { ok: true, mode: 'api_key' };
   return { ok: false };
 }
-
 async function handleReceivePartnerSignup(body) {
   const normalized = normalizePartnerFromSignup(body);
-
-  if (!normalized.consent.valid) {
-    return validationError('Partner acknowledgment and contact permission are required before storing signup.', {
-      missing: normalized.consent.missing
-    });
-  }
-
-  if (normalized.sensitive_matches.length > 0) {
-    return validationError('Sensitive data detected in partner signup payload.', normalized.sensitive_matches);
-  }
-
+  const missingConsent = validateSignupConsent(normalized.raw_fields);
+  if (missingConsent.length > 0) return validationError('Partner signup consent is required before storage.', { fields: missingConsent });
+  if (normalized.sensitive_matches.length > 0) return validationError('Sensitive data detected in partner signup payload.', normalized.sensitive_matches);
   const validation = validatePartnerForNotion(normalized.partner);
-  if (!validation.valid) {
-    return validationError('Partner signup payload failed validation.', validation.errors);
-  }
-
+  if (!validation.valid) return validationError('Partner signup payload failed validation.', validation.errors);
   const result = await upsertPartner(normalized.partner);
-
-  await createPartnerEvent({
-    partner_id: normalized.partner.partner_id,
-    event_type: result.action === 'created' ? 'partner_created' : 'partner_updated',
-    source: 'tally',
-    status: normalized.partner.status,
-    summary: 'Partner signup received, normalized, classified, and stored in Notion.',
-    metadata: {
-      tally_submission_id: normalized.partner.tally_submission_id,
-      partner_type: normalized.partner.partner_type,
-      tier: normalized.partner.tier,
-      onboarding_path: normalized.partner.onboarding_path,
-      match_strategy: result.match_strategy
-    },
-    created_at: new Date().toISOString()
-  });
-
-  return created({
-    action: 'receivePartnerSignup',
-    result: result.action,
-    partner_id: normalized.partner.partner_id,
-    partner: normalized.partner,
-    notion_page: safePageSummary(result.page)
-  });
+  await createPartnerEvent({ partner_id: normalized.partner.partner_id, event_type: result.action === 'created' ? 'partner_created' : 'partner_updated', source: 'tally', status: normalized.partner.status, summary: 'Partner signup received, normalized, classified, and stored in Notion.', metadata: { tally_submission_id: normalized.partner.tally_submission_id, partner_type: normalized.partner.partner_type, tier: normalized.partner.tier, onboarding_path: normalized.partner.onboarding_path, match_strategy: result.match_strategy }, created_at: new Date().toISOString() });
+  return created({ action: 'receivePartnerSignup', result: result.action, partner_id: normalized.partner.partner_id, partner: normalized.partner, notion_page: safePageSummary(result.page) });
 }
-
 async function handleCreatePartner(body) {
   const input = body.partner || body;
-  const partner = {
-    ...input,
-    partner_id: cleanString(input.partner_id) || generatePartnerId(input),
-    created_at: input.created_at || new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-
+  const partner = { ...input, partner_id: cleanString(input.partner_id) || generatePartnerId(input), created_at: input.created_at || new Date().toISOString(), updated_at: new Date().toISOString() };
   if (!partner.resource_recommendations) partner.resource_recommendations = recommendResourcesForPartner(partner);
   if (!partner.campaign_recommendations) partner.campaign_recommendations = recommendCampaignsForPartner(partner);
-
   const sensitiveMatches = findSensitiveData(partner);
-  if (sensitiveMatches.length > 0) {
-    return validationError('Sensitive data detected in partner payload.', sensitiveMatches);
-  }
-
+  if (sensitiveMatches.length > 0) return validationError('Sensitive data detected in partner payload.', sensitiveMatches);
   const validation = validatePartnerForNotion(partner);
   if (!validation.valid) return validationError('Partner payload failed validation.', validation.errors);
-
   const result = await upsertPartner(partner);
   await logPartnerEvent(partner.partner_id, result.action === 'created' ? 'partner_created' : 'partner_updated', 'Partner record created or updated through API router.', { action: 'createPartner' });
-
-  return created({
-    action: 'createPartner',
-    result: result.action,
-    partner_id: partner.partner_id,
-    partner,
-    notion_page: safePageSummary(result.page)
-  });
+  return created({ action: 'createPartner', result: result.action, partner_id: partner.partner_id, partner, notion_page: safePageSummary(result.page) });
 }
-
-async function handleGetPartner(body) {
-  const partnerId = cleanString(body.partner_id);
+async function resolvePartnerPage(body) {
+  const partnerId = cleanString(body.partner_id || body.partnerId);
   const email = cleanString(body.email).toLowerCase();
-  if (!partnerId && !email) return validationError('Provide partner_id or email.');
-
+  if (!partnerId && !email) return { error: validationError('Provide partner_id or email.') };
   const page = partnerId ? await findPartnerByPartnerId(partnerId) : await findPartnerByEmail(email);
-  if (!page) return validationError('Partner not found.', { partner_id: partnerId || null, email: email || null });
-
-  return success({ action: 'getPartner', partner_id: partnerId || null, notion_page: safePageSummary(page), raw_page: page });
+  if (!page) return { error: validationError('Partner not found.', { partner_id: partnerId || null, email: email || null }) };
+  return { page, partnerId, email };
 }
-
+async function handleGetPartner(body) {
+  const resolved = await resolvePartnerPage(body);
+  if (resolved.error) return resolved.error;
+  return success({ action: 'getPartner', partner_id: resolved.partnerId || null, notion_page: safePageSummary(resolved.page), raw_page: resolved.page });
+}
+async function handleGetPartnerActivation(body) {
+  const resolved = await resolvePartnerPage(body);
+  if (resolved.error) return resolved.error;
+  const partner = publicActivationProfile(extractActivationProfile(resolved.page));
+  return success({ action: 'getPartnerActivation', partner_id: partner.partner_id, partner });
+}
 async function handleClassifyPartner(body) {
   const input = body.partner || body;
   const sensitiveMatches = findSensitiveData(input);
   const partnerType = classifyPartner(input);
   const tier = estimateTier(input, partnerType, sensitiveMatches);
-
-  return success({
-    action: 'classifyPartner',
-    partner_type: partnerType,
-    tier,
-    manual_review_required: tier === 'manual_review' || tier === 'watchlist',
-    sensitive_matches: sensitiveMatches
-  });
+  return success({ action: 'classifyPartner', partner_type: partnerType, tier, manual_review_required: tier === 'manual_review' || tier === 'watchlist', sensitive_matches: sensitiveMatches });
 }
-
 async function handleAssignOnboardingPath(body) {
   const input = body.partner || body;
   const partnerType = cleanString(input.partner_type || classifyPartner(input));
   const tier = cleanString(input.tier || estimateTier(input, partnerType, findSensitiveData(input)));
-  const onboardingPath = assignOnboardingPathForPartner(partnerType, tier);
-  return success({ action: 'assignOnboardingPath', partner_type: partnerType, tier, onboarding_path: onboardingPath });
+  return success({ action: 'assignOnboardingPath', partner_type: partnerType, tier, onboarding_path: assignOnboardingPathForPartner(partnerType, tier) });
 }
-
 async function handleAssignPartnerResources(body) {
   const partner = body.partner || body;
   if (!partner.partner_id) return validationError('partner_id is required to assign resources.');
-
-  const resources = recommendResourcesForPartner(partner).map((title, index) => ({
-    partner_id: partner.partner_id,
-    resource_title: title,
-    resource_type: index === 0 ? 'guide' : 'checklist',
-    partner_type: partner.partner_type || 'unknown',
-    onboarding_path: partner.onboarding_path || 'manual_review_path',
-    priority: index + 1,
-    status: 'assigned',
-    reason: 'Assigned by Sprint 02 partner resource rules.',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }));
-
+  const resources = recommendResourcesForPartner(partner).map((title, index) => ({ partner_id: partner.partner_id, resource_title: title, resource_type: index === 0 ? 'guide' : 'checklist', partner_type: partner.partner_type || 'unknown', onboarding_path: partner.onboarding_path || 'manual_review_path', priority: index + 1, status: 'assigned', reason: 'Assigned by Sprint 02 partner resource rules.', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }));
   const createdResources = [];
-  for (const resource of resources) {
-    createdResources.push(await createPartnerResource(resource));
-  }
-
+  for (const resource of resources) createdResources.push(await createPartnerResource(resource));
   await logPartnerEvent(partner.partner_id, 'resources_assigned', 'Partner resources assigned through API router.', { count: resources.length });
-
   return created({ action: 'assignPartnerResources', partner_id: partner.partner_id, resources, notion_pages: createdResources.map(safePageSummary) });
 }
-
 async function handleLogPartnerEvent(body) {
   const event = body.event || body;
   if (!event.partner_id || !event.event_type) return validationError('partner_id and event_type are required.');
-
-  const page = await createPartnerEvent({
-    partner_id: event.partner_id,
-    event_type: event.event_type,
-    source: event.source || 'api',
-    status: event.status,
-    summary: event.summary,
-    metadata: event.metadata,
-    created_at: event.created_at || new Date().toISOString()
-  });
-
+  const page = await createPartnerEvent({ partner_id: event.partner_id, event_type: event.event_type, source: event.source || 'api', status: event.status, summary: event.summary, metadata: event.metadata, created_at: event.created_at || new Date().toISOString() });
   return created({ action: 'logPartnerEvent', partner_id: event.partner_id, notion_page: safePageSummary(page) });
 }
-
 async function dispatch(action, body) {
   if (action === 'receivePartnerSignup') return handleReceivePartnerSignup(body);
   if (action === 'createPartner') return handleCreatePartner(body);
   if (action === 'getPartner') return handleGetPartner(body);
+  if (action === 'getPartnerActivation') return handleGetPartnerActivation(body);
   if (action === 'classifyPartner') return handleClassifyPartner(body);
   if (action === 'assignOnboardingPath') return handleAssignOnboardingPath(body);
   if (action === 'assignPartnerResources') return handleAssignPartnerResources(body);
   if (action === 'logPartnerEvent') return handleLogPartnerEvent(body);
   return validationError('Unsupported router action.', { action, supported_actions: ROUTER_ACTIONS });
 }
-
 module.exports = async function router(req, res) {
-  if (!req || req.method !== 'POST') {
-    return sendJson(res, methodNotAllowed(req && req.method, ['POST']));
-  }
-
+  if (!req || req.method !== 'POST') return sendJson(res, methodNotAllowed(req && req.method, ['POST']));
   let body;
-  try {
-    body = parseBody(req);
-  } catch (error) {
-    return sendJson(res, validationError('Invalid JSON request body.'));
-  }
-
+  try { body = parseBody(req); } catch (error) { return sendJson(res, validationError('Invalid JSON request body.')); }
   const action = resolveAction(body);
-  if (!action) {
-    return sendJson(res, validationError('Missing router action.', { supported_actions: ROUTER_ACTIONS }));
-  }
-
+  if (!action) return sendJson(res, validationError('Missing router action.', { supported_actions: ROUTER_ACTIONS }));
   const auth = assertAuthorized(req, body, action);
-  if (!auth.ok) {
-    return sendJson(res, unauthorized('Valid Tally webhook secret/signature or X-API-Key is required.'));
-  }
-
+  if (!auth.ok) return sendJson(res, unauthorized('Valid Tally webhook secret/signature or X-API-Key is required.'));
   try {
     const response = await dispatch(action, body);
     return sendJson(res, response);
   } catch (error) {
-    if (error && error.code === 'missing_env') {
-      return sendJson(res, serverError('Missing required server environment variable.', { field: error.field }));
-    }
-    if (error && (error.code === 'notion_error' || error.status)) {
-      return sendJson(res, notionError('Notion request failed.', { code: error.code, status: error.status, message: error.message }));
-    }
+    if (error && error.code === 'missing_env') return sendJson(res, serverError('Missing required server environment variable.', { field: error.field }));
+    if (error && (error.code === 'notion_error' || error.status)) return sendJson(res, notionError('Notion request failed.', { code: error.code, status: error.status, message: error.message }));
     return sendJson(res, serverError('Router action failed.', { message: error && error.message ? error.message : 'Unknown error' }));
   }
 };
-
-module.exports._private = {
-  ROUTER_ACTIONS,
-  TALLY_FIELD_MAP,
-  parseBody,
-  stableStringify,
-  hmacForBody,
-  isValidTallySecret,
-  isValidApiKey,
-  extractTallyFields,
-  normalizePartnerFromSignup,
-  generatePartnerId,
-  classifyPartner,
-  assignOnboardingPathForPartner,
-  recommendResourcesForPartner,
-  recommendCampaignsForPartner,
-  validateSignupConsent
-};
+module.exports._private = { ROUTER_ACTIONS, PUBLIC_ACTIONS, TALLY_FIELD_MAP, parseBody, stableStringify, rawBodyForHmac, hmacForBody, isValidTallySecret, isValidApiKey, extractTallyFields, normalizePartnerFromSignup, validateSignupConsent, generatePartnerId, classifyPartner, assignOnboardingPathForPartner, recommendResourcesForPartner, recommendCampaignsForPartner, extractActivationProfile, publicActivationProfile };
