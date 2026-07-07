@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://partner-command-center.local/schemas/lead-submission.schema.json",
+  "title": "Partner Command Center Lead Submission",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "partner_id",
+    "business_name",
+    "contact_name",
+    "email",
+    "monthly_revenue",
+    "funding_need",
+    "use_of_funds"
+  ],
+  "properties": {
+    "partner_id": {
+      "type": "string",
+      "minLength": 3
+    },
+    "business_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "contact_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "phone": {
+      "type": "string",
+      "maxLength": 40
+    },
+    "industry": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "monthly_revenue": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "time_in_business": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "funding_need": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 5000000
+    },
+    "use_of_funds": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "urgency": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
