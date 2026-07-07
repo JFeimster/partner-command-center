@@ -100,11 +100,22 @@ function constantTimeEqual(a, b) {
   if (left.length !== right.length) return false;
   return crypto.timingSafeEqual(left, right);
 }
+function preservedRawBody(req) {
+  if (!req) return null;
+  const candidates = [req.rawBody, req.bodyRaw, req.raw_body];
+  const raw = candidates.find((value) => typeof value === 'string' || Buffer.isBuffer(value));
+  return raw === undefined ? null : raw;
+}
 function rawBodyForHmac(req, body) {
+  const raw = preservedRawBody(req);
+  if (raw !== null) return raw;
   if (req && typeof req.body === 'string') return req.body;
   return JSON.stringify(body || {});
 }
-function hmacForBody(secret, body) { return crypto.createHmac('sha256', secret).update(typeof body === 'string' ? body : JSON.stringify(body || {})).digest('base64'); }
+function hmacForBody(secret, body) {
+  const hmacBody = typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body || {});
+  return crypto.createHmac('sha256', secret).update(hmacBody).digest('base64');
+}
 function stripSignaturePrefix(signature) { return String(signature || '').replace(/^sha256=/i, '').trim(); }
 function isValidTallySecret(req, body) {
   const secret = process.env.MOONSHINE_TALLY_WEBHOOK_SECRET || process.env.TALLY_WEBHOOK_SECRET;
