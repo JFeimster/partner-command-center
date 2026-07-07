@@ -1,10 +1,6 @@
 /*
   Moonshine Partner Command Center
   Batch 03 + Sprint 03 — Shared Config and Activation Client
-
-  Static-first configuration object.
-  Safe global namespace:
-    window.MoonshineOS
 */
 
 (function initMoonshineConfig(window, document) {
@@ -26,7 +22,7 @@
       routerPath: "/api/router",
       supportedModes: ["local", "live"],
       liveModeParams: ["api_mode", "mode", "live"],
-      activationLookupAction: "getPartner",
+      activationLookupAction: "getPartnerActivation",
       timeoutMs: 12000,
       noSecretsInBrowser: true
     },
@@ -51,25 +47,9 @@
     },
 
     routes: {
-      publicPages: [
-        "index.html",
-        "marketplace.html",
-        "resources.html",
-        "pricing.html",
-        "about.html",
-        "compliance.html",
-        "affiliate-disclosure.html",
-        "privacy.html",
-        "terms.html"
-      ],
-      dashboardPages: [
-        "dashboard.html"
-      ],
-      toolPages: [
-        "tools/commission-simulator.html",
-        "tools/funding-readiness-checklist.html",
-        "tools/sales-script-generator.html"
-      ]
+      publicPages: ["index.html", "marketplace.html", "resources.html", "pricing.html", "about.html", "compliance.html", "affiliate-disclosure.html", "privacy.html", "terms.html"],
+      dashboardPages: ["dashboard.html"],
+      toolPages: ["tools/commission-simulator.html", "tools/funding-readiness-checklist.html", "tools/sales-script-generator.html"]
     },
 
     localStorage: {
@@ -92,19 +72,7 @@
     },
 
     attribution: {
-      acceptedParams: [
-        "partner_id",
-        "partner",
-        "ref",
-        "affiliate",
-        "affiliate_id",
-        "source",
-        "utm_source",
-        "utm_medium",
-        "utm_campaign",
-        "utm_content",
-        "utm_term"
-      ],
+      acceptedParams: ["partner_id", "partner", "ref", "affiliate", "affiliate_id", "source", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"],
       defaultPartnerId: "MOONSHINE-DEMO",
       cookieDays: 30
     },
@@ -157,26 +125,15 @@
 
   function mergeDeep(target, source) {
     if (!source || typeof source !== "object") return target;
-
     Object.keys(source).forEach(function mergeKey(key) {
       var sourceValue = source[key];
       var targetValue = target[key];
-
-      if (
-        sourceValue &&
-        typeof sourceValue === "object" &&
-        !Array.isArray(sourceValue) &&
-        targetValue &&
-        typeof targetValue === "object" &&
-        !Array.isArray(targetValue)
-      ) {
+      if (sourceValue && typeof sourceValue === "object" && !Array.isArray(sourceValue) && targetValue && typeof targetValue === "object" && !Array.isArray(targetValue)) {
         mergeDeep(targetValue, sourceValue);
         return;
       }
-
       target[key] = sourceValue;
     });
-
     return target;
   }
 
@@ -184,27 +141,19 @@
 
   window.MoonshineOS.getConfig = function getConfig(path, fallback) {
     if (!path) return window.MoonshineOS.config;
-
     var parts = String(path).split(".");
     var cursor = window.MoonshineOS.config;
-
     for (var i = 0; i < parts.length; i += 1) {
-      if (cursor == null || !Object.prototype.hasOwnProperty.call(cursor, parts[i])) {
-        return fallback;
-      }
+      if (cursor == null || !Object.prototype.hasOwnProperty.call(cursor, parts[i])) return fallback;
       cursor = cursor[parts[i]];
     }
-
     return cursor == null ? fallback : cursor;
   };
 
   function ready(callback) {
     if (!document) return;
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", callback);
-    } else {
-      callback();
-    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", callback);
+    else callback();
   }
 
   function getNamespace() {
@@ -217,36 +166,21 @@
 
   function safeParse(value, fallback) {
     if (value == null || value === "") return fallback;
-    try {
-      return JSON.parse(value);
-    } catch (error) {
-      return fallback;
-    }
+    try { return JSON.parse(value); } catch (error) { return fallback; }
   }
 
   function readLocal(key, fallback) {
-    try {
-      return safeParse(window.localStorage.getItem(getStorageKey(key)), fallback);
-    } catch (error) {
-      return fallback;
-    }
+    try { return safeParse(window.localStorage.getItem(getStorageKey(key)), fallback); } catch (error) { return fallback; }
   }
 
   function writeLocal(key, value) {
-    try {
-      window.localStorage.setItem(getStorageKey(key), JSON.stringify(value));
-      return true;
-    } catch (error) {
-      return false;
-    }
+    try { window.localStorage.setItem(getStorageKey(key), JSON.stringify(value)); return true; } catch (error) { return false; }
   }
 
   function getQueryObject() {
     var params = new URLSearchParams(window.location.search || "");
     var query = {};
-    params.forEach(function eachParam(value, key) {
-      query[key] = value;
-    });
+    params.forEach(function eachParam(value, key) { query[key] = value; });
     return query;
   }
 
@@ -285,9 +219,7 @@
 
     return window.fetch(routerPath, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(Object.assign({ action: action }, payload || {})),
       signal: controller ? controller.signal : undefined
     }).then(function parseResponse(response) {
@@ -303,64 +235,12 @@
       });
     }).catch(function catchRequest(error) {
       if (timer) window.clearTimeout(timer);
-      return {
-        ok: false,
-        error: {
-          code: error && error.name === "AbortError" ? "timeout" : "request_failed",
-          message: error && error.message ? error.message : "Router request failed."
-        }
-      };
+      return { ok: false, error: { code: error && error.name === "AbortError" ? "timeout" : "request_failed", message: error && error.message ? error.message : "Router request failed." } };
     });
   }
 
-  function notionText(prop) {
-    if (!prop) return "";
-    if (prop.title && prop.title[0] && prop.title[0].plain_text) return prop.title[0].plain_text;
-    if (prop.rich_text && prop.rich_text[0] && prop.rich_text[0].plain_text) return prop.rich_text[0].plain_text;
-    return "";
-  }
-
-  function notionEmail(prop) {
-    return prop && prop.email ? prop.email : "";
-  }
-
-  function notionUrl(prop) {
-    return prop && prop.url ? prop.url : "";
-  }
-
-  function notionSelect(prop) {
-    return prop && prop.select && prop.select.name ? prop.select.name : "";
-  }
-
-  function notionMultiSelect(prop) {
-    return prop && Array.isArray(prop.multi_select) ? prop.multi_select.map(function mapOption(option) { return option.name; }) : [];
-  }
-
-  function normalizePartnerProfile(input) {
-    var partner = input || {};
-    var page = partner.raw_page || partner.page || partner.notion_page || null;
-    var props = page && page.properties ? page.properties : null;
-
-    if (props) {
-      partner = {
-        partner_id: notionText(props["Partner ID"]),
-        name: notionText(props.Name),
-        email: notionEmail(props.Email),
-        phone: props.Phone && props.Phone.phone_number || "",
-        company: notionText(props.Company),
-        website: notionUrl(props.Website),
-        partner_type: notionSelect(props["Partner Type"]),
-        audience: notionText(props.Audience),
-        status: notionSelect(props.Status),
-        tier: notionSelect(props.Tier),
-        onboarding_path: notionSelect(props["Onboarding Path"]),
-        resource_recommendations: notionMultiSelect(props["Resource Recommendations"]),
-        campaign_recommendations: notionMultiSelect(props["Campaign Recommendations"]),
-        created_at: props["Created At"] && props["Created At"].date && props["Created At"].date.start,
-        updated_at: props["Updated At"] && props["Updated At"].date && props["Updated At"].date.start
-      };
-    }
-
+  function normalizePartnerProfile(partner) {
+    partner = partner || {};
     return {
       id: partner.id || "partner_" + Date.now().toString(36),
       partnerId: partner.partnerId || partner.partner_id || partner.partnerID || "",
@@ -388,12 +268,7 @@
 
   function saveActivatedProfile(profile, meta) {
     var keys = window.MoonshineOS.getConfig("localStorage.keys", {});
-    var saved = Object.assign({}, profile || {}, {
-      updatedAt: new Date().toISOString(),
-      liveMode: profile && profile.liveMode !== false,
-      activationMeta: meta || {}
-    });
-
+    var saved = Object.assign({}, profile || {}, { updatedAt: new Date().toISOString(), liveMode: profile && profile.liveMode !== false, activationMeta: meta || {} });
     writeLocal(keys.partnerProfile || "partnerProfile", saved);
     writeLocal(keys.activationContext || "activationContext", {
       partnerId: saved.partnerId,
@@ -404,7 +279,6 @@
       liveMode: saved.liveMode,
       updatedAt: saved.updatedAt
     });
-
     return saved;
   }
 
@@ -414,32 +288,21 @@
     if (params && params.partnerId) payload.partner_id = params.partnerId;
     if (params && params.email) payload.email = params.email;
 
-    return requestRouter(window.MoonshineOS.getConfig("api.activationLookupAction", "getPartner"), payload).then(function handleLookup(response) {
+    return requestRouter(window.MoonshineOS.getConfig("api.activationLookupAction", "getPartnerActivation"), payload).then(function handleLookup(response) {
       if (!response || !response.ok) return response;
-
       var data = response.data || {};
-      var profile = normalizePartnerProfile(data.partner || data.raw_page || data);
-      var saved = saveActivatedProfile(profile, {
-        action: "lookupActivation",
-        responseAction: data.action || "getPartner"
-      });
-
-      return Object.assign({}, response, {
-        profile: saved
-      });
+      var profile = normalizePartnerProfile(data.partner || data);
+      var saved = saveActivatedProfile(profile, { action: "lookupActivation", responseAction: data.action || "getPartnerActivation" });
+      return Object.assign({}, response, { profile: saved });
     });
   }
 
   function renderActivationBanner(mode) {
     if (!document || document.querySelector("[data-activation-banner]")) return;
-
     var banner = document.createElement("div");
     banner.setAttribute("data-activation-banner", "");
     banner.style.cssText = "position:sticky;top:0;z-index:9999;padding:.65rem 1rem;background:#101820;color:#fff;border-bottom:1px solid rgba(255,255,255,.16);font:600 14px/1.4 system-ui, sans-serif;";
-    banner.textContent = mode === "live"
-      ? "Live activation mode: dashboard surfaces use /api/router when available. No browser secrets are stored."
-      : "Local demo mode: profile and dashboard state are browser-local only.";
-
+    banner.textContent = mode === "live" ? "Live activation mode: dashboard surfaces use /api/router when available. No browser secrets are stored." : "Local demo mode: profile and dashboard state are browser-local only.";
     document.body.insertBefore(banner, document.body.firstChild);
   }
 
@@ -451,31 +314,24 @@
     form.addEventListener("submit", function interceptLiveAccess(event) {
       event.preventDefault();
       event.stopImmediatePropagation();
-
       var formData = new FormData(form);
       var email = String(formData.get("email") || "").trim().toLowerCase();
       var stored = readLocal(window.MoonshineOS.getConfig("localStorage.keys.partnerProfile", "partnerProfile"), {}) || {};
       var partnerId = String(stored.partnerId || formData.get("partnerId") || "").trim();
       var ui = window.MoonshineOS.ui;
-
       if (!email && !partnerId) {
         if (ui && ui.toast) ui.toast("Enter an email or existing partner ID for live activation lookup.", { tone: "warning" });
         return;
       }
-
       if (ui && ui.toast) ui.toast("Checking live partner activation status...", { tone: "success" });
-
       lookupActivation({ email: email, partner_id: partnerId }).then(function onLookup(result) {
         if (!result || !result.ok) {
           var message = result && result.error && result.error.message ? result.error.message : "Live activation lookup failed.";
           if (ui && ui.toast) ui.toast(message, { tone: "danger" });
           return;
         }
-
         if (ui && ui.toast) ui.toast("Live partner profile activated. Routing to welcome.", { tone: "success" });
-        window.setTimeout(function goWelcome() {
-          window.location.href = "./welcome/index.html?api_mode=live";
-        }, 500);
+        window.setTimeout(function goWelcome() { window.location.href = "./welcome/index.html?api_mode=live"; }, 500);
       });
     }, true);
   }
@@ -485,14 +341,10 @@
     var query = getQueryObject();
     var partnerId = query.partner_id || query.partnerId || query.partner || "";
     var email = query.email || "";
-
     if (!partnerId && !email) return;
-
     lookupActivation({ partner_id: partnerId, email: email }).then(function onQueryActivation(result) {
       var ui = window.MoonshineOS.ui;
-      if (result && result.ok && ui && ui.toast) {
-        ui.toast("Live partner context loaded.", { tone: "success" });
-      }
+      if (result && result.ok && ui && ui.toast) ui.toast("Live partner context loaded.", { tone: "success" });
     });
   }
 
