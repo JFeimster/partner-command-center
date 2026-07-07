@@ -1,6 +1,6 @@
 /*
   Moonshine Partner Command Center
-  Batch 03 + Sprint 03 — Shared Config and Activation Client
+  Batch 03 + Sprints 03-04 — Shared Config, Activation Client, Live Ops Loader
 */
 
 (function initMoonshineConfig(window, document) {
@@ -14,7 +14,7 @@
     appName: "Moonshine Partner Command Center",
     systemName: "Funding Partners OS",
     brandName: "Moonshine Capital",
-    version: "0.3.0-sprint-03",
+    version: "0.4.0-sprint-04",
     environment: "static-demo",
 
     api: {
@@ -67,7 +67,8 @@
         analytics: "analytics",
         settings: "settings",
         apiMode: "apiMode",
-        activationContext: "activationContext"
+        activationContext: "activationContext",
+        trackingLinks: "trackingLinks"
       }
     },
 
@@ -77,21 +78,9 @@
       cookieDays: 30
     },
 
-    analytics: {
-      enabled: true,
-      maxEvents: 250,
-      autoTrackPageViews: true,
-      storageKey: "analytics"
-    },
+    analytics: { enabled: true, maxEvents: 250, autoTrackPageViews: true, storageKey: "analytics" },
 
-    ui: {
-      toastDuration: 3600,
-      themeAttribute: "data-theme",
-      defaultTheme: "dark",
-      activeClass: "is-active",
-      hiddenClass: "hidden",
-      busyClass: "is-busy"
-    },
+    ui: { toastDuration: 3600, themeAttribute: "data-theme", defaultTheme: "dark", activeClass: "is-active", hiddenClass: "hidden", busyClass: "is-busy" },
 
     compliance: {
       staticDemoNotice: "This static demo stores information locally in your browser. It is not connected to a live CRM, lender system, underwriting process, or partner payout system.",
@@ -100,26 +89,8 @@
     },
 
     statusLabels: {
-      lead: {
-        new: "New",
-        reviewing: "Reviewing",
-        needsInfo: "Needs Info",
-        submitted: "Submitted",
-        funded: "Funded",
-        declined: "Declined",
-        archived: "Archived"
-      },
-      partner: {
-        draft: "Draft",
-        active: "Active Demo",
-        pending: "Pending Review",
-        paused: "Paused",
-        archived: "Archived",
-        intake_received: "Intake Received",
-        needs_review: "Needs Review",
-        approved: "Approved",
-        active_live: "Active"
-      }
+      lead: { new: "New", reviewing: "Reviewing", needsInfo: "Needs Info", submitted: "Submitted", funded: "Funded", declined: "Declined", archived: "Archived" },
+      partner: { draft: "Draft", active: "Active Demo", pending: "Pending Review", paused: "Paused", archived: "Archived", intake_received: "Intake Received", needs_review: "Needs Review", approved: "Approved", active_live: "Active" }
     }
   };
 
@@ -156,26 +127,11 @@
     else callback();
   }
 
-  function getNamespace() {
-    return window.MoonshineOS.getConfig("localStorage.namespace", "moonshine.partnerOS.");
-  }
-
-  function getStorageKey(key) {
-    return getNamespace() + key;
-  }
-
-  function safeParse(value, fallback) {
-    if (value == null || value === "") return fallback;
-    try { return JSON.parse(value); } catch (error) { return fallback; }
-  }
-
-  function readLocal(key, fallback) {
-    try { return safeParse(window.localStorage.getItem(getStorageKey(key)), fallback); } catch (error) { return fallback; }
-  }
-
-  function writeLocal(key, value) {
-    try { window.localStorage.setItem(getStorageKey(key), JSON.stringify(value)); return true; } catch (error) { return false; }
-  }
+  function getNamespace() { return window.MoonshineOS.getConfig("localStorage.namespace", "moonshine.partnerOS."); }
+  function getStorageKey(key) { return getNamespace() + key; }
+  function safeParse(value, fallback) { if (value == null || value === "") return fallback; try { return JSON.parse(value); } catch (error) { return fallback; } }
+  function readLocal(key, fallback) { try { return safeParse(window.localStorage.getItem(getStorageKey(key)), fallback); } catch (error) { return fallback; } }
+  function writeLocal(key, value) { try { window.localStorage.setItem(getStorageKey(key), JSON.stringify(value)); return true; } catch (error) { return false; } }
 
   function getQueryObject() {
     var params = new URLSearchParams(window.location.search || "");
@@ -189,18 +145,15 @@
     var configured = window.MoonshineOS.getConfig("api.mode", "local");
     var stored = readLocal(window.MoonshineOS.getConfig("localStorage.keys.apiMode", "apiMode"), null);
     var requested = null;
-
     window.MoonshineOS.getConfig("api.liveModeParams", []).forEach(function eachParam(param) {
       if (requested) return;
       if (query[param] === "live" || query[param] === "1" || query[param] === "true") requested = "live";
       if (query[param] === "local" || query[param] === "0" || query[param] === "false") requested = "local";
     });
-
     if (requested) {
       writeLocal(window.MoonshineOS.getConfig("localStorage.keys.apiMode", "apiMode"), requested);
       return requested;
     }
-
     return stored || configured || "local";
   }
 
@@ -216,7 +169,6 @@
     var timeoutMs = window.MoonshineOS.getConfig("api.timeoutMs", 12000);
     var controller = window.AbortController ? new AbortController() : null;
     var timer = controller ? window.setTimeout(function abortRequest() { controller.abort(); }, timeoutMs) : null;
-
     return window.fetch(routerPath, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -287,7 +239,6 @@
     if (params && params.partner_id) payload.partner_id = params.partner_id;
     if (params && params.partnerId) payload.partner_id = params.partnerId;
     if (params && params.email) payload.email = params.email;
-
     return requestRouter(window.MoonshineOS.getConfig("api.activationLookupAction", "getPartnerActivation"), payload).then(function handleLookup(response) {
       if (!response || !response.ok) return response;
       var data = response.data || {};
@@ -310,7 +261,6 @@
     if (mode !== "live") return;
     var form = document.querySelector("[data-partner-access-form]");
     if (!form) return;
-
     form.addEventListener("submit", function interceptLiveAccess(event) {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -349,27 +299,28 @@
     });
   }
 
-  window.MoonshineOS.apiClient = {
-    getMode: resolveApiMode,
-    setMode: setApiMode,
-    requestRouter: requestRouter,
-    lookupActivation: lookupActivation,
-    normalizePartnerProfile: normalizePartnerProfile,
-    saveActivatedProfile: saveActivatedProfile
-  };
+  function scriptPrefix() {
+    return /\/welcome\//.test(window.location.pathname) ? "../" : "./";
+  }
 
-  window.MoonshineOS.activation = {
-    getMode: resolveApiMode,
-    lookup: lookupActivation,
-    saveProfile: saveActivatedProfile,
-    normalizeProfile: normalizePartnerProfile
-  };
+  function loadLiveOps() {
+    if (!document || window.MoonshineOS.liveOps || document.querySelector("script[data-live-ops]")) return;
+    var script = document.createElement("script");
+    script.src = scriptPrefix() + "scripts/live-ops.js";
+    script.defer = true;
+    script.setAttribute("data-live-ops", "true");
+    document.head.appendChild(script);
+  }
 
-  ready(function initSprint03Activation() {
+  window.MoonshineOS.apiClient = { getMode: resolveApiMode, setMode: setApiMode, requestRouter: requestRouter, lookupActivation: lookupActivation, normalizePartnerProfile: normalizePartnerProfile, saveActivatedProfile: saveActivatedProfile };
+  window.MoonshineOS.activation = { getMode: resolveApiMode, lookup: lookupActivation, saveProfile: saveActivatedProfile, normalizeProfile: normalizePartnerProfile };
+
+  ready(function initSprintActivation() {
     var mode = resolveApiMode();
     window.MoonshineOS.config.api.mode = mode;
     renderActivationBanner(mode);
     hydrateFromQuery(mode);
     bindPartnerAccessLiveMode(mode);
+    loadLiveOps();
   });
 })(window, document);
