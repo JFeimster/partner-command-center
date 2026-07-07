@@ -316,8 +316,9 @@
       event.stopImmediatePropagation();
       var formData = new FormData(form);
       var email = String(formData.get("email") || "").trim().toLowerCase();
+      var submittedPartnerId = String(formData.get("partnerId") || formData.get("partner_id") || "").trim();
       var stored = readLocal(window.MoonshineOS.getConfig("localStorage.keys.partnerProfile", "partnerProfile"), {}) || {};
-      var partnerId = String(stored.partnerId || formData.get("partnerId") || "").trim();
+      var partnerId = submittedPartnerId || (!email ? String(stored.partnerId || "").trim() : "");
       var ui = window.MoonshineOS.ui;
       if (!email && !partnerId) {
         if (ui && ui.toast) ui.toast("Enter an email or existing partner ID for live activation lookup.", { tone: "warning" });

@@ -100,16 +100,20 @@ function constantTimeEqual(a, b) {
   if (left.length !== right.length) return false;
   return crypto.timingSafeEqual(left, right);
 }
-function hmacForBody(secret, body) { return crypto.createHmac('sha256', secret).update(stableStringify(body)).digest('hex'); }
+function rawBodyForHmac(req, body) {
+  if (req && typeof req.body === 'string') return req.body;
+  return JSON.stringify(body || {});
+}
+function hmacForBody(secret, body) { return crypto.createHmac('sha256', secret).update(typeof body === 'string' ? body : JSON.stringify(body || {})).digest('base64'); }
 function stripSignaturePrefix(signature) { return String(signature || '').replace(/^sha256=/i, '').trim(); }
 function isValidTallySecret(req, body) {
-  const secret = process.env.TALLY_WEBHOOK_SECRET;
+  const secret = process.env.MOONSHINE_TALLY_WEBHOOK_SECRET || process.env.TALLY_WEBHOOK_SECRET;
   if (!secret) return false;
   const directSecret = getHeader(req, 'x-tally-webhook-secret') || getHeader(req, 'x-webhook-secret');
   if (directSecret && constantTimeEqual(directSecret, secret)) return true;
   const signature = getHeader(req, 'x-tally-signature') || getHeader(req, 'tally-signature') || getHeader(req, 'x-webhook-signature');
   if (!signature) return false;
-  return constantTimeEqual(stripSignaturePrefix(signature), hmacForBody(secret, body));
+  return constantTimeEqual(stripSignaturePrefix(signature), hmacForBody(secret, rawBodyForHmac(req, body)));
 }
 function isValidApiKey(req) {
   const expected = process.env.PARTNER_COMMAND_API_KEY;
@@ -121,6 +125,29 @@ function isTallyPayload(body) { return Boolean(body && (body.eventType === 'FORM
 function resolveAction(body) { if (body && body.action) return body.action; if (isTallyPayload(body)) return 'receivePartnerSignup'; return ''; }
 function cleanString(value) { if (value === undefined || value === null) return ''; return String(value).trim(); }
 function normalizeKey(value) { return cleanString(value).toLowerCase().replace(/\s+/g, ' '); }
+function optionLabelById(field, id) {
+  const options = Array.isArray(field && field.options) ? field.options : [];
+  const wanted = cleanString(id);
+  const match = options.find((option) => {
+    if (!option) return false;
+    return [option.id, option.value, option.key].map(cleanString).some((candidate) => candidate && candidate === wanted);
+  });
+  return match ? cleanString(match.label || match.text || match.name || match.title || match.value) : '';
+}
+function decodeTallyOptionValue(field, value) {
+  if (value === undefined || value === null) return value;
+  if (Array.isArray(value)) return value.map((item) => decodeTallyOptionValue(field, item));
+  if (typeof value === 'object') {
+    const selected = value.id || value.optionId || value.option_id || value.value;
+    const label = optionLabelById(field, selected);
+    return label || value;
+  }
+  return optionLabelById(field, value) || value;
+}
+function tallyFieldValueToString(field) {
+  const value = field.value !== undefined ? field.value : field.answer;
+  return tallyValueToString(decodeTallyOptionValue(field, value));
+}
 function tallyValueToString(value) {
   if (value === undefined || value === null) return '';
   if (Array.isArray(value)) return value.map(tallyValueToString).filter(Boolean).join(', ');
@@ -147,7 +174,7 @@ function extractTallyFields(body) {
     const label = field.label || field.question || field.title || field.key || field.name || '';
     const internalKey = TALLY_FIELD_MAP[normalizeKey(label)] || TALLY_FIELD_MAP[normalizeKey(field.key)] || field.key;
     if (!internalKey) return;
-    normalized[internalKey] = tallyValueToString(field.value !== undefined ? field.value : field.answer);
+    normalized[internalKey] = tallyFieldValueToString(field);
   });
   const data = getTallyData(body);
   const direct = data.values || data.fieldsByKey || data.answersByKey || {};
@@ -252,6 +279,23 @@ function propertyEmail(prop) { return prop && prop.email ? prop.email : ''; }
 function propertyUrl(prop) { return prop && prop.url ? prop.url : ''; }
 function propertyPhone(prop) { return prop && prop.phone_number ? prop.phone_number : ''; }
 function propertyMultiSelect(prop) { return prop && Array.isArray(prop.multi_select) ? prop.multi_select.map((item) => item.name).filter(Boolean) : []; }
+function hasAffirmativeConsent(value) {
+  if (value === true) return true;
+  if (Array.isArray(value)) return value.some(hasAffirmativeConsent);
+  const text = cleanString(value).toLowerCase();
+  if (!text || ['false', 'no', 'unchecked', '0', 'off'].includes(text)) return false;
+  return true;
+}
+function validateSignupConsent(fields) {
+  const missing = [];
+  if (!hasAffirmativeConsent(fields.partner_acknowledgment)) missing.push('partner_acknowledgment');
+  if (!hasAffirmativeConsent(fields.contact_permission)) missing.push('contact_permission');
+  return missing;
+}
+function publicActivationProfile(partner) {
+  const { notion_page_id, notion_url, ...safePartner } = partner || {};
+  return safePartner;
+}
 function extractActivationProfile(page) {
   const props = page && page.properties ? page.properties : {};
   return {
@@ -268,8 +312,6 @@ function extractActivationProfile(page) {
     onboarding_path: propertySelect(props['Onboarding Path']) || 'manual_review_path',
     resource_recommendations: propertyMultiSelect(props['Resource Recommendations']),
     campaign_recommendations: propertyMultiSelect(props['Campaign Recommendations']),
-    notion_page_id: page && page.id,
-    notion_url: page && page.url,
     updated_at: page && page.last_edited_time
   };
 }
@@ -281,6 +323,8 @@ function assertAuthorized(req, body, action) {
 }
 async function handleReceivePartnerSignup(body) {
   const normalized = normalizePartnerFromSignup(body);
+  const missingConsent = validateSignupConsent(normalized.raw_fields);
+  if (missingConsent.length > 0) return validationError('Partner signup consent is required before storage.', { fields: missingConsent });
   if (normalized.sensitive_matches.length > 0) return validationError('Sensitive data detected in partner signup payload.', normalized.sensitive_matches);
   const validation = validatePartnerForNotion(normalized.partner);
   if (!validation.valid) return validationError('Partner signup payload failed validation.', validation.errors);
@@ -317,8 +361,8 @@ async function handleGetPartner(body) {
 async function handleGetPartnerActivation(body) {
   const resolved = await resolvePartnerPage(body);
   if (resolved.error) return resolved.error;
-  const partner = extractActivationProfile(resolved.page);
-  return success({ action: 'getPartnerActivation', partner_id: partner.partner_id, partner, notion_page: safePageSummary(resolved.page) });
+  const partner = publicActivationProfile(extractActivationProfile(resolved.page));
+  return success({ action: 'getPartnerActivation', partner_id: partner.partner_id, partner });
 }
 async function handleClassifyPartner(body) {
   const input = body.partner || body;
@@ -376,4 +420,4 @@ module.exports = async function router(req, res) {
     return sendJson(res, serverError('Router action failed.', { message: error && error.message ? error.message : 'Unknown error' }));
   }
 };
-module.exports._private = { ROUTER_ACTIONS, PUBLIC_ACTIONS, TALLY_FIELD_MAP, parseBody, stableStringify, hmacForBody, isValidTallySecret, isValidApiKey, extractTallyFields, normalizePartnerFromSignup, generatePartnerId, classifyPartner, assignOnboardingPathForPartner, recommendResourcesForPartner, recommendCampaignsForPartner, extractActivationProfile };
+module.exports._private = { ROUTER_ACTIONS, PUBLIC_ACTIONS, TALLY_FIELD_MAP, parseBody, stableStringify, rawBodyForHmac, hmacForBody, isValidTallySecret, isValidApiKey, extractTallyFields, normalizePartnerFromSignup, validateSignupConsent, generatePartnerId, classifyPartner, assignOnboardingPathForPartner, recommendResourcesForPartner, recommendCampaignsForPartner, extractActivationProfile, publicActivationProfile };
