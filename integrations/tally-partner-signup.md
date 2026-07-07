@@ -1,148 +1,208 @@
-# Tally Partner Signup Integration Blueprint
+# Tally Partner Signup Integration
 
-Static integration blueprint for routing Moonshine Partner Command Center signups from Tally into the future partner onboarding system.
+## Purpose
 
-> Status: blueprint only. This file does not create a live webhook, CRM record, partner account, or approval workflow.
-
-## Primary use case
-
-Partners currently sign up through Tally. After submission, the intended production flow is:
+Sprint 02 creates the first live intake path:
 
 ```text
-Tally form submission
-→ Tally webhook
-→ backend validation
-→ partner profile created or queued for review
-→ CRM/contact record created
-→ welcome/dashboard access link generated
-→ operator review if needed
+Tally partner signup
+  -> POST /api/router
+  -> receivePartnerSignup
+  -> validate and normalize
+  -> classify partner
+  -> assign onboarding path
+  -> assign starter resources/campaigns
+  -> create/update Notion Partner record
+  -> log Partner Event
+  -> return partner_id
 ```
 
-## Recommended Tally fields
+This is partner activation plumbing, not lead routing. Lead Submission + Funding Router still waits until Sprint 05.
 
-| Tally Field | Internal Field | Required | Notes |
-| --- | --- | --- | --- |
-| Full Name | `contact_name` | Yes | Partner contact name |
-| Email | `email` | Yes | Must be valid email |
-| Phone | `phone` | No | Optional |
-| Company / Brand | `company` | Yes | Partner business name |
-| Partner Type | `partner_type` | Yes | Funding broker, referral partner, affiliate partner, COI, operator |
-| Primary Audience | `primary_audience` | Yes | Who they serve or reach |
-| Channels | `channels` | No | Outreach channels |
-| Website / Social URL | `website_url` | No | Helps partner review |
-| Referral Source | `source` | No | Where signup came from |
-| Intended Workflow | `partner_path` | Yes | Submit leads, make intros, promote links, client readiness, ops review |
-| Agreement Checkbox | `agreement_acknowledged` | Yes | Must be true |
-| Compliance Checkbox | `compliance_acknowledged` | Yes | Must be true |
-| Permission-Based Referral Checkbox | `permission_acknowledged` | Yes | Must be true |
-
-## Recommended hidden fields
-
-Use hidden fields in Tally URLs when possible:
-
-| Hidden Field | Example | Purpose |
-| --- | --- | --- |
-| `partner_source` | `homepage` | Source route |
-| `utm_source` | `linkedin` | Campaign source |
-| `utm_medium` | `social` | Campaign medium |
-| `utm_campaign` | `partner_launch` | Campaign |
-| `ref` | `MS-AF-2048` | Referrer/affiliate |
-| `landing_page` | `/partner-access.html` | Entry page |
-
-## Redirect after signup
-
-Recommended redirect target:
+## Endpoint
 
 ```text
-https://YOUR-DOMAIN.com/welcome/index.html?signup=tally&status=submitted
+POST /api/router
 ```
 
-For the current static site, use:
+## Supported Sprint 02 actions
 
 ```text
-./welcome/index.html?signup=tally&status=submitted
+receivePartnerSignup
+createPartner
+getPartner
+classifyPartner
+assignOnboardingPath
+assignPartnerResources
+logPartnerEvent
 ```
 
-The static welcome page can show a generic message, but production should only show partner-specific content after authentication or a secure token.
+## Tally webhook setup
 
-## Webhook payload shape
+1. Create or open the Tally partner signup form.
+2. Add the fields listed in `/modules/partner-intake/tally-intake-fields.md`.
+3. Add a webhook integration.
+4. Set the webhook URL to:
 
-Example Tally webhook payload normalized into backend format:
+```text
+https://YOUR_DOMAIN.com/api/router
+```
+
+5. Configure the event as `FORM_RESPONSE`.
+6. Configure a shared secret if Tally supports one in your webhook setup.
+7. Store the same value server-side as:
+
+```text
+TALLY_WEBHOOK_SECRET
+```
+
+8. Confirm Notion env vars from Sprint 01 are present.
+9. Submit a test signup.
+10. Confirm a Partner record and Partner Event are created in Notion.
+
+## Authentication behavior
+
+The router accepts either:
+
+- A valid Tally webhook secret/signature for `receivePartnerSignup`.
+- A valid `X-API-Key` header matching `PARTNER_COMMAND_API_KEY` for admin/manual/API tests.
+
+Supported Tally-style secret/signature headers:
+
+```text
+x-tally-webhook-secret
+x-webhook-secret
+x-tally-signature
+tally-signature
+x-webhook-signature
+```
+
+The signature path expects an HMAC-SHA256 digest of the normalized body using `TALLY_WEBHOOK_SECRET`. Direct shared-secret headers are also accepted for simple webhook setups.
+
+## Required request behavior
+
+- Method must be `POST`.
+- Response is JSON only.
+- Unsupported actions are rejected.
+- Sensitive data is rejected.
+- Notion credentials stay server-side.
+- Browser JavaScript never calls Notion directly.
+
+## Sensitive data rejection
+
+Do not send or store:
+
+- SSNs.
+- Full tax IDs.
+- Bank credentials.
+- Account numbers.
+- Private documents.
+- Underwriting decisions.
+- Borrower financial documents.
+
+If these show up in free-text fields, the router returns a validation error instead of storing the partner. Good. The CRM does not need cursed artifacts in the basement.
+
+## Test payload for `receivePartnerSignup`
+
+Use the full example in `tally-webhook-payload.json`.
+
+Minimum manual test with API key:
 
 ```json
 {
-  "event_type": "partner.signup.created",
-  "source": "tally",
-  "submitted_at": "2026-07-04T12:00:00Z",
-  "form_id": "FORM_ID",
-  "submission_id": "SUBMISSION_ID",
-  "partner": {
-    "contact_name": "Jordan Ellis",
-    "email": "jordan@example.com",
-    "phone": "(555) 010-1024",
-    "company": "Marcus Funding Desk",
-    "partner_type": "funding-broker",
-    "partner_path": "submit-leads",
-    "primary_audience": "Contractors and local service businesses",
-    "channels": ["direct-outreach", "referrals"]
-  },
-  "acknowledgments": {
-    "agreement_acknowledged": true,
-    "compliance_acknowledged": true,
-    "permission_acknowledged": true
-  },
-  "attribution": {
-    "utm_source": "linkedin",
-    "utm_medium": "social",
-    "utm_campaign": "partner_launch",
-    "ref": "MS-AF-2048"
+  "action": "receivePartnerSignup",
+  "eventType": "FORM_RESPONSE",
+  "data": {
+    "responseId": "sub_test_001",
+    "createdAt": "2026-07-07T00:00:00.000Z",
+    "fields": [
+      { "label": "First name", "value": "Jordan" },
+      { "label": "Last name", "value": "Smith" },
+      { "label": "Email", "value": "jordan@example.com" },
+      { "label": "Company / brand", "value": "Smith Funding Advisors" },
+      { "label": "Which best describes you?", "value": "Funding broker" },
+      { "label": "Who do you serve?", "value": "Small business owners seeking working capital." },
+      { "label": "What partner role are you most interested in?", "value": "Broker / funding advisor" },
+      { "label": "Partner acknowledgment", "value": "I understand." },
+      { "label": "Contact permission", "value": "I agree." }
+    ]
   }
 }
 ```
 
-## Validation rules
+Headers:
 
-Reject or queue for review when:
+```text
+Content-Type: application/json
+X-API-Key: YOUR_PARTNER_COMMAND_API_KEY
+```
 
-- Email is missing or invalid.
-- Partner type is missing.
-- Required acknowledgments are false.
-- Submission includes restricted claims such as “guaranteed funding” or “guaranteed commissions.”
-- Partner website/content appears to promise approval, rates, terms, timelines, or income.
-- Form includes sensitive borrower data that should not be collected in signup.
+## Example successful response
 
-## Partner status mapping
+```json
+{
+  "ok": true,
+  "data": {
+    "action": "receivePartnerSignup",
+    "result": "created",
+    "partner_id": "MS-P-20260707-ABC12345",
+    "partner": {
+      "partner_id": "MS-P-20260707-ABC12345",
+      "name": "Jordan Smith",
+      "email": "jordan@example.com",
+      "company": "Smith Funding Advisors",
+      "partner_type": "funding_broker",
+      "audience": "Small business owners seeking working capital.",
+      "status": "intake_received",
+      "tier": "tier_1",
+      "onboarding_path": "broker_fast_start"
+    },
+    "notion_page": {
+      "id": "notion-page-id",
+      "url": "https://www.notion.so/..."
+    }
+  }
+}
+```
 
-| Condition | Partner Status |
-| --- | --- |
-| Required fields complete and low-risk | `pending-review` |
-| Known/trusted existing partner | `active` |
-| Missing fields | `needs-info` |
-| Risky copy or compliance concern | `needs-review` |
-| Spam or abuse | `rejected` |
+## Router action list
 
-## Operator review checklist
+### `receivePartnerSignup`
 
-- Confirm partner identity and business context.
-- Confirm partner type and intended workflow.
-- Confirm no prohibited claims in application notes.
-- Confirm affiliate/referral disclosure requirements.
-- Confirm partner ID generation.
-- Confirm whether partner should get dashboard access, resources only, or manual review.
+Primary Tally webhook path. Normalizes raw Tally field data, classifies partner, assigns onboarding/resources/campaigns, upserts Partner record in Notion, logs event, and returns `partner_id`.
 
-## Production requirements
+### `createPartner`
 
-1. HTTPS webhook endpoint.
-2. Signature verification if supported.
-3. Server-side validation.
-4. Spam protection.
-5. Idempotency using submission ID.
-6. CRM/database create-or-update logic.
-7. Audit log.
-8. Welcome/access token generation.
-9. Operator review queue.
-10. Production privacy and terms alignment.
+Manual/admin API creation path. Requires `X-API-Key`.
 
-## Compliance note
+### `getPartner`
 
-Partner signup does not guarantee approval into a program, commission eligibility, funding outcomes, deal flow, or revenue.
+Looks up a partner by `partner_id` or `email`.
+
+### `classifyPartner`
+
+Classifies a partner payload without creating a record.
+
+### `assignOnboardingPath`
+
+Returns onboarding path based on partner type and tier.
+
+### `assignPartnerResources`
+
+Creates assigned Partner Resource records in Notion for an existing `partner_id`.
+
+### `logPartnerEvent`
+
+Creates a Partner Event record in Notion.
+
+## Manual verification checklist
+
+- [ ] `POST /api/router` rejects non-POST methods.
+- [ ] Missing auth returns unauthorized JSON.
+- [ ] Invalid action returns validation JSON.
+- [ ] Valid Tally/manual payload returns a `partner_id`.
+- [ ] Partner appears in Notion Partners database.
+- [ ] Partner Event appears in Notion Partner Events database.
+- [ ] Sensitive data test payload is rejected.
+- [ ] No Notion token appears in browser JavaScript.
+- [ ] Lead submission remains unavailable until Sprint 05.
