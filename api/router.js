@@ -81,24 +81,36 @@ function getHeader(req, name) {
   return foundKey ? normalizeHeaderValue(headers[foundKey]) : '';
 }
 
+function attachRawBody(parsed, rawBody) {
+  if (parsed && typeof parsed === 'object' && rawBody) {
+    Object.defineProperty(parsed, '__rawBody', {
+      value: rawBody,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    });
+  }
+  return parsed;
+}
+
 function parseBody(req) {
   if (!req || req.body === undefined || req.body === null) return {};
   if (typeof req.body === 'string') {
     try {
-      return JSON.parse(req.body);
+      return attachRawBody(JSON.parse(req.body), req.body);
     } catch (error) {
       const parseError = new Error('Invalid JSON request body.');
       parseError.code = 'invalid_json';
       throw parseError;
     }
   }
-  return req.body;
+  return attachRawBody(req.body, req.rawBody || req.bodyRaw || req.raw_body);
 }
 
 function stableStringify(value) {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']';
-  return '{' + Object.keys(value).sort().map((key) => JSON.stringify(key) + ':' + stableStringify(value[key])).join(',') + '}';
+  return '{' + Object.keys(value).sort().filter((key) => key !== '__rawBody').map((key) => JSON.stringify(key) + ':' + stableStringify(value[key])).join(',') + '}';
 }
 
 function constantTimeEqual(a, b) {
@@ -108,8 +120,24 @@ function constantTimeEqual(a, b) {
   return crypto.timingSafeEqual(left, right);
 }
 
-function hmacForBody(secret, body) {
-  return crypto.createHmac('sha256', secret).update(stableStringify(body)).digest('hex');
+function getTallyWebhookSecret() {
+  return process.env.MOONSHINE_TALLY_WEBHOOK_SECRET || process.env.TALLY_WEBHOOK_SECRET;
+}
+
+function getRawBodyForSignature(req, body) {
+  const rawBody = body && body.__rawBody ? body.__rawBody : req && (req.rawBody || req.bodyRaw || req.raw_body);
+  if (Buffer.isBuffer(rawBody)) return rawBody;
+  if (rawBody) return String(rawBody);
+  if (req && typeof req.body === 'string') return req.body;
+  return JSON.stringify(body || {});
+}
+
+function hmacForBody(secret, body, req) {
+  return crypto.createHmac('sha256', secret).update(getRawBodyForSignature(req, body)).digest('base64');
+}
+
+function hmacHexForBody(secret, body, req) {
+  return crypto.createHmac('sha256', secret).update(getRawBodyForSignature(req, body)).digest('hex');
 }
 
 function stripSignaturePrefix(signature) {
@@ -117,7 +145,7 @@ function stripSignaturePrefix(signature) {
 }
 
 function isValidTallySecret(req, body) {
-  const secret = process.env.TALLY_WEBHOOK_SECRET;
+  const secret = getTallyWebhookSecret();
   if (!secret) return false;
 
   const directSecret = getHeader(req, 'x-tally-webhook-secret') || getHeader(req, 'x-webhook-secret');
@@ -126,9 +154,11 @@ function isValidTallySecret(req, body) {
   const signature = getHeader(req, 'x-tally-signature') || getHeader(req, 'tally-signature') || getHeader(req, 'x-webhook-signature');
   if (!signature) return false;
 
-  const expected = hmacForBody(secret, body);
   const received = stripSignaturePrefix(signature);
-  return constantTimeEqual(received, expected);
+  const expectedBase64 = hmacForBody(secret, body, req);
+  const expectedHex = hmacHexForBody(secret, body, req);
+
+  return constantTimeEqual(received, expectedBase64) || constantTimeEqual(received, expectedHex);
 }
 
 function isValidApiKey(req) {
@@ -166,16 +196,39 @@ function normalizeKey(value) {
   return cleanString(value).toLowerCase().replace(/\s+/g, ' ');
 }
 
-function tallyValueToString(value) {
+function getOptionValue(option) {
+  if (!option || typeof option !== 'object') return '';
+  return cleanString(option.id || option.value || option.key || option.uuid || option._id);
+}
+
+function getOptionLabel(option) {
+  if (!option || typeof option !== 'object') return '';
+  return cleanString(option.label || option.text || option.title || option.name || option.value);
+}
+
+function resolveTallyOptionLabel(field, rawValue) {
+  const value = cleanString(rawValue);
+  const options = field && Array.isArray(field.options) ? field.options : [];
+  if (!value || options.length === 0) return '';
+
+  const match = options.find((option) => getOptionValue(option) === value || getOptionLabel(option) === value);
+  return match ? getOptionLabel(match) : '';
+}
+
+function tallyValueToString(value, field) {
   if (value === undefined || value === null) return '';
-  if (Array.isArray(value)) return value.map(tallyValueToString).filter(Boolean).join(', ');
+  if (Array.isArray(value)) return value.map((item) => tallyValueToString(item, field)).filter(Boolean).join(', ');
   if (typeof value === 'object') {
     if (value.label) return cleanString(value.label);
     if (value.name) return cleanString(value.name);
-    if (value.value) return tallyValueToString(value.value);
+    if (value.text) return cleanString(value.text);
+    if (value.value) return tallyValueToString(value.value, field);
+    if (value.id) return resolveTallyOptionLabel(field, value.id) || cleanString(value.id);
     return cleanString(JSON.stringify(value));
   }
-  return cleanString(value);
+
+  const primitiveValue = cleanString(value);
+  return resolveTallyOptionLabel(field, primitiveValue) || primitiveValue;
 }
 
 function getTallyData(body) {
@@ -198,7 +251,7 @@ function extractTallyFields(body) {
     const label = field.label || field.question || field.title || field.key || field.name || '';
     const internalKey = TALLY_FIELD_MAP[normalizeKey(label)] || TALLY_FIELD_MAP[normalizeKey(field.key)] || field.key;
     if (!internalKey) return;
-    normalized[internalKey] = tallyValueToString(field.value !== undefined ? field.value : field.answer);
+    normalized[internalKey] = tallyValueToString(field.value !== undefined ? field.value : field.answer, field);
   });
 
   const data = getTallyData(body);
@@ -298,6 +351,30 @@ function recommendCampaignsForPartner(partner) {
   return ['Manual Review Follow-Up'];
 }
 
+function isAcceptedConsent(value) {
+  const normalized = cleanString(value).toLowerCase();
+  if (!normalized) return false;
+  if (/^(false|no|0|unchecked|decline|declined|not accepted|not agreed)$/i.test(normalized)) return false;
+  return true;
+}
+
+function validateSignupConsent(fields) {
+  const missing = [];
+
+  if (!isAcceptedConsent(fields.partner_acknowledgment)) {
+    missing.push('partner_acknowledgment');
+  }
+
+  if (!isAcceptedConsent(fields.contact_permission)) {
+    missing.push('contact_permission');
+  }
+
+  return {
+    valid: missing.length === 0,
+    missing
+  };
+}
+
 function normalizePartnerFromSignup(body) {
   const fields = extractTallyFields(body);
   const submittedAt = cleanString(getTallyData(body).createdAt || getTallyData(body).submittedAt || body.createdAt) || new Date().toISOString();
@@ -306,6 +383,7 @@ function normalizePartnerFromSignup(body) {
   const tier = estimateTier(fields, partnerType, sensitiveMatches);
   const onboardingPath = ONBOARDING_PATHS.includes(fields.onboarding_path) ? fields.onboarding_path : assignOnboardingPathForPartner(partnerType, tier);
   const status = tier === 'manual_review' || tier === 'watchlist' ? 'needs_review' : 'intake_received';
+  const consent = validateSignupConsent(fields);
 
   const partner = {
     partner_id: cleanString(fields.partner_id) || generatePartnerId({ email: fields.email, submission: getTallySubmissionId(body) }),
@@ -331,7 +409,7 @@ function normalizePartnerFromSignup(body) {
   partner.resource_recommendations = recommendResourcesForPartner(partner);
   partner.campaign_recommendations = recommendCampaignsForPartner(partner);
 
-  return { partner, raw_fields: fields, sensitive_matches: sensitiveMatches };
+  return { partner, raw_fields: fields, sensitive_matches: sensitiveMatches, consent };
 }
 
 function safePageSummary(page) {
@@ -352,6 +430,13 @@ function assertAuthorized(req, body, action) {
 
 async function handleReceivePartnerSignup(body) {
   const normalized = normalizePartnerFromSignup(body);
+
+  if (!normalized.consent.valid) {
+    return validationError('Partner acknowledgment and contact permission are required before storing signup.', {
+      missing: normalized.consent.missing
+    });
+  }
+
   if (normalized.sensitive_matches.length > 0) {
     return validationError('Sensitive data detected in partner signup payload.', normalized.sensitive_matches);
   }
@@ -559,5 +644,6 @@ module.exports._private = {
   classifyPartner,
   assignOnboardingPathForPartner,
   recommendResourcesForPartner,
-  recommendCampaignsForPartner
+  recommendCampaignsForPartner,
+  validateSignupConsent
 };
