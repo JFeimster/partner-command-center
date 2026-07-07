@@ -34,11 +34,35 @@ function baseUrl() {
 }
 
 function normalizeUrl(value) {
+  const raw = clean(value);
+  if (!raw) return '';
+
   try {
-    return new URL(clean(value || './index.html'), baseUrl()).toString();
+    return new URL(raw, baseUrl()).toString();
   } catch (error) {
     return '';
   }
+}
+
+function extractAttributionPartnerId(url) {
+  try {
+    const parsed = new URL(url);
+    return clean(
+      parsed.searchParams.get('partner_id') ||
+      parsed.searchParams.get('partnerId') ||
+      parsed.searchParams.get('partner') ||
+      parsed.searchParams.get('ref') ||
+      parsed.searchParams.get('affiliate') ||
+      parsed.searchParams.get('affiliate_id') ||
+      ''
+    );
+  } catch (error) {
+    return '';
+  }
+}
+
+function trackingUrlMatchesPartner(trackingUrl, partnerId) {
+  return extractAttributionPartnerId(trackingUrl) === clean(partnerId);
 }
 
 function linkId(partnerId) {
@@ -64,11 +88,25 @@ module.exports = async function partnerLinks(req, res) {
     if (!partner) return sendJson(res, validationError('Partner not found.', { partner_id: partnerId }));
 
     const now = new Date().toISOString();
+    const destinationUrl = normalizeUrl(body.destination_url || body.destinationUrl || body.destination);
+    const trackingUrl = normalizeUrl(body.tracking_url || body.trackingUrl);
+
+    if (!destinationUrl || !trackingUrl) {
+      return sendJson(res, validationError('Explicit valid destination_url and tracking_url are required.'));
+    }
+
+    if (!trackingUrlMatchesPartner(trackingUrl, partnerId)) {
+      return sendJson(res, validationError('tracking_url must include a matching partner attribution parameter.', {
+        partner_id: partnerId,
+        accepted_params: ['partner_id', 'partnerId', 'partner', 'ref', 'affiliate', 'affiliate_id']
+      }));
+    }
+
     const link = {
       tracking_link_id: clean(body.tracking_link_id) || linkId(partnerId),
       partner_id: partnerId,
-      destination_url: normalizeUrl(body.destination_url || body.destinationUrl || body.destination),
-      tracking_url: normalizeUrl(body.tracking_url || body.trackingUrl || body.destination_url || body.destination),
+      destination_url: destinationUrl,
+      tracking_url: trackingUrl,
       source: clean(body.source || body.utm_source || 'dashboard'),
       campaign: clean(body.campaign || body.utm_campaign || ''),
       medium: clean(body.medium || body.utm_medium || 'partner_dashboard'),
@@ -80,20 +118,33 @@ module.exports = async function partnerLinks(req, res) {
       updated_at: body.updated_at || now
     };
 
-    if (!link.destination_url || !link.tracking_url) return sendJson(res, validationError('Valid destination and tracking URLs are required.'));
-
     const page = await createTrackingLink(link);
-    await createPartnerEvent({
-      partner_id: partnerId,
-      event_type: 'tracking_link_created',
-      source: 'api',
-      status: 'active',
-      summary: 'Partner tracking link created through trusted API.',
-      metadata: { tracking_link_id: link.tracking_link_id, source: link.source, campaign: link.campaign },
-      created_at: now
-    });
+    let eventLogged = false;
+    let eventWarning = null;
 
-    return sendJson(res, created({ action: 'createPartnerTrackingLink', partner_id: partnerId, tracking_link: link, notion_page: page && { id: page.id, url: page.url } }));
+    try {
+      await createPartnerEvent({
+        partner_id: partnerId,
+        event_type: 'tracking_link_created',
+        source: 'api',
+        status: 'active',
+        summary: 'Partner tracking link created through trusted API.',
+        metadata: { tracking_link_id: link.tracking_link_id, source: link.source, campaign: link.campaign },
+        created_at: now
+      });
+      eventLogged = true;
+    } catch (eventError) {
+      eventWarning = 'Tracking link was created, but the partner event audit write failed.';
+    }
+
+    return sendJson(res, created({
+      action: 'createPartnerTrackingLink',
+      partner_id: partnerId,
+      tracking_link: link,
+      notion_page: page && { id: page.id, url: page.url },
+      event_logged: eventLogged,
+      ...(eventWarning ? { warning: eventWarning } : {})
+    }));
   } catch (error) {
     if (error && (error.code || error.status)) return sendJson(res, notionError('Notion request failed.', { code: error.code, status: error.status, message: error.message }));
     return sendJson(res, serverError('Partner link creation failed.', { message: error && error.message ? error.message : 'Unknown error' }));
