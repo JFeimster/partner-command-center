@@ -54,6 +54,8 @@ Required before dashboard live mode:
 - `partner_id` creation/preservation exists.
 - Notion Partner create/update exists.
 
+GPT Action partner signup uses `/api/partner-signup`. Tally/default form ingestion continues to use `/api/router` with `receivePartnerSignup`. Lead submission remains downstream of partner activation.
+
 ### Gate 4 — Dashboard activation
 
 Required before tracking links:
