@@ -1,4 +1,4 @@
-# Moonshine Partner Command Center
+# Partner Command Center
 
 Static-first Funding Partners OS for Moonshine Capital partner acquisition, partner onboarding, lead submission, partner tracking, marketplace offers, training resources, lightweight admin workflows, and future integration examples.
 
