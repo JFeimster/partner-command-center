@@ -1,10 +1,26 @@
-# Moonshine Partner Command Center — API Example Layer
+# Moonshine Partner Command Center — API Layer
 
-Batch 15 adds example-only API/serverless files for the future backend.
+Partner Command Center is static-first on the front end, but this repo now includes flat Vercel-style API routes under `/api/` for live partner workflows.
 
-> These files are not live API routes in the current static build. They are implementation examples and contracts for a future backend/serverless layer.
+## Active API routes
 
-## Files
+```text
+api/router.js -> POST /api/router
+api/partner-links.js -> POST /api/partner-links
+api/lead-router.js -> POST /api/lead-router
+api/partner-signup.js -> POST /api/partner-signup
+```
+
+Route roles:
+
+- `/api/router` remains the Tally/default partner signup router. Use `receivePartnerSignup` for default form ingestion.
+- `/api/partner-signup` is the GPT Action partner signup endpoint for partners, affiliates, referral partners, brokers, creators, consultants, and other partner-side signups.
+- `/api/partner-links` creates trusted partner tracking links after a partner exists.
+- `/api/lead-router` is for downstream partner-attributed funding leads, not partner signup.
+
+## Legacy example files
+
+Batch 15 added example-only API/serverless files for future backend contracts.
 
 ```text
 /api/
@@ -16,9 +32,11 @@ Batch 15 adds example-only API/serverless files for the future backend.
   tally-signup-webhook.example.js
 ```
 
-## Current status
+The `/api/*.example.js` files are intentionally named with `.example.js` so they are not confused with active production endpoints.
 
-The repo is static-first:
+## Current implementation stance
+
+The repo remains static-first where appropriate:
 
 - HTML
 - CSS
@@ -29,9 +47,9 @@ The repo is static-first:
 - Static admin prototype
 - Integration blueprints
 
-The `/api/*.example.js` files are intentionally named with `.example.js` so they are not confused with active production endpoints.
+Live API files must keep secrets server-side and should use the shared helper layer in `/lib/`.
 
-## Future endpoint map
+## Future endpoint map from the original contract pack
 
 | File | Future Endpoint | Purpose | Auth |
 | --- | --- | --- | --- |
@@ -48,7 +66,6 @@ Success:
 ```json
 {
   "ok": true,
-  "message": "Lead received for review. No approval, funding, terms, or timeline is guaranteed.",
   "data": {}
 }
 ```
@@ -59,9 +76,9 @@ Error:
 {
   "ok": false,
   "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Consent confirmation is required.",
-    "fields": ["consent.confirmed"]
+    "code": "validation_error",
+    "message": "Validation failed.",
+    "details": {}
   }
 }
 ```
@@ -87,7 +104,7 @@ Do not collect or store the following through static widgets, GPT actions, partn
 
 ## Production requirements before activation
 
-Before converting these examples into live endpoints, add:
+Before converting examples into live endpoints, add or confirm:
 
 1. Backend runtime.
 2. Environment-managed secrets.
@@ -105,9 +122,9 @@ Before converting these examples into live endpoints, add:
 14. Privacy policy and terms aligned to actual data flows.
 15. Operator review workflow.
 
-## Suggested Vercel conversion
+## Suggested Vercel conversion for example files
 
-When ready to activate an endpoint in a Vercel project, copy a file like:
+When ready to activate an example endpoint in a Vercel project, copy a file like:
 
 ```text
 /api/leads-submit.example.js
@@ -128,41 +145,31 @@ Then wire the real dependencies:
 - Logging
 - Monitoring
 
-Do not activate these examples as-is for production data.
+Do not activate example files as-is for production data.
 
 ## Local testing concept
 
-If these were copied into a real serverless backend, a test request might look like:
+A live API route can be syntax-checked locally with Node before deployment:
 
 ```bash
-curl -X POST "http://localhost:3000/api/leads-submit" \
+node -c api/partner-signup.js
+```
+
+A deployed route can be tested with:
+
+```bash
+curl -X POST "https://partner-command-center-rho.vercel.app/api/partner-signup" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: dev-key" \
+  -H "Authorization: Bearer $PARTNER_COMMAND_API_KEY" \
   -d '{
-    "partner_id": "MS-FB-1024",
-    "source": "widget",
-    "business": {
-      "name": "Harbor Street HVAC",
-      "industry": "Contractor",
-      "monthly_revenue_estimate": 78000
-    },
-    "contact": {
-      "name": "Marcus Reed",
-      "email": "marcus@example.com",
-      "phone": "(555) 010-0000"
-    },
-    "funding": {
-      "requested_amount_estimate": 85000,
-      "use_of_funds": "Equipment and payroll bridge",
-      "timeline": "30 days"
-    },
-    "consent": {
-      "confirmed": true,
-      "method": "widget checkbox"
+    "partner": {
+      "first_name": "Alex",
+      "last_name": "Rivera",
+      "email": "alex@example.com",
+      "company": "Rivera Growth Media",
+      "partner_type_claimed": "creator_affiliate",
+      "audience": "small business owners, freelancers, and startup operators",
+      "source": "gpt_action"
     }
   }'
 ```
-
-## Implementation stance
-
-This API layer is a contract pack. It helps future builders move faster without inventing shape, copy, auth expectations, validation, and disclaimers from scratch.
