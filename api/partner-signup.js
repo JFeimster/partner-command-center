@@ -4,7 +4,7 @@
 'use strict';
 
 const crypto = require('crypto');
-const { upsertPartner, createPartnerEvent } = require('../lib/notion-client');
+const { upsertPartner, createPartnerEvent, findPartnerByEmail } = require('../lib/notion-client');
 const {
   findSensitiveData,
   validateEmail,
@@ -291,6 +291,22 @@ function safePageSummary(page) {
   return page ? { id: page.id, url: page.url } : null;
 }
 
+function firstPlainText(items) {
+  return Array.isArray(items) && items[0] && items[0].plain_text ? items[0].plain_text : '';
+}
+
+function propertyText(prop) {
+  if (!prop) return '';
+  if (prop.title) return firstPlainText(prop.title);
+  if (prop.rich_text) return firstPlainText(prop.rich_text);
+  return '';
+}
+
+function extractPartnerIdFromPage(page) {
+  const props = page && page.properties ? page.properties : {};
+  return clean(propertyText(props['Partner ID']));
+}
+
 function safePartnerResponse(partner) {
   return {
     partner_id: partner.partner_id,
@@ -340,6 +356,10 @@ module.exports = async function partnerSignup(req, res) {
   if (!partnerValidation.valid) return sendJson(res, validationError('Partner signup payload failed validation.', partnerValidation.errors));
 
   try {
+    const existingPage = await findPartnerByEmail(normalized.partner.email);
+    const existingPartnerId = extractPartnerIdFromPage(existingPage);
+    if (existingPartnerId) normalized.partner.partner_id = existingPartnerId;
+
     const result = await upsertPartner(normalized.partner);
     const eventType = result.action === 'updated' ? 'partner_signup_updated' : 'partner_signup_created';
 
@@ -385,5 +405,6 @@ module.exports._private = {
   estimateTier,
   assignOnboardingPathForPartner,
   normalizePartnerSignup,
+  extractPartnerIdFromPage,
   safePartnerResponse
 };
