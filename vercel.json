@@ -1,7 +1,10 @@
 {
   "version": 2,
   "git": {
-    "deploymentEnabled": true
+    "deploymentEnabled": {
+      "main": false,
+      "*": false
+    }
   },
   "ignoreCommand": "exit 1",
   "cleanUrls": true,
