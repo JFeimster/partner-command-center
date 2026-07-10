@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0.0",
+  "idempotency_key": "lead_20260710_partner_demo_01:create",
+  "source_system": "embed_widget",
+  "source_event_id": "widget_submission_01J2DEMO8Y7G4J8WQH8P7A1N9M",
+  "submitted_at": "2026-07-10T16:45:00Z",
+  "lead": {
+    "lead_id": "lead_20260710_partner_demo_01",
+    "applicant": {
+      "first_name": "Demo",
+      "last_name": "Owner",
+      "business_name": "Demo Main Street Services LLC",
+      "email": "demo.owner@example.com",
+      "phone": "202-555-0142",
+      "state": "DC"
+    },
+    "answers": {
+      "business_persona": "local_service_business",
+      "monthly_revenue": 42000,
+      "time_in_business_months": 26,
+      "credit_score": 674,
+      "bank_status": "consistent",
+      "business_structure": "entity_bank_ein_clean",
+      "funding_purpose": "working_capital",
+      "desired_funding_amount": 65000,
+      "red_flags": ["none"]
+    },
+    "score_result": {
+      "score": 82,
+      "tier": {
+        "id": "highly_fundable",
+        "label": "Highly Fundable",
+        "summary": "The profile shows stronger readiness signals and may be appropriate for a prompt funding-strategy review, subject to documentation and human review."
+      },
+      "calculated_at": "2026-07-10T16:44:45Z",
+      "engine_version": "scorecard-engine-1.0.0"
+    },
+    "lead_priority": "hot",
+    "primary_funding_family": {
+      "id": "working_capital",
+      "label": "Working Capital Review",
+      "summary": "A general working-capital path may fit short-cycle needs such as payroll, inventory, materials, or expansion.",
+      "confidence": "high"
+    },
+    "secondary_funding_families": [
+      {
+        "id": "business_line_of_credit",
+        "label": "Business Line of Credit Review",
+        "summary": "A revolving capital path may be worth reviewing where revenue, bank activity, and documentation support it.",
+        "confidence": "medium"
+      }
+    ],
+    "risks": ["Requested amount should be confirmed against recent revenue and bank activity."],
+    "strengths": [
+      "Meaningful monthly revenue signal",
+      "Operating history supports deeper review",
+      "Business bank activity available for review"
+    ],
+    "recommended_documents": [
+      {
+        "id": "business_bank_statements",
+        "label": "Recent business bank statements",
+        "detail": "Prepare the most recent three to six complete statements for human review.",
+        "required": true
+      }
+    ],
+    "next_steps": [
+      {
+        "id": "send_document_checklist",
+        "label": "Send the preparation checklist to the applicant.",
+        "owner": "system",
+        "status": "queued"
+      },
+      {
+        "id": "human_funding_review",
+        "label": "Review the readiness result and supporting documents before any external submission.",
+        "owner": "operator",
+        "status": "recommended"
+      }
+    ],
+    "manual_review_recommended": false,
+    "partner_id": "MS-P-20260708171710-57BA2E97",
+    "tracking_link_id": "ref_partner_demo_0001",
+    "campaign_id": "premium-partner-demo",
+    "widget_id": "funding-readiness-scorecard-widget-v1",
+    "source_url": "https://partner.example.com/funding-readiness?partner_id=MS-P-20260708171710-57BA2E97",
+    "source_asset": "partner_widget",
+    "utm_source": "privateer_partner_network",
+    "utm_medium": "embedded_widget",
+    "utm_campaign": "premium-partner-demo",
+    "utm_term": null,
+    "utm_content": "funding-readiness-scorecard",
+    "consent": {
+      "contact": true,
+      "privacy": true,
+      "captured_at": "2026-07-10T16:44:35Z",
+      "method": "widget",
+      "text_version": "funding-readiness-consent-v1"
+    },
+    "review_status": "scored",
+    "created_at": "2026-07-10T16:44:45Z",
+    "updated_at": "2026-07-10T16:44:45Z"
+  },
+  "submission_context": {
+    "request_id": "req_01J2DEMO8Y7G4J8WQH8P7A1N9M",
+    "adapter_version": "embed-widgets-adapter-1.0.0",
+    "legacy_payload": false,
+    "first_touch": {
+      "captured_at": "2026-07-09T12:00:00Z",
+      "partner_id": "MS-P-20260708171710-57BA2E97",
+      "tracking_link_id": "ref_partner_demo_0001",
+      "campaign_id": "premium-partner-demo",
+      "widget_id": "funding-readiness-scorecard-widget-v1",
+      "source_url": "https://partner.example.com/funding-readiness",
+      "utm_source": "privateer_partner_network",
+      "utm_medium": "embedded_widget",
+      "utm_campaign": "premium-partner-demo",
+      "utm_term": null,
+      "utm_content": "funding-readiness-scorecard"
+    },
+    "latest_touch": {
+      "captured_at": "2026-07-10T16:44:30Z",
+      "partner_id": "MS-P-20260708171710-57BA2E97",
+      "tracking_link_id": "ref_partner_demo_0001",
+      "campaign_id": "premium-partner-demo",
+      "widget_id": "funding-readiness-scorecard-widget-v1",
+      "source_url": "https://partner.example.com/funding-readiness",
+      "utm_source": "privateer_partner_network",
+      "utm_medium": "embedded_widget",
+      "utm_campaign": "premium-partner-demo",
+      "utm_term": null,
+      "utm_content": "funding-readiness-scorecard"
+    }
+  }
+}
