@@ -104,6 +104,8 @@ Optional:
 LEAD_ROUTER_STORAGE_MODE=notion
 ```
 
+`NOTION_FUNDING_LEADS_DB_ID` was confirmed configured for Production and Preview on 2026-07-10. A fresh production deployment is required after environment-variable changes.
+
 ## Success response
 
 The response excludes applicant name, email, phone, exact credit score, raw answers, provider matches, internal notes, and Notion URLs.
@@ -139,6 +141,5 @@ It returns:
 
 - Add a stable text `Tracking Link Key` and migrate external attribution away from Notion's numeric unique ID.
 - Add dedicated Partner Event options such as `Lead Received`, `Lead Routed`, and `Lead Duplicate Replayed`; the minimum runtime currently uses existing safe options.
-- Configure `NOTION_FUNDING_LEADS_DB_ID` in Vercel production and preview environments before live testing.
 - Add a durable Google Sheets backup adapter in the later persistence sprint. It is intentionally not mocked into this runtime.
 - Test with a real active partner and real Tracking Links `Referral Token` during a controlled deployment window.
