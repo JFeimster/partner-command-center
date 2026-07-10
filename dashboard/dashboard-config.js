@@ -5,7 +5,7 @@
   Dashboard-specific settings and constants.
 */
 
-(function initDashboardConfig(window) {
+(function initDashboardConfig(window, document) {
   "use strict";
 
   window.MoonshineOS = window.MoonshineOS || {};
@@ -17,7 +17,7 @@
     : "moonshine.partnerOS.";
 
   var config = {
-    version: "0.1.0-static",
+    version: "0.2.0-data-mode",
     rootSelector: "[data-dashboard-root]",
     defaultSection: "overview",
     storageNamespace: storageNamespace,
@@ -120,20 +120,20 @@
       },
       {
         id: "api",
-        title: "API Examples",
-        status: "Not live",
-        summary: "Review example-only serverless/API files for future backend work.",
-        href: "./api/README.md"
+        title: "Dashboard API",
+        status: "Live adapter",
+        summary: "Load partner-isolated profile, leads, links, resources, commissions, alerts, and activity.",
+        href: "./docs/dashboard-data-mode-test.md"
       }
     ],
 
     disclaimers: {
       dashboard:
-        "This dashboard is a static demo. Data may be stored locally in your browser. It is not connected to a live CRM, lender system, underwriting process, partner portal, or commission reporting system.",
+        "Demo mode stores data locally. Live mode loads a partner-isolated projection from Partner Command Center APIs.",
       leads:
-        "Lead records in this static dashboard are demo workflow records only. Submission does not guarantee approval, funding, lender review, or commissions.",
+        "Lead status is a partner-visible workflow projection and is not a lender decision, approval, or funding guarantee.",
       commissions:
-        "Commission snapshots are educational examples only and do not represent guaranteed earnings, payable balances, or real payout obligations.",
+        "Commission estimates are planning values only and do not represent guaranteed earnings, payable balances, or payout obligations.",
       privacy:
         "Do not enter Social Security numbers, bank logins, tax IDs, account numbers, full loan applications, private documents, or other sensitive borrower data."
     }
@@ -144,4 +144,8 @@
     window.MoonshineOS.dashboard.config || {},
     config
   );
-})(window);
+
+  if (document && document.readyState === "loading") {
+    document.write('<script src="./dashboard/dashboard-data-adapter.js"><\\/script>');
+  }
+})(window, document);
