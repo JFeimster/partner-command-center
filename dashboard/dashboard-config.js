@@ -147,5 +147,6 @@
 
   if (document && document.readyState === "loading") {
     document.write('<script src="./dashboard/dashboard-data-adapter.js"><\\/script>');
+    document.write('<script src="./dashboard/dashboard-data-mode-init.js"><\\/script>');
   }
 })(window, document);
