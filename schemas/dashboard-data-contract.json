@@ -1,0 +1,606 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://partner-command-center.example/schemas/dashboard-data-contract.json",
+  "title": "Partner Command Center Dashboard Data Contract",
+  "description": "Public-safe authenticated dashboard bootstrap payload for a single partner workspace.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "partner",
+    "summary",
+    "leads",
+    "events",
+    "tracking_links",
+    "resources",
+    "widgets",
+    "commissions",
+    "notifications",
+    "permissions"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "partner": {
+      "$ref": "#/$defs/partner"
+    },
+    "summary": {
+      "$ref": "#/$defs/summary"
+    },
+    "leads": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/lead"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "tracking_links": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/trackingLink"
+      }
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/resource"
+      }
+    },
+    "widgets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/widget"
+      }
+    },
+    "commissions": {
+      "$ref": "#/$defs/commissions"
+    },
+    "notifications": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/notification"
+      }
+    },
+    "permissions": {
+      "$ref": "#/$defs/permissions"
+    },
+    "pagination": {
+      "$ref": "#/$defs/pagination"
+    }
+  },
+  "$defs": {
+    "nullableString": {
+      "type": ["string", "null"]
+    },
+    "nullableNumber": {
+      "type": ["number", "null"]
+    },
+    "money": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["amount", "currency"],
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        }
+      }
+    },
+    "partner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "partner_id",
+        "display_name",
+        "status",
+        "tier",
+        "verification_status",
+        "onboarding_completion_percent",
+        "created_at"
+      ],
+      "properties": {
+        "partner_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "company_name": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "contact_email": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "contact_phone": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "website_url": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "logo_url": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "status": {
+          "enum": ["pending", "active", "paused", "inactive", "rejected"]
+        },
+        "tier": {
+          "type": "string"
+        },
+        "verification_status": {
+          "enum": ["unverified", "pending", "verified"]
+        },
+        "onboarding_completion_percent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "default_campaign_id": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "default_destination_url": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_leads",
+        "active_leads",
+        "action_needed_leads",
+        "funded_leads",
+        "submitted_volume",
+        "estimated_commissions",
+        "verified_commissions",
+        "tracking_link_clicks",
+        "unread_notifications"
+      ],
+      "properties": {
+        "total_leads": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "active_leads": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "action_needed_leads": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "funded_leads": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "submitted_volume": {
+          "$ref": "#/$defs/money"
+        },
+        "estimated_commissions": {
+          "$ref": "#/$defs/money"
+        },
+        "verified_commissions": {
+          "$ref": "#/$defs/money"
+        },
+        "paid_commissions": {
+          "$ref": "#/$defs/money"
+        },
+        "tracking_link_clicks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lead_submissions_from_links": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unread_notifications": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "next_action": {
+          "$ref": "#/$defs/nullableString"
+        }
+      }
+    },
+    "lead": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lead_id",
+        "business_display_name",
+        "public_status",
+        "source_system",
+        "submitted_at",
+        "updated_at"
+      ],
+      "properties": {
+        "lead_id": {
+          "type": "string"
+        },
+        "business_display_name": {
+          "type": "string"
+        },
+        "public_status": {
+          "enum": [
+            "new",
+            "readiness_complete",
+            "awaiting_documents",
+            "in_review",
+            "partner_action_needed",
+            "reviewed",
+            "nurture",
+            "closed"
+          ]
+        },
+        "requested_amount": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "requested_amount_range": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "readiness_score": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "readiness_tier": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "primary_funding_family": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "lead_priority": {
+          "type": ["string", "null"],
+          "enum": ["hot", "warm", "nurture", "education", "manual_review", null]
+        },
+        "source_system": {
+          "type": "string"
+        },
+        "source_url": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "tracking_link_id": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "campaign_id": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "widget_id": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "next_action": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "document_status": {
+          "type": ["string", "null"],
+          "enum": ["not_requested", "requested", "partial", "received", "reviewing", null]
+        },
+        "estimated_commission": {
+          "anyOf": [
+            { "$ref": "#/$defs/money" },
+            { "type": "null" }
+          ]
+        },
+        "commission_status": {
+          "type": ["string", "null"],
+          "enum": ["not_available", "estimated", "pending_verification", "verified", "paid", null]
+        },
+        "submitted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "event_type", "title", "created_at"],
+      "properties": {
+        "event_id": {
+          "type": "string"
+        },
+        "event_type": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "message": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "lead_id": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "tracking_link_id": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "visibility": {
+          "const": "partner"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "trackingLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tracking_link_id",
+        "name",
+        "destination_url",
+        "tracking_url",
+        "status",
+        "clicks",
+        "lead_submissions"
+      ],
+      "properties": {
+        "tracking_link_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "destination_url": {
+          "type": "string"
+        },
+        "tracking_url": {
+          "type": "string"
+        },
+        "campaign_id": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "widget_id": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "status": {
+          "enum": ["active", "paused", "archived"]
+        },
+        "utm_source": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "utm_medium": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "utm_campaign": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "utm_content": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "utm_term": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "clicks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lead_submissions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "created_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resource_id", "name", "category", "format", "status"],
+      "properties": {
+        "resource_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "category": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string"
+        },
+        "resource_url": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "download_url": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "status": {
+          "enum": ["assigned", "available", "paused", "archived"]
+        },
+        "verticals": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "campaign_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "compliance_status": {
+          "type": ["string", "null"]
+        },
+        "updated_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      }
+    },
+    "widget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preset_id", "widget_id", "name", "status"],
+      "properties": {
+        "preset_id": {
+          "type": "string"
+        },
+        "widget_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "status": {
+          "enum": ["available", "configured", "active", "paused", "archived"]
+        },
+        "preview_url": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "embed_url": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "campaign_id": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "tracking_link_id": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "theme": {
+          "type": ["object", "null"],
+          "additionalProperties": true
+        },
+        "consent_version": {
+          "$ref": "#/$defs/nullableString"
+        }
+      }
+    },
+    "commissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["estimated", "pending_verification", "verified", "paid"],
+      "properties": {
+        "estimated": {
+          "$ref": "#/$defs/money"
+        },
+        "pending_verification": {
+          "$ref": "#/$defs/money"
+        },
+        "verified": {
+          "$ref": "#/$defs/money"
+        },
+        "paid": {
+          "$ref": "#/$defs/money"
+        },
+        "calculation_disclaimer": {
+          "type": "string"
+        },
+        "last_verified_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      }
+    },
+    "notification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["notification_id", "type", "title", "severity", "created_at", "is_read"],
+      "properties": {
+        "notification_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "message": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "severity": {
+          "enum": ["info", "success", "warning", "action_required"]
+        },
+        "target_url": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "is_read": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "read_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "can_submit_leads",
+        "can_view_leads",
+        "can_create_tracking_links",
+        "can_view_resources",
+        "can_configure_widgets",
+        "can_view_commission_estimates",
+        "can_edit_profile"
+      ],
+      "properties": {
+        "can_submit_leads": { "type": "boolean" },
+        "can_view_leads": { "type": "boolean" },
+        "can_create_tracking_links": { "type": "boolean" },
+        "can_view_resources": { "type": "boolean" },
+        "can_configure_widgets": { "type": "boolean" },
+        "can_view_commission_estimates": { "type": "boolean" },
+        "can_view_verified_commissions": { "type": "boolean" },
+        "can_edit_profile": { "type": "boolean" },
+        "can_manage_team": { "type": "boolean" }
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "leads_next_cursor": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "events_next_cursor": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "notifications_next_cursor": {
+          "$ref": "#/$defs/nullableString"
+        }
+      }
+    }
+  }
+}
