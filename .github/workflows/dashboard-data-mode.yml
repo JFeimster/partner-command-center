@@ -29,7 +29,6 @@ jobs:
           node-version: '24'
 
       - name: Apply optional-number mapper correction
-        if: github.event_name == 'push'
         run: |
           python3 - <<'PY'
           from pathlib import Path
