@@ -28,31 +28,6 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Apply optional-number mapper correction
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path('lib/dashboard-bootstrap.js')
-          text = path.read_text()
-          old = """function numberValue(page, names, fallback) {
-            const value = plain(firstProperty(page, names));
-            const parsed = Number(value);
-            return Number.isFinite(parsed) ? parsed : (fallback === undefined ? null : fallback);
-          }"""
-          new = """function numberValue(page, names, fallback) {
-            const value = plain(firstProperty(page, names));
-            if (value === null || value === undefined || value === '') {
-              return fallback === undefined ? null : fallback;
-            }
-            const parsed = Number(value);
-            return Number.isFinite(parsed) ? parsed : (fallback === undefined ? null : fallback);
-          }"""
-          if old in text:
-            path.write_text(text.replace(old, new, 1))
-          elif new not in text:
-            raise SystemExit('numberValue mapper shape changed unexpectedly')
-          PY
-
       - name: Run dashboard unit tests
         run: node tests/dashboard-data-mode.test.js
 
@@ -79,15 +54,15 @@ jobs:
         if: github.event_name == 'push'
         run: node scripts/capture-dashboard-screenshots.mjs
 
-      - name: Commit corrected mapper and screenshots to branch
+      - name: Commit refreshed screenshots to branch
         if: github.event_name == 'push'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add lib/dashboard-bootstrap.js docs/screenshots/dashboard-data-mode-desktop.png docs/screenshots/dashboard-data-mode-mobile.png
+          git add docs/screenshots/dashboard-data-mode-desktop.png docs/screenshots/dashboard-data-mode-mobile.png
           if git diff --cached --quiet; then
-            echo 'Generated artifacts unchanged.'
+            echo 'Screenshots unchanged.'
           else
-            git commit -m 'Fix dashboard number mapping and add screenshots'
+            git commit -m 'Refresh dashboard data-mode screenshots'
             git push
           fi
