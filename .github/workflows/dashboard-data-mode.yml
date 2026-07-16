@@ -15,6 +15,7 @@ on:
       - 'tests/dashboard-shell.test.js'
       - 'scripts/capture-dashboard-screenshots.mjs'
       - '.github/workflows/dashboard-data-mode.yml'
+      - 'vercel.json'
   workflow_dispatch:
 
 permissions:
@@ -30,10 +31,11 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Run dashboard unit tests
-        run: |
-          node tests/dashboard-data-mode.test.js
-          node tests/dashboard-shell.test.js
+      - name: Run dashboard data-mode tests
+        run: node tests/dashboard-data-mode.test.js
+
+      - name: Run dashboard shell tests
+        run: node tests/dashboard-shell.test.js
 
       - name: Check JavaScript syntax
         run: |
