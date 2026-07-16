@@ -1,7 +1,7 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
   title: Partner Signup Copilot Actions
-  version: 1.0.0
+  version: 1.0.1
   description: Partner-only GPT Action schema for submitting partner signup profiles into Partner Command Center. This is not for borrower funding applications or lead routing.
 servers:
   - url: https://partner-command-center-rho.vercel.app
@@ -19,394 +19,253 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubmitPartnerSignupRequest'
-            examples:
-              fundingBrokerSignup:
-                summary: Funding broker partner signup
-                value:
-                  partner:
-                    first_name: Morgan
-                    last_name: Lee
-                    email: morgan@example.com
-                    phone: '+1-555-010-2200'
-                    company: Lee Capital Referrals
-                    website: https://broker.example.com
-                    partner_type_claimed: funding_broker
-                    audience: Business owners seeking working capital education and funding readiness help.
-                    industry: Commercial finance and small business advisory.
-                    location: Atlanta, GA
-                    funding_experience: Experienced broker with active client conversations and a weekly referral process.
-                    current_tools: CRM, email outreach, referral forms, partner links.
-                    traffic_or_network_size: Local network plus broker relationships.
-                    referral_volume_estimate: 10 to 20 qualified referrals per month.
-                    desired_partner_role: Refer qualified business owners and use partner tracking links.
-                    notes: Ready to launch this month and wants broker onboarding resources.
-                    source: gpt_action
-              affiliatePartnerSignup:
-                summary: Creator or affiliate partner signup
-                value:
-                  partner:
-                    first_name: Alex
-                    last_name: Rivera
-                    email: alex@example.com
-                    phone: '+1-555-010-1000'
-                    company: Rivera Growth Media
-                    website: https://example.com
-                    partner_type_claimed: affiliate_partner
-                    audience: Small business owners, freelancers, and startup operators.
-                    industry: Content, media, and business education.
-                    location: Washington, DC
-                    funding_experience: Some experience referring business owners to funding resources.
-                    current_tools: Newsletter, YouTube, Substack, CRM, affiliate links.
-                    traffic_or_network_size: 5000 email subscribers and 12000 social followers.
-                    referral_volume_estimate: 5 to 10 warm referrals per month.
-                    desired_partner_role: Promote funding readiness resources and refer qualified business owners.
-                    notes: Interested in affiliate tracking, compliant content angles, and onboarding resources.
-                    source: gpt_action
-              referralPartnerSignup:
-                summary: Referral partner signup
-                value:
-                  partner:
-                    first_name: Taylor
-                    last_name: Nguyen
-                    email: taylor@example.com
-                    phone: '+1-555-010-3300'
-                    company: Nguyen Business Services
-                    website: https://services.example.com
-                    partner_type_claimed: referral_partner
-                    audience: Local service businesses and independent operators.
-                    industry: Business consulting.
-                    location: Richmond, VA
-                    funding_experience: Occasionally refers clients to trusted finance contacts.
-                    current_tools: Email, LinkedIn, spreadsheet tracker.
-                    traffic_or_network_size: 300 close business contacts.
-                    referral_volume_estimate: 1 to 3 warm referrals per month.
-                    desired_partner_role: Make warm introductions when clients need funding readiness support.
-                    notes: Wants a simple referral partner path with clear next steps.
-                    source: gpt_action
+              type: object
+              additionalProperties: false
+              required:
+                - partner
+              properties:
+                partner:
+                  type: object
+                  additionalProperties: false
+                  required:
+                    - email
+                  properties:
+                    first_name:
+                      type: string
+                      maxLength: 120
+                      description: Partner first name.
+                    last_name:
+                      type: string
+                      maxLength: 120
+                      description: Partner last name.
+                    email:
+                      type: string
+                      format: email
+                      maxLength: 254
+                      description: Required partner email address.
+                    phone:
+                      type: string
+                      maxLength: 50
+                      description: Partner phone number.
+                    company:
+                      type: string
+                      maxLength: 180
+                      description: Partner company, brand, or organization.
+                    website:
+                      type: string
+                      maxLength: 300
+                      description: Partner website, public profile, or brand URL.
+                    partner_type_claimed:
+                      type: string
+                      maxLength: 120
+                      description: How the partner describes their role, such as funding_broker, referral_partner, affiliate_partner, cpa_bookkeeper, real_estate_professional, ecommerce_consultant, community_connector, vendor_partner, or strategic_partner.
+                    audience:
+                      type: string
+                      maxLength: 600
+                      description: Who the partner serves or reaches.
+                    industry:
+                      type: string
+                      maxLength: 200
+                      description: Partner industry or operating niche.
+                    location:
+                      type: string
+                      maxLength: 160
+                      description: Partner city, region, or market.
+                    funding_experience:
+                      type: string
+                      maxLength: 800
+                      description: Partner experience referring business owners to funding education, resources, or trusted contacts.
+                    current_tools:
+                      type: string
+                      maxLength: 800
+                      description: Tools, platforms, or channels the partner already uses.
+                    traffic_or_network_size:
+                      type: string
+                      maxLength: 500
+                      description: Approximate audience, client base, or network size.
+                    referral_volume_estimate:
+                      type: string
+                      maxLength: 300
+                      description: Estimated warm referral volume.
+                    desired_partner_role:
+                      type: string
+                      maxLength: 700
+                      description: How the partner wants to participate.
+                    notes:
+                      type: string
+                      maxLength: 1000
+                      description: Additional partner context. Do not include borrower application data or sensitive information.
+                    source:
+                      type: string
+                      maxLength: 80
+                      default: gpt_action
+                      description: Signup source. Use gpt_action for ChatGPT submissions.
+            example:
+              partner:
+                first_name: Morgan
+                last_name: Lee
+                email: morgan@example.com
+                phone: '+1-555-010-2200'
+                company: Lee Capital Referrals
+                website: https://broker.example.com
+                partner_type_claimed: funding_broker
+                audience: Business owners seeking working capital education and funding readiness help.
+                industry: Commercial finance and small business advisory.
+                location: Atlanta, GA
+                funding_experience: Experienced broker with active client conversations and a weekly referral process.
+                current_tools: CRM, email outreach, referral forms, partner links.
+                traffic_or_network_size: Local network plus broker relationships.
+                referral_volume_estimate: 10 to 20 qualified referrals per month.
+                desired_partner_role: Refer qualified business owners and use partner tracking links.
+                notes: Ready to launch this month and wants broker onboarding resources.
+                source: gpt_action
       responses:
         '201':
           description: Partner signup stored or updated.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PartnerSignupResponse'
+                type: object
+                additionalProperties: false
+                properties:
+                  ok:
+                    type: boolean
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      action:
+                        type: string
+                      result:
+                        type: string
+                      storage_action:
+                        type: string
+                      partner_id:
+                        type: string
+                      partner:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                          partner_id:
+                            type: string
+                          name:
+                            type: string
+                          email:
+                            type: string
+                          company:
+                            type: string
+                          partner_type:
+                            type: string
+                          audience:
+                            type: string
+                          status:
+                            type: string
+                          tier:
+                            type: string
+                          onboarding_path:
+                            type: string
+                          resource_recommendations:
+                            type: array
+                            items:
+                              type: string
+                          campaign_recommendations:
+                            type: array
+                            items:
+                              type: string
         '400':
           description: Validation error.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
+                type: object
+                additionalProperties: false
+                properties:
+                  ok:
+                    type: boolean
+                  error:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
         '401':
           description: Unauthorized.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
+                type: object
+                additionalProperties: false
+                properties:
+                  ok:
+                    type: boolean
+                  error:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
         '405':
           description: Method not allowed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
+                type: object
+                additionalProperties: false
+                properties:
+                  ok:
+                    type: boolean
+                  error:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
         '500':
           description: Server error.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
+                type: object
+                additionalProperties: false
+                properties:
+                  ok:
+                    type: boolean
+                  error:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
         '502':
           description: Notion request failed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
+                type: object
+                additionalProperties: false
+                properties:
+                  ok:
+                    type: boolean
+                  error:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
 components:
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: PARTNER_COMMAND_API_KEY
-      description: Use Authorization: Bearer <PARTNER_COMMAND_API_KEY>.
-  schemas:
-    SubmitPartnerSignupRequest:
-      type: object
-      additionalProperties: false
-      required:
-        - partner
-      properties:
-        partner:
-          $ref: '#/components/schemas/PartnerSignup'
-    PartnerSignup:
-      type: object
-      additionalProperties: false
-      required:
-        - email
-      properties:
-        first_name:
-          type: string
-          maxLength: 120
-          description: Partner first name.
-        last_name:
-          type: string
-          maxLength: 120
-          description: Partner last name.
-        email:
-          type: string
-          format: email
-          maxLength: 254
-          description: Required partner email address.
-        phone:
-          type: string
-          maxLength: 50
-          description: Partner phone number.
-        company:
-          type: string
-          maxLength: 180
-          description: Partner company, brand, or organization.
-        website:
-          type: string
-          maxLength: 300
-          description: Partner website, public profile, or brand URL.
-        partner_type_claimed:
-          type: string
-          maxLength: 120
-          description: How the partner describes their role.
-          examples:
-            - funding_broker
-            - referral_partner
-            - affiliate_partner
-            - cpa_bookkeeper
-            - real_estate_professional
-            - ecommerce_consultant
-            - community_connector
-            - vendor_partner
-            - strategic_partner
-        audience:
-          type: string
-          maxLength: 600
-          description: Who the partner serves or reaches.
-        industry:
-          type: string
-          maxLength: 200
-          description: Partner industry or operating niche.
-        location:
-          type: string
-          maxLength: 160
-          description: Partner city, region, or market.
-        funding_experience:
-          type: string
-          maxLength: 800
-          description: Partner experience referring business owners to funding education, resources, or trusted contacts.
-        current_tools:
-          type: string
-          maxLength: 800
-          description: Tools, platforms, or channels the partner already uses.
-        traffic_or_network_size:
-          type: string
-          maxLength: 500
-          description: Approximate audience, client base, or network size.
-        referral_volume_estimate:
-          type: string
-          maxLength: 300
-          description: Estimated warm referral volume.
-        desired_partner_role:
-          type: string
-          maxLength: 700
-          description: How the partner wants to participate.
-        notes:
-          type: string
-          maxLength: 1000
-          description: Additional partner context. Do not include borrower application data or sensitive information.
-        source:
-          type: string
-          maxLength: 80
-          default: gpt_action
-          description: Signup source. Use gpt_action for ChatGPT submissions.
-    PartnerSignupResponse:
-      type: object
-      additionalProperties: false
-      required:
-        - ok
-        - data
-      properties:
-        ok:
-          type: boolean
-          const: true
-        data:
-          $ref: '#/components/schemas/PartnerSignupData'
-    PartnerSignupData:
-      type: object
-      additionalProperties: false
-      required:
-        - action
-        - result
-        - partner_id
-        - partner
-      properties:
-        action:
-          type: string
-          enum:
-            - submitPartnerSignup
-        result:
-          type: string
-          enum:
-            - created_or_updated
-        storage_action:
-          type: string
-          enum:
-            - created
-            - updated
-        partner_id:
-          type: string
-          examples:
-            - MS-P-20260708120000-ABC12345
-        partner:
-          $ref: '#/components/schemas/SafePartnerSummary'
-        notion_page:
-          $ref: '#/components/schemas/SafeNotionPageSummary'
-    SafePartnerSummary:
-      type: object
-      additionalProperties: false
-      required:
-        - partner_id
-        - email
-        - partner_type
-        - status
-        - tier
-        - onboarding_path
-      properties:
-        partner_id:
-          type: string
-        name:
-          type: string
-        email:
-          type: string
-          format: email
-        company:
-          type: string
-        partner_type:
-          type: string
-          enum:
-            - funding_broker
-            - referral_partner
-            - affiliate_partner
-            - center_of_influence
-            - professional_service_provider
-            - community_connector
-            - internal_operator
-            - unknown
-        audience:
-          type: string
-        status:
-          type: string
-          enum:
-            - intake_received
-            - needs_review
-        tier:
-          type: string
-          enum:
-            - tier_1
-            - tier_2
-            - tier_3
-            - manual_review
-            - watchlist
-        onboarding_path:
-          type: string
-          enum:
-            - broker_fast_start
-            - affiliate_launch_path
-            - coi_relationship_path
-            - referral_partner_path
-            - manual_review_path
-        resource_recommendations:
-          type: array
-          items:
-            type: string
-        campaign_recommendations:
-          type: array
-          items:
-            type: string
-    SafeNotionPageSummary:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          description: Internal Notion page ID. GPT should not display this to end users.
-        url:
-          type: string
-          description: Internal Notion page URL. GPT should not display this to end users.
-    ApiError:
-      type: object
-      additionalProperties: false
-      required:
-        - ok
-        - error
-      properties:
-        ok:
-          type: boolean
-          const: false
-        error:
-          $ref: '#/components/schemas/ErrorObject'
-    ErrorObject:
-      type: object
-      additionalProperties: false
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: string
-          examples:
-            - validation_error
-            - unauthorized
-            - method_not_allowed
-            - notion_error
-            - server_error
-        message:
-          type: string
-        details:
-          $ref: '#/components/schemas/ErrorDetails'
-    ErrorDetails:
-      type: object
-      additionalProperties: false
-      properties:
-        field:
-          type: string
-        reason:
-          type: string
-        use_instead:
-          type: string
-        status:
-          type: integer
-        code:
-          type: string
-        message:
-          type: string
-        fields:
-          type: array
-          items:
-            $ref: '#/components/schemas/RejectedField'
-        matches:
-          type: array
-          items:
-            $ref: '#/components/schemas/SensitiveMatch'
-    RejectedField:
-      type: object
-      additionalProperties: false
-      properties:
-        path:
-          type: string
-        field:
-          type: string
-    SensitiveMatch:
-      type: object
-      additionalProperties: false
-      properties:
-        path:
-          type: string
-        code:
-          type: string
-        label:
-          type: string
+      description: Use Authorization Bearer token with PARTNER_COMMAND_API_KEY.
