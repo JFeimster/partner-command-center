@@ -48,7 +48,7 @@ assert.strictEqual(vercel.git.deploymentEnabled, false, 'all automatic Vercel de
   'getRecommendedNextActions'
 ].forEach((method) => assert.ok(adapter.includes(`${method}:`), `adapter must expose ${method}`));
 
-assert.ok(adapter.includes('Live lead statuses are read-only'), 'live lead status controls must be read-only');
+assert.ok(adapter.includes('Lead statuses are read-only in partner live mode.'), 'live lead status controls must be read-only');
 assert.ok(adapter.includes('profileForm.elements'), 'live profile controls must be disabled');
 
 console.log('dashboard-shell tests passed');
