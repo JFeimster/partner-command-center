@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Partner Dashboard | Moonshine Partner Command Center</title>
-  <meta name="description" content="Static partner dashboard demo for Moonshine Partner Command Center.">
+  <meta name="description" content="Partner workspace for leads, tracking links, resources, widgets, commissions, and account settings.">
   <link rel="stylesheet" href="./styles/base.css">
   <link rel="stylesheet" href="./styles/components.css">
   <link rel="stylesheet" href="./styles/utilities.css">
@@ -14,71 +14,80 @@
 <body class="dashboard-body">
   <a class="skip-link" href="#dashboard-main">Skip to dashboard content</a>
 
-  <div class="dashboard-app" data-dashboard-root>
-    <aside class="dashboard-sidebar" aria-label="Dashboard navigation">
-      <a class="dashboard-brand" href="./index.html" aria-label="Moonshine Partner Command Center home">
-        <span class="dashboard-brand-mark" aria-hidden="true">M</span>
-        <span>Partner Command</span>
-      </a>
+  <header class="dashboard-mobile-header">
+    <a class="dashboard-brand" href="./index.html" aria-label="Moonshine Partner Command Center home">
+      <span class="dashboard-brand-mark" aria-hidden="true">FP</span>
+      <span>Funding Partners OS</span>
+    </a>
+    <button class="dashboard-mobile-menu" type="button" data-mobile-menu-toggle aria-expanded="false" aria-controls="dashboardSidebar">Menu</button>
+  </header>
 
-      <nav class="dashboard-nav" data-dashboard-nav aria-label="Partner dashboard sections">
-        <a href="#overview">Overview</a>
-        <a href="#onboarding">Onboarding</a>
-        <a href="#submit-lead">Submit Lead</a>
-        <a href="#lead-tracker">Lead Tracker</a>
-        <a href="#marketplace">Marketplace</a>
-        <a href="#partner-links">Partner Links</a>
-        <a href="#resources">Resources</a>
-        <a href="#training">Training Hub</a>
-        <a href="#commissions">Commissions</a>
-        <a href="#partner-id">Partner ID</a>
-        <a href="#integrations">Integrations</a>
-        <a href="#notes">Notes</a>
-        <a href="#settings">Settings</a>
-      </nav>
+  <div class="dashboard-mobile-backdrop" data-mobile-menu-backdrop hidden></div>
+
+  <div class="dashboard-app" data-dashboard-root>
+    <aside id="dashboardSidebar" class="dashboard-sidebar" data-mobile-menu-panel aria-label="Dashboard navigation">
+      <div class="dashboard-sidebar-head">
+        <a class="dashboard-brand" href="./index.html" aria-label="Moonshine Partner Command Center home">
+          <span class="dashboard-brand-mark" aria-hidden="true">FP</span>
+          <span>Funding Partners OS</span>
+        </a>
+        <span class="mpc-badge mpc-badge-info">Partner workspace</span>
+      </div>
+
+      <nav class="dashboard-nav" data-dashboard-nav aria-label="Partner dashboard sections"></nav>
 
       <div class="dashboard-sidebar-footer">
-        <p class="dashboard-sidebar-note">
-          Partner workspace: localStorage only. Partner workflow mode: dashboard, links, resources, and referral tools.
-        </p>
-        <a class="mpc-button mpc-button-outline mpc-button-block" href="./partner-access.html">Edit Access Profile</a>
+        <p class="dashboard-sidebar-note">Partner Command Center is the canonical runtime. FPOS supplies the visual shell.</p>
+        <div class="dashboard-sidebar-status">
+          <span class="dashboard-status-dot is-success">System ready</span>
+          <span class="mpc-badge mpc-badge-info" data-dashboard-mode-status>Loading mode</span>
+        </div>
+        <a class="mpc-button mpc-button-outline mpc-button-block" href="./partner-access.html">Partner access</a>
       </div>
     </aside>
 
     <main id="dashboard-main" class="dashboard-main">
       <header class="dashboard-topbar">
         <div>
-          <span class="mpc-kicker">Funding Partners OS</span>
-          <h1 class="dashboard-page-title">Partner Command Center</h1>
+          <span class="mpc-kicker">Moonshine Partner Command Center</span>
+          <h1 class="dashboard-page-title">Partner Operations Dashboard</h1>
+          <p class="dashboard-topbar-copy">One workspace for attribution, lead visibility, assets, widgets, and the next useful action.</p>
         </div>
         <div class="dashboard-topbar-actions">
-          <button class="mpc-button mpc-button-outline" type="button" data-export-dashboard>Export JSON</button>
-          <a class="mpc-button mpc-button-primary" href="./partner-access.html">Partner Access</a>
+          <label class="sr-only" for="dashboardDataMode">Dashboard data mode</label>
+          <select id="dashboardDataMode" data-dashboard-mode aria-label="Dashboard data mode">
+            <option value="demo">Demo / localStorage</option>
+            <option value="live">Live API</option>
+          </select>
+          <a class="mpc-button mpc-button-outline" data-app-link="FUNDSTACK_AI_URL" href="https://fund-stack-ai.vercel.app/">Open FundStack AI</a>
+          <a class="mpc-button mpc-button-primary" data-app-link="LEAD_SUBMISSION_URL" href="https://am-i-fundable.vercel.app/">Submit New Lead</a>
         </div>
       </header>
 
       <div class="dashboard-content">
+        <div class="mpc-disclaimer dashboard-mode-alert" data-dashboard-mode-alert hidden></div>
+
         <section id="overview" class="dashboard-section" data-dashboard-section>
           <div class="dashboard-section-header">
             <div>
               <span class="mpc-eyebrow">Overview</span>
-              <h2>Partner operating snapshot</h2>
-              <p>Your partner workspace profile, partner pipeline, resource progress, and activity feed.</p>
+              <h2>What happened. What needs action.</h2>
+              <p>Partner status, onboarding, lead activity, attribution, alerts, and the next move.</p>
             </div>
           </div>
 
           <div class="dashboard-grid dashboard-overview-grid">
             <div data-render-profile></div>
-            <div class="dashboard-card dashboard-card-pad">
+            <article class="dashboard-card dashboard-card-pad dashboard-command-card">
               <div class="dashboard-card-header">
                 <div>
-                  <h3 class="dashboard-card-title">Next actions</h3>
-                  <p class="dashboard-card-subtitle">The short list. No mystery meat.</p>
+                  <span class="mpc-badge mpc-badge-success">Command list</span>
+                  <h3 class="dashboard-card-title mt-3">Next recommended actions</h3>
+                  <p class="dashboard-card-subtitle">The shortest route from partner signup to attributable production.</p>
                 </div>
-                <span class="mpc-badge mpc-badge-success">Live local</span>
               </div>
               <div data-render-next-actions></div>
-            </div>
+            </article>
           </div>
 
           <div class="dashboard-grid dashboard-grid-metrics" data-render-metrics></div>
@@ -87,139 +96,42 @@
             <article class="dashboard-card dashboard-card-pad">
               <div class="dashboard-card-header">
                 <div>
+                  <h3 class="dashboard-card-title">Alerts</h3>
+                  <p class="dashboard-card-subtitle">Only items that deserve attention.</p>
+                </div>
+              </div>
+              <div data-render-alerts></div>
+            </article>
+            <article class="dashboard-card dashboard-card-pad">
+              <div class="dashboard-card-header">
+                <div>
                   <h3 class="dashboard-card-title">Recent activity</h3>
-                  <p class="dashboard-card-subtitle">Local browser activity feed.</p>
+                  <p class="dashboard-card-subtitle">Partner-visible events and workspace changes.</p>
                 </div>
               </div>
               <div data-render-events></div>
             </article>
-
-            <article class="dashboard-card dashboard-card-pad">
-              <div class="dashboard-card-header">
-                <div>
-                  <h3 class="dashboard-card-title">Partner reminder</h3>
-                  <p class="dashboard-card-subtitle">Keep the growth machine clean.</p>
-                </div>
-                <a class="mpc-button mpc-button-outline mpc-button-sm" href="./compliance.html">Rules</a>
-              </div>
-              <div class="mpc-disclaimer" data-compliance-notice>
-                Funding options may vary. Keep funding and compensation language accurate, review-based, and permission-based.
-              </div>
-            </article>
           </div>
+
+          <article class="dashboard-card dashboard-card-pad">
+            <div class="dashboard-card-header">
+              <div>
+                <h3 class="dashboard-card-title">Activation checklist</h3>
+                <p class="dashboard-card-subtitle">Complete the minimum setup before scaling campaigns.</p>
+              </div>
+              <a class="mpc-button mpc-button-outline mpc-button-sm" href="#settings">Account settings</a>
+            </div>
+            <div class="dashboard-progress" aria-label="Onboarding progress"><span data-onboarding-progress style="--progress: 0%"></span></div>
+            <div class="dashboard-checklist mt-5" data-render-onboarding></div>
+          </article>
         </section>
 
-        <section id="onboarding" class="dashboard-section" data-dashboard-section>
+        <section id="leads" class="dashboard-section" data-dashboard-section>
           <div class="dashboard-section-header">
             <div>
-              <span class="mpc-eyebrow">Onboarding</span>
-              <h2>Partner setup checklist</h2>
-              <p>Turn “I signed up” into “I know what to do next.”</p>
-            </div>
-          </div>
-          <div class="dashboard-card dashboard-card-pad">
-            <div class="dashboard-progress" aria-label="Onboarding progress">
-              <span data-onboarding-progress style="--progress: 0%"></span>
-            </div>
-            <div class="dashboard-checklist mt-6" data-render-onboarding></div>
-          </div>
-        </section>
-
-        <section id="submit-lead" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header">
-            <div>
-              <span class="mpc-eyebrow">Submit Lead</span>
-              <h2>Create a demo referral record</h2>
-              <p>Use clean business basics only. Keep sensitive borrower, bank, tax, credential, and document data out of this workspace.</p>
-            </div>
-          </div>
-
-          <form class="dashboard-card dashboard-card-pad dashboard-form" data-lead-form novalidate>
-            <div class="dashboard-form-row">
-              <div class="mpc-field">
-                <label for="businessName">Business name *</label>
-                <input id="businessName" name="businessName" type="text" required placeholder="Example: Harbor Street HVAC">
-              </div>
-              <div class="mpc-field">
-                <label for="contactName">Contact name *</label>
-                <input id="contactName" name="contactName" type="text" required placeholder="Owner or decision maker">
-              </div>
-              <div class="mpc-field">
-                <label for="email">Email</label>
-                <input id="email" name="email" type="email" placeholder="owner@example.com">
-              </div>
-              <div class="mpc-field">
-                <label for="phone">Phone</label>
-                <input id="phone" name="phone" type="tel" placeholder="(555) 010-0000">
-              </div>
-              <div class="mpc-field">
-                <label for="industry">Industry</label>
-                <input id="industry" name="industry" type="text" placeholder="Contractor, trucking, restaurant, ecommerce...">
-              </div>
-              <div class="mpc-field">
-                <label for="timeInBusiness">Time in business</label>
-                <input id="timeInBusiness" name="timeInBusiness" type="text" placeholder="2 years">
-              </div>
-              <div class="mpc-field">
-                <label for="monthlyRevenue">Monthly revenue estimate</label>
-                <input id="monthlyRevenue" name="monthlyRevenue" type="text" inputmode="decimal" placeholder="$50,000">
-              </div>
-              <div class="mpc-field">
-                <label for="fundingNeed">Funding need estimate</label>
-                <input id="fundingNeed" name="fundingNeed" type="text" inputmode="decimal" placeholder="$75,000">
-              </div>
-              <div class="mpc-field">
-                <label for="urgency">Urgency</label>
-                <select id="urgency" name="urgency">
-                  <option value="">Choose timing</option>
-                  <option>Immediate</option>
-                  <option>2 weeks</option>
-                  <option>30 days</option>
-                  <option>60–90 days</option>
-                  <option>Planning ahead</option>
-                </select>
-              </div>
-              <div class="mpc-field">
-                <label for="source">Source</label>
-                <select id="source" name="source">
-                  <option>Dashboard demo</option>
-                  <option>Warm referral</option>
-                  <option>Partner link</option>
-                  <option>Website widget</option>
-                  <option>Affiliate content</option>
-                  <option>COI intro</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="mpc-field">
-              <label for="useOfFunds">Use of funds</label>
-              <textarea id="useOfFunds" name="useOfFunds" placeholder="Inventory, equipment, payroll bridge, marketing, expansion, receivables gap..."></textarea>
-            </div>
-
-            <div class="mpc-field">
-              <label for="notes">Partner notes</label>
-              <textarea id="notes" name="notes" placeholder="Context, next step, documents to request. No sensitive private records."></textarea>
-            </div>
-
-            <div class="mpc-disclaimer">
-              Referral lead records are stored locally in your browser. This does not create a live application, underwriting review, funding decision, CRM record, or commission event.
-            </div>
-
-            <div class="mpc-actions">
-              <button class="mpc-button mpc-button-primary" type="submit">Save Referral Lead</button>
-              <button class="mpc-button mpc-button-outline" type="button" data-fill-demo-lead>Fill Sample Lead</button>
-              <button class="mpc-button mpc-button-ghost" type="reset">Reset</button>
-            </div>
-          </form>
-        </section>
-
-        <section id="lead-tracker" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header">
-            <div>
-              <span class="mpc-eyebrow">Lead Tracker</span>
-              <h2>Demo pipeline records</h2>
-              <p>Review, update, and remove partner workspace leads. These are not lender statuses.</p>
+              <span class="mpc-eyebrow">Leads</span>
+              <h2>Submit and track partner-attributed leads</h2>
+              <p>Demo mode stores fictional records locally. Live mode routes new intake through Am I Fundable and displays partner-safe status projections.</p>
             </div>
             <div class="dashboard-topbar-actions">
               <select data-lead-filter aria-label="Filter leads by status">
@@ -232,223 +144,79 @@
                 <option value="declined">Declined</option>
                 <option value="archived">Archived</option>
               </select>
+              <a class="mpc-button mpc-button-primary" data-app-link="LEAD_SUBMISSION_URL" href="https://am-i-fundable.vercel.app/">Open Am I Fundable</a>
             </div>
           </div>
+
+          <details class="dashboard-card dashboard-card-pad dashboard-lead-entry" open>
+            <summary><strong>Demo lead workspace</strong><span>Use fictional, non-sensitive data only.</span></summary>
+            <form class="dashboard-form mt-5" data-lead-form novalidate>
+              <div class="dashboard-form-row">
+                <div class="mpc-field"><label for="businessName">Business name *</label><input id="businessName" name="businessName" type="text" required placeholder="Example: Harbor Street HVAC"></div>
+                <div class="mpc-field"><label for="contactName">Contact name *</label><input id="contactName" name="contactName" type="text" required placeholder="Demo contact"></div>
+                <div class="mpc-field"><label for="email">Email</label><input id="email" name="email" type="email" placeholder="demo@example.com"></div>
+                <div class="mpc-field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" placeholder="(555) 010-0000"></div>
+                <div class="mpc-field"><label for="industry">Industry</label><input id="industry" name="industry" type="text" placeholder="Contractor, trucking, ecommerce..."></div>
+                <div class="mpc-field"><label for="timeInBusiness">Time in business</label><input id="timeInBusiness" name="timeInBusiness" type="text" placeholder="3 years"></div>
+                <div class="mpc-field"><label for="monthlyRevenue">Monthly revenue estimate</label><input id="monthlyRevenue" name="monthlyRevenue" type="text" inputmode="decimal" placeholder="$50,000"></div>
+                <div class="mpc-field"><label for="fundingNeed">Funding need estimate</label><input id="fundingNeed" name="fundingNeed" type="text" inputmode="decimal" placeholder="$75,000"></div>
+                <div class="mpc-field"><label for="urgency">Urgency</label><select id="urgency" name="urgency"><option value="">Choose timing</option><option>Immediate</option><option>2 weeks</option><option>30 days</option><option>60–90 days</option><option>Planning ahead</option></select></div>
+                <div class="mpc-field"><label for="source">Source</label><select id="source" name="source"><option>Dashboard demo</option><option>Warm referral</option><option>Partner link</option><option>Website widget</option><option>Affiliate content</option><option>COI intro</option></select></div>
+              </div>
+              <div class="mpc-field"><label for="useOfFunds">Use of funds</label><textarea id="useOfFunds" name="useOfFunds" placeholder="Inventory, equipment, payroll bridge, expansion..."></textarea></div>
+              <div class="mpc-field"><label for="notes">Demo notes</label><textarea id="notes" name="notes" placeholder="No SSNs, tax IDs, bank details, credentials, or documents."></textarea></div>
+              <div class="mpc-disclaimer">Live funding-readiness submissions open Am I Fundable. This local form is a workflow sandbox, not a funding application or CRM record.</div>
+              <div class="mpc-actions"><button class="mpc-button mpc-button-primary" type="submit">Save Demo Lead</button><button class="mpc-button mpc-button-outline" type="button" data-fill-demo-lead>Fill Sample</button><button class="mpc-button mpc-button-ghost" type="reset">Reset</button></div>
+            </form>
+          </details>
+
           <div class="dashboard-grid" data-render-leads></div>
         </section>
 
-        <section id="marketplace" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header">
-            <div>
-              <span class="mpc-eyebrow">Marketplace</span>
-              <h2>Partner offer shelf</h2>
-              <p>Save offers, copy partner links, and review compliance notes before promotion.</p>
-            </div>
-            <a class="mpc-button mpc-button-outline" href="./marketplace.html">Public Marketplace</a>
-          </div>
-          <div class="dashboard-grid" data-render-marketplace></div>
-        </section>
-
-        <section id="partner-links" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header">
-            <div>
-              <span class="mpc-eyebrow">Partner Links</span>
-              <h2>Build attribution-ready links</h2>
-              <p>Generate partner workspace links with partner ID, source, channel, and campaign parameters.</p>
-            </div>
-          </div>
-
+        <section id="links" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header"><div><span class="mpc-eyebrow">Tracking Links</span><h2>Create attribution-ready links</h2><p>Preserve partner, campaign, source, and widget attribution without exposing private routing logic.</p></div></div>
           <div class="dashboard-grid dashboard-grid-2">
             <form class="dashboard-card dashboard-card-pad dashboard-form" data-link-builder-form>
-              <div class="mpc-field">
-                <label for="linkDestination">Destination</label>
-                <select id="linkDestination" name="destination">
-                  <option value="./index.html">Homepage</option>
-                  <option value="./partner-access.html">Partner Access</option>
-                  <option value="./marketplace.html">Marketplace</option>
-                  <option value="./resources.html">Resources</option>
-                  <option value="./tools/funding-readiness-checklist.html">Funding Readiness Checklist</option>
-                </select>
-              </div>
-              <div class="dashboard-form-row">
-                <div class="mpc-field">
-                  <label for="linkSource">Source</label>
-                  <input id="linkSource" name="source" type="text" value="dashboard">
-                </div>
-                <div class="mpc-field">
-                  <label for="linkCampaign">Campaign</label>
-                  <input id="linkCampaign" name="campaign" type="text" placeholder="q3_partner_push">
-                </div>
-              </div>
-              <button class="mpc-button mpc-button-primary" type="submit">Build Link</button>
-              <div class="dashboard-copy-row">
-                <input type="text" data-built-link readonly aria-label="Generated partner link">
-                <button class="mpc-button mpc-button-outline" type="button" data-copy-built-link>Copy</button>
-              </div>
+              <div class="mpc-field"><label for="linkDestination">Destination</label><select id="linkDestination" name="destination"><option value="https://am-i-fundable.vercel.app/">Am I Fundable</option><option value="https://fund-stack-ai.vercel.app/">FundStack AI</option><option value="./partner-access.html">Partner Access</option><option value="./resources.html">Resources</option></select></div>
+              <div class="dashboard-form-row"><div class="mpc-field"><label for="linkSource">Source</label><input id="linkSource" name="source" type="text" value="partner_dashboard"></div><div class="mpc-field"><label for="linkCampaign">Campaign</label><input id="linkCampaign" name="campaign" type="text" placeholder="q3_partner_push"></div></div>
+              <button class="mpc-button mpc-button-primary" type="submit">Create Tracking Link</button>
+              <div class="dashboard-copy-row"><input type="text" data-built-link readonly aria-label="Generated partner link"><button class="mpc-button mpc-button-outline" type="button" data-copy-built-link>Copy</button></div>
+              <div class="mpc-disclaimer">Demo links are generated locally. Live stored tracking links come from Partner Command Center.</div>
             </form>
-
-            <div data-render-partner-links></div>
+            <div class="stack" data-render-partner-links></div>
           </div>
         </section>
 
         <section id="resources" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header">
-            <div>
-              <span class="mpc-eyebrow">Resources</span>
-              <h2>Partner enablement library</h2>
-              <p>Save scripts, checklists, templates, and blueprints for your partner motion.</p>
-            </div>
-            <a class="mpc-button mpc-button-outline" href="./resources.html">Public Resources</a>
-          </div>
+          <div class="dashboard-section-header"><div><span class="mpc-eyebrow">Resources</span><h2>Assigned partner resources</h2><p>Scripts, checklists, landing pages, education assets, campaign kits, and disclosures.</p></div><a class="mpc-button mpc-button-outline" href="./resources.html">Public resource library</a></div>
           <div class="dashboard-grid" data-render-resources></div>
         </section>
 
-        <section id="training" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header">
-            <div>
-              <span class="mpc-eyebrow">Training Hub</span>
-              <h2>Training checklist</h2>
-              <p>Track local progress through partner orientation, compliance, intake, links, and integration basics.</p>
-            </div>
-          </div>
-          <div class="dashboard-grid" data-render-training></div>
+        <section id="widgets" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header"><div><span class="mpc-eyebrow">Widgets</span><h2>Deploy approved lead-capture widgets</h2><p>Preview partner-attributed widget presets and copy approved embed surfaces.</p></div><a class="mpc-button mpc-button-outline" data-app-link="EMBED_WIDGETS_URL" href="https://embed-widgets-kappa.vercel.app/">Open Embed Widgets</a></div>
+          <div class="dashboard-grid" data-render-widgets></div>
         </section>
 
         <section id="commissions" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header">
-            <div>
-              <span class="mpc-eyebrow">Commission Snapshot</span>
-              <h2>Educational payout examples</h2>
-              <p>Fictional examples only. This is not a payable balance, earnings statement, or promise.</p>
-            </div>
-            <a class="mpc-button mpc-button-outline" href="./tools/commission-simulator.html">Open Simulator</a>
-          </div>
+          <div class="dashboard-section-header"><div><span class="mpc-eyebrow">Commissions</span><h2>Estimated, verified, and paid values</h2><p>Planning estimates stay visibly separate from authorized payout records.</p></div><a class="mpc-button mpc-button-outline" href="./tools/commission-simulator.html">Open simulator</a></div>
           <div data-render-commissions></div>
         </section>
 
-        <section id="partner-id" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header">
-            <div>
-              <span class="mpc-eyebrow">Partner ID</span>
-              <h2>Local partner identity</h2>
-              <p>Your demo partner ID powers local attribution links. Future production needs real partner authentication.</p>
-            </div>
-          </div>
+        <section id="settings" class="dashboard-section" data-dashboard-section>
+          <div class="dashboard-section-header"><div><span class="mpc-eyebrow">Settings</span><h2>Profile, workspace, and integration status</h2><p>Manage client-safe preferences while partner identity, tier, verification, and live permissions remain server-controlled.</p></div></div>
           <div class="dashboard-grid dashboard-grid-2">
             <div class="dashboard-card dashboard-card-pad" data-render-partner-id></div>
             <form class="dashboard-card dashboard-card-pad dashboard-form" data-profile-form>
-              <h3 class="dashboard-card-title">Update profile</h3>
-              <div class="dashboard-form-row">
-                <div class="mpc-field">
-                  <label for="profileName">Name</label>
-                  <input id="profileName" name="contactName" type="text">
-                </div>
-                <div class="mpc-field">
-                  <label for="profileCompany">Company</label>
-                  <input id="profileCompany" name="company" type="text">
-                </div>
-                <div class="mpc-field">
-                  <label for="profileType">Partner type</label>
-                  <select id="profileType" name="partnerType">
-                    <option value="funding-broker">Funding Broker</option>
-                    <option value="referral-partner">Referral Partner</option>
-                    <option value="affiliate-partner">Affiliate Partner</option>
-                    <option value="center-of-influence">Center of Influence</option>
-                    <option value="operator">Moonshine Operator</option>
-                  </select>
-                </div>
-                <div class="mpc-field">
-                  <label for="profileAudience">Audience</label>
-                  <input id="profileAudience" name="primaryAudience" type="text">
-                </div>
-              </div>
-              <button class="mpc-button mpc-button-primary" type="submit">Save Profile</button>
+              <h3 class="dashboard-card-title">Partner profile</h3>
+              <div class="dashboard-form-row"><div class="mpc-field"><label for="profileName">Name</label><input id="profileName" name="contactName" type="text"></div><div class="mpc-field"><label for="profileCompany">Company</label><input id="profileCompany" name="company" type="text"></div><div class="mpc-field"><label for="profileType">Partner type</label><select id="profileType" name="partnerType"><option value="funding-broker">Funding Broker</option><option value="referral-partner">Referral Partner</option><option value="affiliate-partner">Affiliate Partner</option><option value="center-of-influence">Center of Influence</option><option value="operator">Moonshine Operator</option></select></div><div class="mpc-field"><label for="profileAudience">Audience</label><input id="profileAudience" name="primaryAudience" type="text"></div></div>
+              <button class="mpc-button mpc-button-primary" type="submit">Save Demo Profile</button>
             </form>
           </div>
-        </section>
-
-        <section id="integrations" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header">
-            <div>
-              <span class="mpc-eyebrow">Integrations</span>
-              <h2>Future connection map</h2>
-              <p>Tally, CRM, widgets, GPT schemas, webhooks, and API examples. Blueprints only until wired.</p>
-            </div>
-            <a class="mpc-button mpc-button-outline" href="./developers/index.html">Developer Docs</a>
-          </div>
-          <div class="dashboard-grid" data-render-integrations></div>
-        </section>
-
-        <section id="notes" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header">
-            <div>
-              <span class="mpc-eyebrow">Notes / CRM Lite</span>
-              <h2>Local follow-up notes</h2>
-              <p>Keep lightweight context in browser storage. Not a CRM, not secure recordkeeping.</p>
-            </div>
-          </div>
-
           <div class="dashboard-grid dashboard-grid-2">
-            <form class="dashboard-card dashboard-card-pad dashboard-form" data-note-form>
-              <div class="mpc-field">
-                <label for="noteTitle">Note title</label>
-                <input id="noteTitle" name="title" type="text" placeholder="Follow up with HVAC lead">
-              </div>
-              <div class="mpc-field">
-                <label for="noteRelatedTo">Related to</label>
-                <input id="noteRelatedTo" name="relatedTo" type="text" placeholder="Lead, partner, resource, or campaign">
-              </div>
-              <div class="mpc-field">
-                <label for="noteBody">Note</label>
-                <textarea id="noteBody" name="body" placeholder="Keep it useful. Keep it non-sensitive."></textarea>
-              </div>
-              <button class="mpc-button mpc-button-primary" type="submit">Save Note</button>
-            </form>
-
-            <div class="dashboard-card dashboard-card-pad">
-              <h3 class="dashboard-card-title">Saved notes</h3>
-              <div class="mt-5 stack" data-render-notes></div>
-            </div>
+            <article class="dashboard-card dashboard-card-pad dashboard-form"><h3 class="dashboard-card-title">Appearance and local data</h3><div class="mpc-field"><label for="themeSelect">Theme</label><select id="themeSelect" data-theme-select><option value="dark">Dark</option><option value="light">Light</option></select></div><div class="mpc-actions"><button class="mpc-button mpc-button-outline" type="button" data-export-dashboard>Export Demo JSON</button><label class="mpc-button mpc-button-outline" for="importDashboard">Import Demo JSON</label><input class="sr-only" id="importDashboard" type="file" accept="application/json,.json" data-import-dashboard><button class="mpc-button mpc-button-danger" type="button" data-reset-dashboard>Reset Demo</button></div></article>
+            <article class="dashboard-card dashboard-card-pad"><h3 class="dashboard-card-title">API and integration status</h3><p class="dashboard-card-subtitle">Client-safe visibility into the dashboard connection.</p><div class="stack mt-5" data-render-integration-status></div></article>
           </div>
-        </section>
-
-        <section id="settings" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header">
-            <div>
-              <span class="mpc-eyebrow">Settings</span>
-              <h2>Partner workspace controls</h2>
-              <p>Theme, import/export, reset, seed data, and browser-only state management.</p>
-            </div>
-          </div>
-
-          <div class="dashboard-grid dashboard-grid-2">
-            <article class="dashboard-card dashboard-card-pad dashboard-form">
-              <h3 class="dashboard-card-title">Appearance</h3>
-              <div class="mpc-field">
-                <label for="themeSelect">Theme</label>
-                <select id="themeSelect" data-theme-select>
-                  <option value="dark">Dark</option>
-                  <option value="light">Light</option>
-                </select>
-              </div>
-              <div class="mpc-disclaimer">
-                Theme preference is stored locally in your browser.
-              </div>
-            </article>
-
-            <article class="dashboard-card dashboard-card-pad dashboard-form">
-              <h3 class="dashboard-card-title">Data controls</h3>
-              <div class="mpc-actions">
-                <button class="mpc-button mpc-button-primary" type="button" data-export-dashboard>Export Dashboard JSON</button>
-                <label class="mpc-button mpc-button-outline" for="importDashboard">Import JSON</label>
-                <input class="sr-only" id="importDashboard" type="file" accept="application/json,.json" data-import-dashboard>
-                <button class="mpc-button mpc-button-danger" type="button" data-reset-dashboard>Reset Local Demo</button>
-              </div>
-              <div class="mpc-disclaimer">
-                Exported files are workspace data only. Do not treat them as CRM records, funding applications, or commission reports.
-              </div>
-            </article>
-          </div>
+          <div class="mpc-disclaimer" data-compliance-notice>Funding options vary. Partner activity does not create guaranteed approvals, funding, income, or commissions.</div>
         </section>
       </div>
     </main>
@@ -481,7 +249,9 @@
   <script src="./dashboard/resource-store.js"></script>
   <script src="./dashboard/affiliate-store.js"></script>
   <script src="./dashboard/dashboard-renderers.js"></script>
+  <script src="./dashboard/api-client.js"></script>
+  <script src="./dashboard/dashboard-data-adapter.js"></script>
   <script src="./dashboard.js"></script>
+  <script src="./dashboard/dashboard-data-mode-init.js"></script>
 </body>
 </html>
-

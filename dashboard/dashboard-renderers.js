@@ -1,10 +1,4 @@
-/*
-  Moonshine Partner Command Center
-  Batch 08 — Dashboard Renderers
-
-  HTML render helpers for Batch 09 dashboard shell.
-*/
-
+/* Canonical dashboard renderers for demo and live API modes. */
 (function initDashboardRenderers(window, document) {
   "use strict";
 
@@ -28,11 +22,7 @@
   }
 
   function titleCase(value) {
-    return String(value || "")
-      .replace(/[-_]+/g, " ")
-      .replace(/\b\w/g, function upper(match) {
-        return match.toUpperCase();
-      });
+    return String(value || "").replace(/[-_]+/g, " ").replace(/\b\w/g, function (match) { return match.toUpperCase(); });
   }
 
   function badge(label, tone) {
@@ -45,329 +35,193 @@
   }
 
   function statusTone(status) {
-    var statusConfig = (config.leadStatuses || []).find(function findStatus(item) {
-      return item.id === status;
-    });
-
-    return statusConfig ? statusConfig.tone : "default";
+    var item = (config.leadStatuses || []).find(function (entry) { return entry.id === status; });
+    return item ? item.tone : "default";
   }
 
   function empty(title, body) {
-    return [
-      '<div class="mpc-empty">',
-      '<div>',
-      '<strong>' + esc(title || "Nothing here yet.") + '</strong>',
-      '<p>' + esc(body || "Add data to start using this section.") + '</p>',
-      '</div>',
-      '</div>'
-    ].join("");
+    return '<div class="mpc-empty"><div><strong>' + esc(title || "Nothing here yet.") + '</strong><p>' + esc(body || "Add data to start using this section.") + '</p></div></div>';
   }
 
   function renderProfileCard(profile) {
     var item = profile || {};
-    var initials = ui && ui.getInitials ? ui.getInitials(item.contactName, item.company) : "MS";
-
+    var initials = ui && ui.getInitials ? ui.getInitials(item.contactName, item.company) : "FP";
+    var live = item.localDemo !== true && item.status !== "active-demo";
     return [
       '<article class="dashboard-card dashboard-card-pad dashboard-profile-card">',
-      '<div class="cluster">',
-      '<div class="dashboard-avatar" aria-hidden="true">' + esc(initials) + '</div>',
-      '<div>',
-      badge(item.status || "active-demo", "success"),
+      '<div class="cluster"><div class="dashboard-avatar" aria-hidden="true">' + esc(initials) + '</div><div>',
+      badge(live ? (item.status || "pending") : "Demo partner", live && item.status === "active" ? "success" : "info"),
       '<h2 class="dashboard-card-title mt-3">' + esc(item.contactName || "Demo Partner") + '</h2>',
       '<p class="dashboard-card-subtitle">' + esc(item.company || "Moonshine Partner") + '</p>',
-      '</div>',
-      '</div>',
+      '</div></div>',
       '<div class="mpc-grid">',
       '<div class="dashboard-note"><strong>Partner ID</strong><br><span data-partner-id>' + esc(item.partnerId || "MS-DEMO-0000") + '</span></div>',
       '<div class="dashboard-note"><strong>Partner type</strong><br>' + esc(titleCase(item.partnerType || "partner")) + '</div>',
       '<div class="dashboard-note"><strong>Audience</strong><br>' + esc(item.primaryAudience || "Small business owners") + '</div>',
-      '</div>',
-      '</article>'
+      '</div></article>'
     ].join("");
   }
 
   function renderMetrics(state) {
-    var leadSummary = dashboard.leadStore ? dashboard.leadStore.summarizeLeads(state && state.leads) : { total: 0, reviewing: 0, funded: 0, requestedFunding: 0 };
-    var training = dashboard.resourceStore ? dashboard.resourceStore.summarizeTraining() : { completed: 0, total: 0, percent: 0 };
-    var commissions = dashboard.seedData && dashboard.seedData.commissions && dashboard.seedData.commissions.summary || {};
-
-    var metrics = [
-      { label: "Demo leads", value: leadSummary.total, note: "Stored locally" },
-      { label: "In review", value: leadSummary.reviewing + leadSummary.submitted + leadSummary.needsInfo, note: "Example workflow states" },
-      { label: "Requested funding", value: currency(leadSummary.requestedFunding), note: "Not an approval amount" },
-      { label: "Training", value: training.percent + "%", note: training.completed + " of " + training.total + " modules" },
-      { label: "Example pending", value: currency(commissions.estimatedPending || 0), note: "Not payable balance" }
-    ];
-
-    return metrics.map(function metricCard(metric) {
+    var current = state || {};
+    var liveSummary = current.dashboardData && current.dashboardData.summary;
+    if (liveSummary) {
+      var submitted = liveSummary.submitted_volume && liveSummary.submitted_volume.amount;
+      var estimated = liveSummary.estimated_commissions && liveSummary.estimated_commissions.amount;
       return [
-        '<article class="dashboard-metric">',
-        '<span class="dashboard-metric-label">' + esc(metric.label) + '</span>',
-        '<span class="dashboard-metric-value">' + esc(metric.value) + '</span>',
-        '<span class="dashboard-metric-note">' + esc(metric.note) + '</span>',
-        '</article>'
-      ].join("");
-    }).join("");
+        ["Total leads", liveSummary.total_leads || 0, "Partner-attributed records"],
+        ["Active leads", liveSummary.active_leads || 0, (liveSummary.action_needed_leads || 0) + " need action"],
+        ["Submitted volume", currency(submitted || 0), "Not an approval amount"],
+        ["Estimated commissions", currency(estimated || 0), "Planning estimate only"],
+        ["Link clicks", liveSummary.tracking_link_clicks || 0, (liveSummary.lead_submissions_from_links || 0) + " attributed submissions"]
+      ].map(renderMetric).join("");
+    }
+
+    var leadSummary = dashboard.leadStore ? dashboard.leadStore.summarizeLeads(current.leads) : { total: 0, reviewing: 0, submitted: 0, needsInfo: 0, requestedFunding: 0 };
+    var commissions = dashboard.seedData && dashboard.seedData.commissions && dashboard.seedData.commissions.summary || {};
+    return [
+      ["Demo leads", leadSummary.total || 0, "Stored in this browser"],
+      ["In motion", (leadSummary.reviewing || 0) + (leadSummary.submitted || 0) + (leadSummary.needsInfo || 0), "Fictional workflow states"],
+      ["Requested funding", currency(leadSummary.requestedFunding || 0), "Not an approval amount"],
+      ["Assigned resources", (dashboard.seedData && dashboard.seedData.resources || []).length, "Demo resource library"],
+      ["Example pending", currency(commissions.estimatedPending || 0), "Not a payable balance"]
+    ].map(renderMetric).join("");
+  }
+
+  function renderMetric(item) {
+    return '<article class="dashboard-metric"><span class="dashboard-metric-label">' + esc(item[0]) + '</span><span class="dashboard-metric-value">' + esc(item[1]) + '</span><span class="dashboard-metric-note">' + esc(item[2]) + '</span></article>';
   }
 
   function renderLeadCards(leads) {
     var list = Array.isArray(leads) ? leads : [];
-    if (!list.length) return empty("No leads yet.", "Submit a demo lead to populate the tracker.");
+    if (!list.length) return empty("No leads yet.", "Submit a demo lead or connect a live partner session.");
 
-    return list.map(function leadCard(lead) {
+    return list.map(function (lead) {
+      var live = Boolean(lead.liveReadOnly);
+      var readiness = lead.readinessScore == null ? "Not available" : lead.readinessScore + (lead.readinessTier ? " · " + lead.readinessTier : "");
       return [
         '<article class="dashboard-card dashboard-card-pad" data-lead-card="' + esc(lead.id) + '">',
-        '<div class="dashboard-card-header">',
-        '<div>',
-        '<h3 class="dashboard-card-title">' + esc(lead.businessName) + '</h3>',
-        '<p class="dashboard-card-subtitle">' + esc(lead.contactName) + ' · ' + esc(lead.industry || "Industry not set") + '</p>',
-        '</div>',
-        badge(titleCase(lead.status), statusTone(lead.status)),
-        '</div>',
+        '<div class="dashboard-card-header"><div><h3 class="dashboard-card-title">' + esc(lead.businessName) + '</h3><p class="dashboard-card-subtitle">' + esc(live ? "Protected contact" : (lead.contactName || "Demo contact")) + ' · ' + esc(lead.industry || "Funding readiness") + '</p></div>',
+        badge(titleCase(lead.status), statusTone(lead.status)), '</div>',
         '<div class="mpc-grid mpc-grid-2">',
-        '<p><strong>Funding need:</strong><br>' + currency(lead.fundingNeed) + '</p>',
-        '<p><strong>Monthly revenue:</strong><br>' + currency(lead.monthlyRevenue) + '</p>',
-        '<p><strong>Use of funds:</strong><br>' + esc(lead.useOfFunds || "Not provided") + '</p>',
-        '<p><strong>Next step:</strong><br>' + esc(lead.nextStep || "Review details") + '</p>',
+        '<p><strong>Funding need:</strong><br>' + currency(lead.fundingNeed || 0) + '</p>',
+        '<p><strong>Readiness:</strong><br>' + esc(readiness) + '</p>',
+        '<p><strong>Source:</strong><br>' + esc(lead.source || lead.useOfFunds || "Partner dashboard") + '</p>',
+        '<p><strong>Next step:</strong><br>' + esc(lead.nextStep || "Review the latest status") + '</p>',
         '</div>',
         '<div class="cluster mt-4">',
-        '<select data-lead-status="' + esc(lead.id) + '" aria-label="Update status for ' + esc(lead.businessName) + '">',
-        (config.leadStatuses || []).map(function statusOption(status) {
-          return '<option value="' + esc(status.id) + '"' + (lead.status === status.id ? " selected" : "") + '>' + esc(status.label) + '</option>';
-        }).join(""),
+        '<select data-lead-status="' + esc(lead.id) + '" aria-label="Status for ' + esc(lead.businessName) + '"' + (live ? ' disabled title="Live lead statuses are read-only."' : "") + '>',
+        (config.leadStatuses || []).map(function (status) { return '<option value="' + esc(status.id) + '"' + (lead.status === status.id ? " selected" : "") + '>' + esc(status.label) + '</option>'; }).join(""),
         '</select>',
-        '<button class="mpc-button mpc-button-outline" type="button" data-remove-lead="' + esc(lead.id) + '">Remove</button>',
+        live ? '' : '<button class="mpc-button mpc-button-outline" type="button" data-remove-lead="' + esc(lead.id) + '">Remove</button>',
+        '<button class="mpc-button mpc-button-ghost" type="button" data-copy-text="' + esc(lead.id) + '">Copy Lead ID</button>',
         '</div>',
-        '<small class="mpc-muted">Created ' + esc(date(lead.createdAt)) + ' · Partner ' + esc(lead.partnerId) + '</small>',
+        '<small class="mpc-muted">Updated ' + esc(date(lead.updatedAt || lead.createdAt)) + ' · ' + (live ? "Live partner-safe projection" : "Local demo record") + '</small>',
         '</article>'
       ].join("");
     }).join("");
   }
 
-  function renderMarketplace(offers, favorites) {
-    var list = Array.isArray(offers) ? offers : [];
-    var favs = Array.isArray(favorites) ? favorites : [];
+  function renderPartnerLinks(profile, links) {
+    var liveLinks = Array.isArray(links) ? links : [];
+    if (liveLinks.length) {
+      return liveLinks.map(function (item) {
+        return '<article class="dashboard-link-builder"><div class="split"><div><h3 class="dashboard-card-title">' + esc(item.name || "Tracking link") + '</h3><p class="dashboard-card-subtitle">' + esc(item.tracking_link_id || "") + '</p></div>' + badge(item.status || "active", item.status === "active" ? "success" : "warning") + '</div><div class="dashboard-copy-row"><input type="text" value="' + esc(item.tracking_url || "") + '" readonly><button class="mpc-button mpc-button-outline" type="button" data-copy-text="' + esc(item.tracking_url || "") + '">Copy</button></div><small class="mpc-muted">' + Number(item.clicks || 0) + ' clicks · ' + Number(item.lead_submissions || 0) + ' lead submissions</small></article>';
+      }).join("");
+    }
 
-    if (!list.length) return empty("No marketplace offers.", "Add marketplace data to /data/marketplace-offers.js.");
-
-    return list.map(function offerCard(offer) {
-      var active = favs.indexOf(offer.id) >= 0;
-
-      return [
-        '<article class="dashboard-card dashboard-card-pad" id="market-' + esc(offer.id) + '">',
-        '<div class="dashboard-card-header">',
-        '<div>',
-        badge(offer.category, offer.featured ? "success" : "default"),
-        '<h3 class="dashboard-card-title mt-3">' + esc(offer.title) + '</h3>',
-        '</div>',
-        '<button class="mpc-button mpc-button-ghost" type="button" data-toggle-offer-favorite="' + esc(offer.id) + '" aria-pressed="' + (active ? "true" : "false") + '">' + (active ? "Saved" : "Save") + '</button>',
-        '</div>',
-        '<p>' + esc(offer.summary) + '</p>',
-        '<small class="mpc-muted">' + esc(offer.complianceNote || "") + '</small>',
-        '<div class="mpc-actions mt-4">',
-        '<a class="mpc-button mpc-button-outline" href="' + esc(offer.ctaUrl || "./marketplace.html") + '">Open</a>',
-        '<button class="mpc-button mpc-button-ghost" type="button" data-copy-offer-link="' + esc(offer.ctaUrl || "./marketplace.html") + '">Copy Link</button>',
-        '</div>',
-        '</article>'
-      ].join("");
-    }).join("");
-  }
-
-  function renderPartnerLinks(profile) {
     var partner = profile || {};
     var destinations = [
-      { label: "Partner homepage", url: "./index.html" },
-      { label: "Partner access", url: "./partner-access.html" },
-      { label: "Marketplace", url: "./marketplace.html" },
-      { label: "Resources", url: "./resources.html" },
-      { label: "Funding readiness checklist", url: "./tools/funding-readiness-checklist.html" }
+      { label: "Am I Fundable", url: "https://am-i-fundable.vercel.app/" },
+      { label: "FundStack AI", url: "https://fund-stack-ai.vercel.app/" },
+      { label: "Partner resources", url: "./resources.html" }
     ];
-
-    return destinations.map(function linkRow(item) {
-      var link = dashboard.affiliateStore && dashboard.affiliateStore.buildLink
-        ? dashboard.affiliateStore.buildLink(item.url, { source: "dashboard" })
-        : item.url;
-
-      return [
-        '<article class="dashboard-link-builder">',
-        '<div class="split">',
-        '<div>',
-        '<h3 class="dashboard-card-title">' + esc(item.label) + '</h3>',
-        '<p class="dashboard-card-subtitle">Partner ID: ' + esc(partner.partnerId || "MS-DEMO-0000") + '</p>',
-        '</div>',
-        badge("Trackable demo", "success"),
-        '</div>',
-        '<div class="dashboard-copy-row">',
-        '<input type="text" value="' + esc(link) + '" readonly aria-label="' + esc(item.label) + ' link">',
-        '<button class="mpc-button mpc-button-outline" type="button" data-copy-text="' + esc(link) + '">Copy</button>',
-        '</div>',
-        '</article>'
-      ].join("");
+    return destinations.map(function (item) {
+      var link = dashboard.affiliateStore && dashboard.affiliateStore.buildLink ? dashboard.affiliateStore.buildLink(item.url, { source: "partner_dashboard" }) : item.url;
+      return '<article class="dashboard-link-builder"><div class="split"><div><h3 class="dashboard-card-title">' + esc(item.label) + '</h3><p class="dashboard-card-subtitle">Partner ID: ' + esc(partner.partnerId || "MS-DEMO-0000") + '</p></div>' + badge("Demo link", "info") + '</div><div class="dashboard-copy-row"><input type="text" value="' + esc(link) + '" readonly><button class="mpc-button mpc-button-outline" type="button" data-copy-text="' + esc(link) + '">Copy</button></div></article>';
     }).join("");
   }
 
   function renderResources(resources, favorites) {
     var list = Array.isArray(resources) ? resources : [];
     var favs = Array.isArray(favorites) ? favorites : [];
-
-    if (!list.length) return empty("No resources yet.", "Add resources to the data layer.");
-
-    return list.map(function resourceCard(resource) {
-      var active = favs.indexOf(resource.id) >= 0;
-
-      return [
-        '<article class="dashboard-card dashboard-card-pad">',
-        '<div class="dashboard-card-header">',
-        '<div>',
-        badge(resource.type || "Resource", "info"),
-        '<h3 class="dashboard-card-title mt-3">' + esc(resource.title) + '</h3>',
-        '</div>',
-        '<button class="mpc-button mpc-button-ghost" type="button" data-toggle-resource-favorite="' + esc(resource.id) + '" aria-pressed="' + (active ? "true" : "false") + '">' + (active ? "Saved" : "Save") + '</button>',
-        '</div>',
-        '<p>' + esc(resource.summary) + '</p>',
-        '<small class="mpc-muted">' + esc(resource.complianceNote || "") + '</small>',
-        '<a class="mpc-button mpc-button-outline mt-4" href="' + esc(resource.href || "./resources.html") + '">Open resource</a>',
-        '</article>'
-      ].join("");
+    if (!list.length) return empty("No resources assigned.", "Assigned scripts, checklists, and campaign assets will appear here.");
+    return list.map(function (resource) {
+      var id = resource.id || resource.resource_id;
+      var title = resource.title || resource.name;
+      var summary = resource.summary || resource.description || "Partner resource";
+      var href = resource.href || resource.download_url || resource.resource_url || "./resources.html";
+      var active = favs.indexOf(id) >= 0;
+      return '<article class="dashboard-card dashboard-card-pad"><div class="dashboard-card-header"><div>' + badge(resource.type || resource.format || resource.category || "Resource", "info") + '<h3 class="dashboard-card-title mt-3">' + esc(title) + '</h3></div><button class="mpc-button mpc-button-ghost" type="button" data-toggle-resource-favorite="' + esc(id) + '" aria-pressed="' + (active ? "true" : "false") + '">' + (active ? "Saved" : "Save") + '</button></div><p>' + esc(summary) + '</p><small class="mpc-muted">' + esc(resource.complianceNote || resource.compliance_status || "") + '</small><a class="mpc-button mpc-button-outline mt-4" href="' + esc(href) + '">Open resource</a></article>';
     }).join("");
   }
 
-  function renderTraining(modules, progress) {
-    var list = Array.isArray(modules) ? modules : [];
-    var done = progress || {};
-
-    if (!list.length) return empty("No training modules yet.", "Add training modules to the data layer.");
-
-    return list.map(function moduleCard(moduleItem) {
-      var complete = Boolean(done[moduleItem.id]);
-
-      return [
-        '<article class="dashboard-card dashboard-card-pad">',
-        '<div class="dashboard-card-header">',
-        '<div>',
-        badge(moduleItem.level || "Recommended", moduleItem.level === "Required" ? "warning" : "success"),
-        '<h3 class="dashboard-card-title mt-3">' + esc(moduleItem.title) + '</h3>',
-        '<p class="dashboard-card-subtitle">' + esc(moduleItem.track) + ' · ' + esc(moduleItem.durationMinutes) + ' min</p>',
-        '</div>',
-        '<button class="mpc-button ' + (complete ? 'mpc-button-primary' : 'mpc-button-outline') + '" type="button" data-toggle-training="' + esc(moduleItem.id) + '">' + (complete ? "Done" : "Mark done") + '</button>',
-        '</div>',
-        '<p>' + esc(moduleItem.summary) + '</p>',
-        '</article>'
-      ].join("");
+  function renderWidgets(widgets) {
+    var list = Array.isArray(widgets) ? widgets : [];
+    if (!list.length) {
+      list = [{ preset_id: "funding-readiness-scorecard-widget", name: "Funding Readiness Scorecard", description: "Partner-attributed readiness widget connected to the Am I Fundable flow.", status: "available", preview_url: "https://embed-widgets-kappa.vercel.app/", embed_url: "https://am-i-fundable.vercel.app/embed.html" }];
+    }
+    return list.map(function (widget) {
+      var name = widget.name || widget.preset_id || "Partner widget";
+      var status = widget.status || "available";
+      var preview = widget.preview_url || widget.embed_url || "https://embed-widgets-kappa.vercel.app/";
+      var embed = widget.embed_url || preview;
+      var iframe = '<iframe src="' + embed + '" title="' + name + '" loading="lazy" width="100%" height="640" style="border:0"></iframe>';
+      return '<article class="dashboard-card dashboard-card-pad"><div class="dashboard-card-header"><div>' + badge(status, status === "active" || status === "available" ? "success" : "warning") + '<h3 class="dashboard-card-title mt-3">' + esc(name) + '</h3><p class="dashboard-card-subtitle">' + esc(widget.description || "Approved partner-attributed widget preset.") + '</p></div></div><div class="mpc-actions"><a class="mpc-button mpc-button-outline" href="' + esc(preview) + '" target="_blank" rel="noopener">Preview</a><button class="mpc-button mpc-button-primary" type="button" data-copy-text="' + esc(iframe) + '">Copy iframe</button></div></article>';
     }).join("");
   }
 
   function renderCommissions(commissions) {
     var data = commissions || {};
-    var rows = data.rows || [];
-    var summary = data.summary || {};
-
-    return [
-      '<div class="mpc-disclaimer">' + esc(data.disclaimer || config.disclaimers && config.disclaimers.commissions || "") + '</div>',
-      '<div class="dashboard-grid mt-5">',
-      '<article class="dashboard-metric"><span class="dashboard-metric-label">Example pending</span><span class="dashboard-metric-value">' + currency(summary.estimatedPending || 0) + '</span><span class="dashboard-metric-note">Not payable balance</span></article>',
-      '<article class="dashboard-metric"><span class="dashboard-metric-label">Demo paid</span><span class="dashboard-metric-value">' + currency(summary.demoPaid || 0) + '</span><span class="dashboard-metric-note">Fictional example</span></article>',
-      '<article class="dashboard-metric"><span class="dashboard-metric-label">Demo funded deals</span><span class="dashboard-metric-value">' + esc(summary.demoFundedDeals || 0) + '</span><span class="dashboard-metric-note">Sample data</span></article>',
-      '</div>',
-      '<div class="mpc-table-wrap mt-5">',
-      '<table>',
-      '<thead><tr><th>Partner</th><th>Business</th><th>Status</th><th>Example Amount</th></tr></thead>',
-      '<tbody>',
-      rows.map(function row(item) {
-        return '<tr><td>' + esc(item.partnerName) + '</td><td>' + esc(item.businessName) + '</td><td>' + esc(titleCase(item.status)) + '</td><td>' + currency(item.commissionAmount || 0) + '</td></tr>';
-      }).join(""),
-      '</tbody>',
-      '</table>',
-      '</div>'
-    ].join("");
-  }
-
-  function renderIntegrations(cards) {
-    var list = Array.isArray(cards) ? cards : config.integrationCards || [];
-
-    return list.map(function integrationCard(card) {
-      return [
-        '<article class="dashboard-card dashboard-card-pad">',
-        badge(card.status || "Blueprint", "warning"),
-        '<h3 class="dashboard-card-title mt-3">' + esc(card.title) + '</h3>',
-        '<p>' + esc(card.summary) + '</p>',
-        '<a class="mpc-button mpc-button-outline mt-4" href="' + esc(card.href) + '">Open docs</a>',
-        '</article>'
-      ].join("");
-    }).join("");
-  }
-
-  function renderNotes(notes) {
-    var list = Array.isArray(notes) ? notes : [];
-
-    if (!list.length) return empty("No notes yet.", "Add a local CRM-lite note to track follow-up context.");
-
-    return list.map(function noteCard(note) {
-      return [
-        '<article class="dashboard-note">',
-        '<div class="split">',
-        '<strong>' + esc(note.title || "Partner note") + '</strong>',
-        '<button class="mpc-button mpc-button-ghost mpc-button-sm" type="button" data-remove-note="' + esc(note.id) + '">Remove</button>',
-        '</div>',
-        '<p>' + esc(note.body || "") + '</p>',
-        '<time datetime="' + esc(note.createdAt) + '">' + esc(date(note.createdAt)) + '</time>',
-        '</article>'
-      ].join("");
-    }).join("");
+    var summary = data.summary || data;
+    var estimated = summary.estimatedPending != null ? summary.estimatedPending : summary.pending_verification && summary.pending_verification.amount;
+    var verified = summary.verified != null ? summary.verified : summary.verified && summary.verified.amount;
+    var paid = summary.demoPaid != null ? summary.demoPaid : summary.paid && summary.paid.amount;
+    return '<div class="mpc-disclaimer">' + esc(data.disclaimer || data.calculation_disclaimer || config.disclaimers && config.disclaimers.commissions || "") + '</div><div class="dashboard-grid mt-5">' + [
+      ["Estimated", currency(estimated || 0), "Planning value only"],
+      ["Verified", currency(typeof verified === "object" ? verified.amount : verified || 0), "Authorized records only"],
+      ["Paid", currency(paid || 0), "Posted payout records only"]
+    ].map(renderMetric).join("") + '</div>';
   }
 
   function renderEvents(events) {
     var list = Array.isArray(events) ? events : [];
+    if (!list.length) return empty("No activity yet.", "Partner-visible events will appear here.");
+    return '<ol class="dashboard-activity-list">' + list.slice(0, 10).map(function (item) {
+      return '<li class="dashboard-activity-item"><span class="dashboard-activity-icon" aria-hidden="true">•</span><div><strong>' + esc(item.label || item.title || item.type) + '</strong><p>' + esc(item.message || "") + '</p><small>' + esc(date(item.createdAt || item.created_at)) + '</small></div></li>';
+    }).join("") + '</ol>';
+  }
 
-    if (!list.length) return empty("No activity yet.", "Dashboard events will appear here.");
-
-    return [
-      '<ol class="dashboard-activity-list">',
-      list.slice(0, 12).map(function eventItem) {
-        return [
-          '<li class="dashboard-activity-item">',
-          '<span class="dashboard-activity-icon" aria-hidden="true">•</span>',
-          '<div>',
-          '<strong>' + esc(eventItem.label || eventItem.type) + '</strong>',
-          '<p>' + esc(eventItem.message || "") + '</p>',
-          '<small>' + esc(date(eventItem.createdAt)) + ' · ' + esc(eventItem.partnerId || "") + '</small>',
-          '</div>',
-          '</li>'
-        ].join("");
-      }).join(""),
-      '</ol>'
-    ].join("");
+  function renderIntegrationStatus(state) {
+    var current = state || {};
+    var mode = current.dashboardData && current.dashboardData.mode || "demo";
+    var generated = current.dashboardData && current.dashboardData.generatedAt;
+    var rows = [
+      ["Dashboard mode", mode === "live" ? "Live API" : "Demo / localStorage", mode === "live" ? "success" : "info"],
+      ["Partner isolation", mode === "live" ? "Session-derived" : "Demo only", mode === "live" ? "success" : "info"],
+      ["Lead write path", mode === "live" ? "Am I Fundable → /api/lead-router" : "Local demo store", "info"],
+      ["Last generated", generated ? date(generated) : "Local session", "info"]
+    ];
+    return rows.map(function (row) { return '<div class="dashboard-note split"><strong>' + esc(row[0]) + '</strong>' + badge(row[1], row[2]) + '</div>'; }).join("");
   }
 
   function renderAll(root, state) {
     if (!ui) return;
-
     var scope = root || document;
-    var current = state || (dashboard.state && dashboard.state.getState()) || {};
+    var current = state || dashboard.state && dashboard.state.getState() || {};
     var seed = dashboard.seedData || {};
-
     var targets = [
       [config.selectors && config.selectors.profileCard, renderProfileCard(current.partnerProfile)],
       [config.selectors && config.selectors.metrics, renderMetrics(current)],
       [config.selectors && config.selectors.leadList, renderLeadCards(current.leads)],
-      [config.selectors && config.selectors.marketplace, renderMarketplace(seed.marketplaceOffers, current.marketplaceFavorites)],
-      [config.selectors && config.selectors.partnerLinks, renderPartnerLinks(current.partnerProfile)],
-      [config.selectors && config.selectors.resources, renderResources(seed.resources, current.resourceFavorites)],
-      [config.selectors && config.selectors.training, renderTraining(seed.trainingModules, current.trainingProgress)],
-      [config.selectors && config.selectors.commissions, renderCommissions(seed.commissions)],
-      [config.selectors && config.selectors.integrations, renderIntegrations(config.integrationCards)],
-      [config.selectors && config.selectors.notes, renderNotes(current.notes)],
-      [config.selectors && config.selectors.events, renderEvents(current.events)]
+      [config.selectors && config.selectors.partnerLinks, renderPartnerLinks(current.partnerProfile, current.trackingLinks)],
+      [config.selectors && config.selectors.resources, renderResources(seed.resources || current.resources, current.resourceFavorites)],
+      [config.selectors && config.selectors.widgets, renderWidgets(current.widgets)],
+      [config.selectors && config.selectors.commissions, renderCommissions(current.commissions || seed.commissions)],
+      [config.selectors && config.selectors.events, renderEvents(current.events)],
+      [config.selectors && config.selectors.integrationStatus, renderIntegrationStatus(current)]
     ];
-
-    targets.forEach(function renderTarget(pair) {
-      var selector = pair[0];
-      var html = pair[1];
-      if (!selector) return;
-
-      var element = scope.querySelector(selector);
-      if (element) element.innerHTML = html;
-    });
+    targets.forEach(function (pair) { var element = pair[0] && scope.querySelector(pair[0]); if (element) element.innerHTML = pair[1]; });
   }
 
   dashboard.renderers = {
@@ -376,14 +230,12 @@
     renderProfileCard: renderProfileCard,
     renderMetrics: renderMetrics,
     renderLeadCards: renderLeadCards,
-    renderMarketplace: renderMarketplace,
     renderPartnerLinks: renderPartnerLinks,
     renderResources: renderResources,
-    renderTraining: renderTraining,
+    renderWidgets: renderWidgets,
     renderCommissions: renderCommissions,
-    renderIntegrations: renderIntegrations,
-    renderNotes: renderNotes,
     renderEvents: renderEvents,
+    renderIntegrationStatus: renderIntegrationStatus,
     renderAll: renderAll
   };
 })(window, document);

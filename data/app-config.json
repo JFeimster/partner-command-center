@@ -1,0 +1,17 @@
+{
+  "PARTNER_COMMAND_CENTER_URL": "https://partner-command-center-rho.vercel.app/",
+  "AM_I_FUNDABLE_URL": "https://am-i-fundable.vercel.app/",
+  "EMBED_WIDGETS_URL": "https://embed-widgets-kappa.vercel.app/",
+  "FUNDSTACK_AI_URL": "https://fund-stack-ai.vercel.app/",
+  "PARTNER_SIGNUP_URL": "/partner-access",
+  "LEAD_SUBMISSION_URL": "https://am-i-fundable.vercel.app/",
+  "DASHBOARD_BOOTSTRAP_PATH": "/api/dashboard/bootstrap",
+  "features": {
+    "demoMode": true,
+    "liveMode": true,
+    "campaigns": false,
+    "academy": false,
+    "network": false,
+    "operatorReview": false
+  }
+}
