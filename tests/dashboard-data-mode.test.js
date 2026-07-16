@@ -84,10 +84,18 @@ const verified = bootstrapHandler.verifySessionToken(`${payload}.${signature}`);
 assert.strictEqual(verified.partner_id, 'MS-P-1001');
 assert.strictEqual(bootstrapHandler.verifySessionToken(`${payload}.invalid`), null);
 
+assert.strictEqual(
+  bootstrapHandler.query({ url: '/api/dashboard/bootstrap?partner_id=MS-P-1001&limit=25' }, 'partner_id'),
+  'MS-P-1001'
+);
+assert.strictEqual(
+  bootstrapHandler.query({ query: { partner_id: 'LEGACY' }, url: '/api/dashboard/bootstrap?partner_id=CANONICAL' }, 'partner_id'),
+  'CANONICAL'
+);
+
 process.env.PARTNER_COMMAND_API_KEY = 'trusted-test-key';
 const identity = bootstrapHandler.resolvePartnerId({
   headers: { 'x-api-key': 'trusted-test-key', 'x-partner-id': 'MS-P-1001' },
-  query: {},
   url: '/api/dashboard/bootstrap'
 });
 assert.deepStrictEqual(identity, { partnerId: 'MS-P-1001', authMode: 'trusted_api_key' });
