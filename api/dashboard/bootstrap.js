@@ -15,9 +15,9 @@ function header(req, name) {
 }
 
 function query(req, name) {
-  if (req && req.query && req.query[name] !== undefined) return Array.isArray(req.query[name]) ? req.query[name][0] : req.query[name];
   try {
-    const url = new URL(req.url || '/', 'https://partner-command-center.local');
+    const requestUrl = req && req.url ? req.url : '/';
+    const url = new URL(requestUrl, 'https://partner-command-center.local');
     return url.searchParams.get(name);
   } catch (_) {
     return null;
@@ -129,3 +129,4 @@ module.exports = async function dashboardBootstrap(req, res) {
 
 module.exports.verifySessionToken = verifySessionToken;
 module.exports.resolvePartnerId = resolvePartnerId;
+module.exports.query = query;
