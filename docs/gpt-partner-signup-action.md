@@ -4,35 +4,9 @@
 
 `POST /api/partner-signup` lets a Custom GPT submit a new Partner Command Center partner signup directly from chat.
 
-This endpoint is for partner-side intake only: affiliates, referral partners, funding brokers, ISOs, consultants, CPAs/bookkeepers, real estate professionals, ecommerce consultants, creators, community connectors, vendor partners, channel partners, and strategic partners.
+This endpoint is for partner-side signup only: affiliates, referral partners, funding brokers, ISOs, consultants, CPAs/bookkeepers, real estate professionals, ecommerce consultants, creators, community connectors, vendor partners, channel partners, and strategic partners.
 
 It is **not** a borrower funding application endpoint.
-
-## Recommended GPT package
-
-Use the finalized package:
-
-```text
-/gpts/packages/partner-signup-copilot-builder-package.md
-```
-
-Recommended GPT name:
-
-```text
-Partner Signup Copilot
-```
-
-Use this OpenAPI file in GPT Builder:
-
-```text
-/schemas/actions/partner-signup-copilot.openapi.yaml
-```
-
-Use these validation payloads:
-
-```text
-/gpts/test-payloads/partner-signup-copilot-test-payloads.json
-```
 
 ## Endpoint
 
@@ -46,6 +20,18 @@ Operation:
 submitPartnerSignup
 ```
 
+Implementation file:
+
+```text
+api/partner-signup.js
+```
+
+OpenAPI file for GPT Builder:
+
+```text
+integrations/openapi.partner-signup.json
+```
+
 ## Authentication
 
 Set GPT Builder authentication to:
@@ -56,13 +42,19 @@ Auth Type: Bearer
 Secret: PARTNER_COMMAND_API_KEY
 ```
 
-The request must send:
+The GPT Action request should send:
 
 ```text
 Authorization: Bearer <PARTNER_COMMAND_API_KEY>
 ```
 
-Keep the key inside GPT Action authentication only. Do not paste it into instructions, knowledge files, examples, or public docs.
+The endpoint also accepts trusted manual/server tests with:
+
+```text
+X-API-Key: <PARTNER_COMMAND_API_KEY>
+```
+
+Keep the key inside GPT Action authentication only. Do not paste it into instructions, knowledge files, examples, screenshots, or public docs.
 
 ## Tally signup vs GPT signup vs funding lead submission
 
@@ -74,6 +66,8 @@ The default public signup form can continue through Tally and the unified router
 POST /api/router
 Action: receivePartnerSignup
 ```
+
+Use this for default form ingestion and Tally webhook-style submissions.
 
 ### GPT signup
 
@@ -101,7 +95,8 @@ Do not use `/api/lead-router` for partner signup. Do not use `/api/partner-signu
 ```text
 api/router.js         -> POST /api/router         -> Tally/default partner signup router using receivePartnerSignup
 api/partner-signup.js -> POST /api/partner-signup -> GPT Action partner signup endpoint
-api/lead-router.js    -> POST /api/lead-router    -> downstream partner-attributed funding leads only
+api/partner-links.js  -> POST /api/partner-links  -> trusted partner tracking-link creation
+a pi/lead-router.js    -> POST /api/lead-router    -> downstream partner-attributed funding leads only
 ```
 
 ## Required environment variables
@@ -199,6 +194,57 @@ resource_recommendations
 campaign_recommendations
 ```
 
+## Bearer-auth curl test
+
+```bash
+curl -X POST "https://partner-command-center-rho.vercel.app/api/partner-signup" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $PARTNER_COMMAND_API_KEY" \
+  -d '{
+    "partner": {
+      "first_name": "Alex",
+      "last_name": "Rivera",
+      "email": "alex@example.com",
+      "phone": "+1-555-010-1000",
+      "company": "Rivera Growth Media",
+      "website": "https://example.com",
+      "partner_type_claimed": "creator_affiliate",
+      "audience": "small business owners, freelancers, and startup operators",
+      "industry": "content, media, and business education",
+      "funding_experience": "Some experience referring business owners to funding resources.",
+      "current_tools": "Newsletter, YouTube, Substack, CRM, affiliate links",
+      "traffic_or_network_size": "5,000 email subscribers and 12,000 social followers",
+      "referral_volume_estimate": "5 to 10 warm referrals per month",
+      "desired_partner_role": "Promote funding readiness resources and refer qualified business owners",
+      "source": "gpt_action"
+    }
+  }'
+```
+
+## X-API-Key curl test
+
+```bash
+curl -X POST "https://partner-command-center-rho.vercel.app/api/partner-signup" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $PARTNER_COMMAND_API_KEY" \
+  -d '{
+    "partner": {
+      "first_name": "Taylor",
+      "last_name": "Nguyen",
+      "email": "taylor@example.com",
+      "company": "Nguyen Business Services",
+      "partner_type_claimed": "referral_partner",
+      "audience": "local service businesses and independent operators",
+      "industry": "business consulting",
+      "funding_experience": "Occasionally refers clients to trusted finance contacts.",
+      "current_tools": "Email, LinkedIn, spreadsheet tracker",
+      "referral_volume_estimate": "1 to 3 warm referrals per month",
+      "desired_partner_role": "Make warm introductions when clients need funding readiness support",
+      "source": "gpt_action"
+    }
+  }'
+```
+
 ## Safety boundary
 
 Do not collect borrower funding application data in this action.
@@ -226,13 +272,23 @@ If that kind of data appears, the GPT should not call the action. If it reaches 
 
 Partner signup is for partner profile, classification, onboarding path, and resource assignment only.
 
+## GPT Action setup notes
+
+1. Open GPT Builder.
+2. Add an action.
+3. Import `integrations/openapi.partner-signup.json`.
+4. Configure authentication as API Key / Bearer.
+5. Use the value from `PARTNER_COMMAND_API_KEY` as the secret.
+6. Test `submitPartnerSignup` with a creator, funding broker, and referral partner payload.
+7. Confirm Partner and Partner Event records appear in Notion.
+
 ## Manual verification checklist
 
 ```text
 [ ] Confirm PARTNER_COMMAND_API_KEY is set in GPT Action authentication.
 [ ] Confirm Notion environment variables are set in Vercel.
 [ ] Confirm the Notion integration has access to Partners, Partner Events, Partner Resources, and Tracking Links databases.
-[ ] Import /schemas/actions/partner-signup-copilot.openapi.yaml into GPT Builder.
+[ ] Import integrations/openapi.partner-signup.json into GPT Builder.
 [ ] Configure GPT Action authentication as API Key / Bearer token.
 [ ] Test a funding broker signup.
 [ ] Test an affiliate partner signup.
