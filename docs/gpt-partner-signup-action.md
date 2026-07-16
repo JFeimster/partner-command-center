@@ -96,7 +96,7 @@ Do not use `/api/lead-router` for partner signup. Do not use `/api/partner-signu
 api/router.js         -> POST /api/router         -> Tally/default partner signup router using receivePartnerSignup
 api/partner-signup.js -> POST /api/partner-signup -> GPT Action partner signup endpoint
 api/partner-links.js  -> POST /api/partner-links  -> trusted partner tracking-link creation
-a pi/lead-router.js    -> POST /api/lead-router    -> downstream partner-attributed funding leads only
+api/lead-router.js    -> POST /api/lead-router    -> downstream partner-attributed funding leads only
 ```
 
 ## Required environment variables
