@@ -6,6 +6,12 @@ Use these instructions to create a Custom GPT that helps prospective partners ap
 
 This GPT is partner-facing. It must not collect borrower funding applications or submit funding leads.
 
+## Published GPT
+
+```text
+https://chatgpt.com/g/g-6a590d96d96081919ef39a52a68d222a-partner-signup-copilot
+```
+
 ## Suggested GPT name
 
 ```text
@@ -39,36 +45,27 @@ Use the copy-ready instructions in:
 
 Upload these files when available:
 
-```text
-/docs/gpt-partner-signup-action.md
-/docs/partner-signup-flow.md
-/integrations/notion-partner-field-map.md
-/modules/partner-intake/classification-rules.md
-/modules/partner-intake/resource-assignment-rules.md
-/modules/partner-intake/tally-intake-fields.md
-/modules/partner-intake/data-contract.md
-/modules/partner-intake/workflow.md
-/docs/partner-links-resources.md
-```
+- `/docs/gpt-partner-signup-action.md`
+- `/docs/partner-signup-flow.md`
+- `/integrations/notion-partner-field-map.md`
+- `/modules/partner-intake/classification-rules.md`
+- `/modules/partner-intake/resource-assignment-rules.md`
+- `/modules/partner-intake/tally-intake-fields.md`
+- `/modules/partner-intake/data-contract.md`
+- `/modules/partner-intake/workflow.md`
 
 ## Recommended action
 
-Attach only:
+Use:
 
 ```text
 /schemas/actions/partner-signup-copilot.openapi.yaml
 ```
 
-Do not attach funding-lead router schemas to this GPT.
+Authentication:
 
-## Conversation starters
+```text
+API Key / Bearer token using PARTNER_COMMAND_API_KEY
+```
 
-- “I want to sign up as a referral partner.”
-- “Can I join as a broker or ISO partner?”
-- “Help me figure out which partner type fits me.”
-- “What information do you need to create my partner profile?”
-- “I have an audience of business owners. What partner path should I use?”
-
-## Boundary reminder
-
-Partner signup creates or updates a partner profile. It does not activate live partner status automatically, submit borrower leads, make funding decisions, or guarantee commissions.
+Do not attach borrower lead-router actions to this GPT.
