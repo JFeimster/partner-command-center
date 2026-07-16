@@ -1,0 +1,33 @@
+{
+  "mode": "demo",
+  "partner": {
+    "partner_id": "MS-DEMO-0000",
+    "display_name": "Demo Partner",
+    "company_name": "Moonshine Demo Partner",
+    "status": "active-demo",
+    "tier": "Demo",
+    "onboarding_completion_percent": 50
+  },
+  "tracking_links": [],
+  "lead_summaries": [],
+  "funding_readiness_leads": [],
+  "resources": [],
+  "widgets": [
+    {
+      "preset_id": "funding-readiness-scorecard-widget",
+      "name": "Funding Readiness Scorecard",
+      "status": "available"
+    }
+  ],
+  "events": [],
+  "alerts": [],
+  "integration_status": {
+    "mode": "demo",
+    "connected": false
+  },
+  "recommended_next_actions": [
+    "Complete the demo partner profile",
+    "Create a tracking link",
+    "Open the funding-readiness widget"
+  ]
+}
