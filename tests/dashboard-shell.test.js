@@ -32,8 +32,7 @@ assert.ok(!read('dashboard/dashboard-config.js').includes('document.write'), 'da
 
 assert.strictEqual(config.AM_I_FUNDABLE_URL, 'https://am-i-fundable.vercel.app/');
 assert.strictEqual(config.EMBED_WIDGETS_URL, 'https://embed-widgets-kappa.vercel.app/');
-assert.strictEqual(vercel.git.deploymentEnabled.main, false);
-assert.strictEqual(vercel.git.deploymentEnabled['*'], false);
+assert.strictEqual(vercel.git.deploymentEnabled, false, 'all automatic Vercel deployments must be disabled');
 
 [
   'getDashboardPayload',
