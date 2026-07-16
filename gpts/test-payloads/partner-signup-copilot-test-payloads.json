@@ -1,0 +1,139 @@
+{
+  "package": "Partner Signup Copilot",
+  "server": "https://partner-command-center-rho.vercel.app",
+  "endpoint": "POST /api/partner-signup",
+  "auth": "bearer PARTNER_COMMAND_API_KEY",
+  "payloads": {
+    "fundingBrokerSignup": {
+      "partner": {
+        "first_name": "Morgan",
+        "last_name": "Lee",
+        "email": "morgan@example.com",
+        "phone": "+1-555-010-2200",
+        "company": "Lee Capital Referrals",
+        "website": "https://broker.example.com",
+        "partner_type_claimed": "funding_broker",
+        "audience": "Business owners seeking working capital education and funding readiness help.",
+        "industry": "Commercial finance and small business advisory.",
+        "location": "Atlanta, GA",
+        "funding_experience": "Experienced broker with active client conversations and a weekly referral process.",
+        "current_tools": "CRM, email outreach, referral forms, partner links.",
+        "traffic_or_network_size": "Local network plus broker relationships.",
+        "referral_volume_estimate": "10 to 20 qualified referrals per month.",
+        "desired_partner_role": "Refer qualified business owners and use partner tracking links.",
+        "notes": "Ready to launch this month and wants broker onboarding resources.",
+        "source": "gpt_action"
+      }
+    },
+    "affiliatePartnerSignup": {
+      "partner": {
+        "first_name": "Alex",
+        "last_name": "Rivera",
+        "email": "alex@example.com",
+        "phone": "+1-555-010-1000",
+        "company": "Rivera Growth Media",
+        "website": "https://example.com",
+        "partner_type_claimed": "affiliate_partner",
+        "audience": "Small business owners, freelancers, and startup operators.",
+        "industry": "Content, media, and business education.",
+        "location": "Washington, DC",
+        "funding_experience": "Some experience referring business owners to funding resources.",
+        "current_tools": "Newsletter, YouTube, Substack, CRM, affiliate links.",
+        "traffic_or_network_size": "5000 email subscribers and 12000 social followers.",
+        "referral_volume_estimate": "5 to 10 warm referrals per month.",
+        "desired_partner_role": "Promote funding readiness resources and refer qualified business owners.",
+        "notes": "Interested in affiliate tracking, compliant content angles, and onboarding resources.",
+        "source": "gpt_action"
+      }
+    },
+    "referralPartnerSignup": {
+      "partner": {
+        "first_name": "Taylor",
+        "last_name": "Nguyen",
+        "email": "taylor@example.com",
+        "phone": "+1-555-010-3300",
+        "company": "Nguyen Business Services",
+        "website": "https://services.example.com",
+        "partner_type_claimed": "referral_partner",
+        "audience": "Local service businesses and independent operators.",
+        "industry": "Business consulting.",
+        "location": "Richmond, VA",
+        "funding_experience": "Occasionally refers clients to trusted finance contacts.",
+        "current_tools": "Email, LinkedIn, spreadsheet tracker.",
+        "traffic_or_network_size": "300 close business contacts.",
+        "referral_volume_estimate": "1 to 3 warm referrals per month.",
+        "desired_partner_role": "Make warm introductions when clients need funding readiness support.",
+        "notes": "Wants a simple referral partner path with clear next steps.",
+        "source": "gpt_action"
+      }
+    },
+    "missingEmail": {
+      "partner": {
+        "first_name": "Missing",
+        "last_name": "Email",
+        "company": "Missing Email Partners",
+        "partner_type_claimed": "referral_partner",
+        "audience": "Local business owners",
+        "source": "gpt_action"
+      },
+      "expected": {
+        "ok": false,
+        "error": "A valid partner email is required."
+      }
+    },
+    "borrowerFundingFieldsRejected": {
+      "partner": {
+        "first_name": "Jordan",
+        "last_name": "Smith",
+        "email": "jordan@example.com",
+        "company": "Smith Referral Group",
+        "partner_type_claimed": "referral_partner",
+        "audience": "Business owner clients",
+        "requested_amount": 80000,
+        "monthly_revenue": 35000,
+        "credit_score": 610,
+        "funding_purpose": "working_capital",
+        "source": "gpt_action"
+      },
+      "expected": {
+        "ok": false,
+        "error": "Borrower funding application fields are not accepted by the partner signup action."
+      }
+    },
+    "sensitiveDataRejected": {
+      "partner": {
+        "first_name": "Sensitive",
+        "last_name": "Data",
+        "email": "sensitive@example.com",
+        "company": "Sensitive Data Media",
+        "partner_type_claimed": "affiliate_partner",
+        "audience": "Business owners",
+        "notes": "Here is an SSN 123-45-6789 and bank login password from a client.",
+        "source": "gpt_action"
+      },
+      "expected": {
+        "ok": false,
+        "error": "Sensitive data detected in partner signup payload."
+      }
+    }
+  },
+  "expectedPositiveBehavior": {
+    "success_status": 201,
+    "safe_response_fields": [
+      "partner_id",
+      "partner.partner_type",
+      "partner.status",
+      "partner.tier",
+      "partner.onboarding_path",
+      "partner.resource_recommendations",
+      "partner.campaign_recommendations"
+    ],
+    "do_not_display_to_user": [
+      "notion_page.id",
+      "notion_page.url",
+      "raw metadata",
+      "API keys",
+      "internal reviewer notes"
+    ]
+  }
+}
