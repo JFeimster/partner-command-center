@@ -1,83 +1,69 @@
-/* Partner Command Center dashboard data-mode adapter. */
+/* Unified Partner Command Center dashboard data adapter. */
 (function initDashboardDataAdapter(window, document) {
-  'use strict';
+  "use strict";
 
   window.MoonshineOS = window.MoonshineOS || {};
   window.MoonshineOS.dashboard = window.MoonshineOS.dashboard || {};
+
   var dashboard = window.MoonshineOS.dashboard;
-  var MODE_KEY = 'pccDashboardMode';
-  var TOKEN_KEY = 'pccDashboardToken';
-  var mode = 'demo';
-  var status = 'idle';
+  var MODE_KEY = "pccDashboardMode";
+  var TOKEN_KEY = "pccDashboardToken";
+  var mode = "demo";
+  var status = "idle";
+  var livePayload = null;
 
-  function clean(value) {
-    return value === undefined || value === null ? '' : String(value).trim();
-  }
-
-  function query(name) {
-    return new URLSearchParams(window.location.search).get(name);
-  }
+  function clean(value) { return value === undefined || value === null ? "" : String(value).trim(); }
+  function query(name) { return new URLSearchParams(window.location.search).get(name); }
 
   function getMode() {
-    var requested = clean(query('dashboard_mode')).toLowerCase();
-    if (requested === 'live' || requested === 'demo') {
+    var requested = clean(query("dashboard_mode")).toLowerCase();
+    if (requested === "live" || requested === "demo") {
       window.localStorage.setItem(MODE_KEY, requested);
       return requested;
     }
-    var stored = clean(window.localStorage.getItem(MODE_KEY)).toLowerCase();
-    return stored === 'live' ? 'live' : 'demo';
+    return clean(window.localStorage.getItem(MODE_KEY)).toLowerCase() === "live" ? "live" : "demo";
   }
 
   function captureToken() {
-    var token = clean(query('dashboard_token'));
+    var token = clean(query("dashboard_token"));
     if (token) {
       window.sessionStorage.setItem(TOKEN_KEY, token);
       var url = new URL(window.location.href);
-      url.searchParams.delete('dashboard_token');
-      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+      url.searchParams.delete("dashboard_token");
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
     }
     return token || clean(window.sessionStorage.getItem(TOKEN_KEY));
   }
 
-  function modeElements() {
-    return {
-      select: document.querySelector('[data-dashboard-mode]'),
-      badge: document.querySelector('[data-dashboard-mode-status]'),
-      alert: document.querySelector('[data-dashboard-mode-alert]')
-    };
-  }
-
   function setStatus(nextStatus, message, tone) {
     status = nextStatus;
-    var elements = modeElements();
-    if (elements.badge) {
-      elements.badge.textContent = mode === 'live' ? (nextStatus === 'ready' ? 'Live API' : 'Live unavailable') : 'Demo / localStorage';
-      elements.badge.className = 'mpc-badge ' + (nextStatus === 'ready' ? 'mpc-badge-success' : nextStatus === 'error' ? 'mpc-badge-warning' : 'mpc-badge-info');
+    var badge = document.querySelector("[data-dashboard-mode-status]");
+    var alert = document.querySelector("[data-dashboard-mode-alert]");
+    if (badge) {
+      badge.textContent = mode === "live" ? (nextStatus === "ready" ? "Live API" : nextStatus === "loading" ? "Connecting" : "Live unavailable") : "Demo / localStorage";
+      badge.className = "mpc-badge " + (nextStatus === "ready" ? "mpc-badge-success" : nextStatus === "error" ? "mpc-badge-warning" : "mpc-badge-info");
     }
-    if (elements.alert) {
-      elements.alert.hidden = !message;
-      elements.alert.textContent = message || '';
-      elements.alert.className = 'mpc-disclaimer' + (tone === 'danger' ? ' mpc-toast-danger' : tone === 'warning' ? ' mpc-toast-warning' : '');
+    if (alert) {
+      alert.hidden = !message;
+      alert.textContent = message || "";
+      alert.className = "mpc-disclaimer dashboard-mode-alert" + (tone === "danger" ? " mpc-toast-danger" : tone === "warning" ? " mpc-toast-warning" : "");
     }
   }
 
-  function money(value) {
-    return value && Number.isFinite(Number(value.amount)) ? Number(value.amount) : 0;
-  }
+  function money(value) { return value && Number.isFinite(Number(value.amount)) ? Number(value.amount) : 0; }
 
   function mapStatus(value) {
-    var statusValue = clean(value);
     var map = {
-      new: 'new',
-      readiness_complete: 'reviewing',
-      awaiting_documents: 'needsInfo',
-      in_review: 'reviewing',
-      partner_action_needed: 'needsInfo',
-      reviewed: 'submitted',
-      nurture: 'archived',
-      closed: 'archived'
+      new: "new",
+      readiness_complete: "reviewing",
+      awaiting_documents: "needsInfo",
+      in_review: "reviewing",
+      partner_action_needed: "needsInfo",
+      reviewed: "submitted",
+      nurture: "archived",
+      closed: "archived"
     };
-    return map[statusValue] || 'new';
+    return map[clean(value)] || "new";
   }
 
   function mapPartner(partner) {
@@ -85,16 +71,17 @@
       partnerId: partner.partner_id,
       contactName: partner.display_name,
       company: partner.company_name || partner.display_name,
-      email: partner.contact_email || '',
-      phone: partner.contact_phone || '',
-      website: partner.website_url || '',
-      logoUrl: partner.logo_url || '',
+      email: partner.contact_email || "",
+      phone: partner.contact_phone || "",
+      website: partner.website_url || "",
+      logoUrl: partner.logo_url || "",
       status: partner.status,
       tier: partner.tier,
       verificationStatus: partner.verification_status,
       onboardingCompletionPercent: partner.onboarding_completion_percent,
-      partnerType: 'partner',
-      primaryAudience: 'Small business owners'
+      partnerType: partner.partner_type || "partner",
+      primaryAudience: partner.primary_audience || "Small business owners",
+      localDemo: false
     };
   }
 
@@ -102,12 +89,13 @@
     return {
       id: item.lead_id,
       businessName: item.business_display_name,
-      contactName: 'Protected contact',
-      industry: item.primary_funding_family || item.source_system,
+      contactName: "Protected contact",
+      industry: item.primary_funding_family || item.source_system || "Funding readiness",
       fundingNeed: item.requested_amount || 0,
       monthlyRevenue: 0,
-      useOfFunds: item.source_system,
-      nextStep: item.next_action || 'Review the latest lead status.',
+      source: item.source_system || "partner_command_center",
+      useOfFunds: item.primary_funding_family || item.source_system,
+      nextStep: item.next_action || "Review the latest lead status.",
       status: mapStatus(item.public_status),
       partnerId: partnerId,
       createdAt: item.submitted_at,
@@ -124,13 +112,13 @@
 
   function mapEvent(item, partnerId) {
     return {
-      id: item.event_id,
-      type: item.event_type,
-      label: item.title,
-      message: item.message || '',
+      id: item.event_id || item.notification_id,
+      type: item.event_type || item.type,
+      label: item.title || item.event_type || item.type || "Partner activity",
+      message: item.message || "",
       partnerId: partnerId,
       createdAt: item.created_at,
-      tone: /action|document|warning/i.test((item.title || '') + ' ' + (item.message || '')) ? 'warning' : 'success'
+      tone: item.severity === "action_required" || item.severity === "warning" ? "warning" : "success"
     };
   }
 
@@ -138,11 +126,11 @@
     return {
       id: item.resource_id,
       title: item.name,
-      summary: item.description || 'Partner resource',
+      summary: item.description || "Partner resource",
       type: item.format || item.category,
       category: item.category,
-      href: item.download_url || item.resource_url || './resources.html',
-      complianceNote: item.compliance_status || '',
+      href: item.download_url || item.resource_url || "./resources.html",
+      complianceNote: item.compliance_status || "",
       status: item.status
     };
   }
@@ -153,7 +141,6 @@
       summary: {
         estimatedPending: money(item.pending_verification),
         demoPaid: money(item.paid),
-        demoFundedDeals: 0,
         verified: money(item.verified)
       },
       rows: []
@@ -161,58 +148,72 @@
   }
 
   function applyLivePayload(payload) {
-    var state = dashboard.state && dashboard.state.getState ? dashboard.state.getState() : {};
-    var partnerProfile = mapPartner(payload.partner);
+    livePayload = payload;
+    var current = dashboard.state && dashboard.state.getState ? dashboard.state.getState() : {};
+    var partner = mapPartner(payload.partner);
     var leads = (payload.leads || []).map(function (item) { return mapLead(item, payload.partner.partner_id); });
     var events = (payload.events || []).map(function (item) { return mapEvent(item, payload.partner.partner_id); });
-    var notifications = (payload.notifications || []).map(function (item) {
-      return {
-        id: item.notification_id,
-        type: item.type,
-        label: item.title,
-        message: item.message || '',
-        partnerId: payload.partner.partner_id,
-        createdAt: item.created_at,
-        tone: item.severity === 'action_required' || item.severity === 'warning' ? 'warning' : 'success'
-      };
-    });
+    var notifications = (payload.notifications || []).map(function (item) { return mapEvent(item, payload.partner.partner_id); });
+    var resources = (payload.resources || []).map(mapResource);
 
     dashboard.seedData = dashboard.seedData || {};
-    dashboard.seedData.resources = (payload.resources || []).map(mapResource);
+    dashboard.seedData.resources = resources;
     dashboard.seedData.commissions = mapCommissions(payload.commissions || {});
 
     if (dashboard.state && dashboard.state.setState) {
       dashboard.state.setState({
-        partnerProfile: partnerProfile,
+        partnerProfile: partner,
         leads: leads,
         events: notifications.concat(events),
-        resources: payload.resources || [],
+        resources: resources,
         trackingLinks: payload.tracking_links || [],
         widgets: payload.widgets || [],
         commissions: payload.commissions || {},
         notifications: payload.notifications || [],
         onboarding: {
           percent: payload.partner.onboarding_completion_percent,
-          status: payload.partner.onboarding_completion_percent >= 100 ? 'complete' : 'in_progress'
+          status: payload.partner.onboarding_completion_percent >= 100 ? "complete" : "in_progress"
         },
         dashboardData: {
-          mode: 'live',
+          mode: "live",
           generatedAt: payload.generated_at,
           summary: payload.summary,
           permissions: payload.permissions
         },
-        settings: Object.assign({}, state.settings || {}, { dataMode: 'live' })
-      }, { type: 'dashboard.live_data_loaded' });
+        settings: Object.assign({}, current.settings || {}, { dataMode: "live" })
+      }, { type: "dashboard.live_data_loaded" });
     }
   }
 
+  function currentState() {
+    return dashboard.state && dashboard.state.getState ? dashboard.state.getState() : {};
+  }
+
+  function getDashboardPayload() {
+    if (mode === "live" && livePayload) return Promise.resolve(livePayload);
+    if (mode === "live" && dashboard.apiClient) return dashboard.apiClient.getDashboardPayload(captureToken(), 25);
+    var state = currentState();
+    return Promise.resolve({
+      mode: "demo",
+      partner: state.partnerProfile || {},
+      onboarding: state.onboarding || {},
+      tracking_links: state.trackingLinks || [],
+      lead_summaries: state.leads || [],
+      resources: dashboard.seedData && dashboard.seedData.resources || [],
+      widgets: state.widgets || [],
+      events: state.events || [],
+      alerts: state.notifications || [],
+      integration_status: { mode: "demo", connected: false }
+    });
+  }
+
   function renderAlerts() {
-    var target = document.querySelector('[data-render-alerts]');
+    var target = document.querySelector("[data-render-alerts]");
     if (!target) return;
-    var state = dashboard.state && dashboard.state.getState ? dashboard.state.getState() : {};
+    var state = currentState();
     var alerts = Array.isArray(state.notifications) ? state.notifications : [];
-    if (mode !== 'live') {
-      target.innerHTML = '<div class="mpc-disclaimer">Demo mode stores workspace data only in this browser. Switch to Live API after receiving a signed partner dashboard session.</div>';
+    if (mode !== "live") {
+      target.innerHTML = '<div class="mpc-disclaimer">Demo mode is active. Fictional workspace data stays in this browser.</div>';
       return;
     }
     if (!alerts.length) {
@@ -220,127 +221,109 @@
       return;
     }
     target.innerHTML = alerts.slice(0, 4).map(function (item) {
-      return '<article class="dashboard-note"><strong>' + escapeHtml(item.title || 'Alert') + '</strong><p>' + escapeHtml(item.message || '') + '</p></article>';
-    }).join('');
-  }
-
-  function renderTrackingLinks() {
-    var state = dashboard.state && dashboard.state.getState ? dashboard.state.getState() : {};
-    var links = Array.isArray(state.trackingLinks) ? state.trackingLinks : [];
-    var target = document.querySelector('[data-render-partner-links]');
-    if (!target || mode !== 'live' || !links.length) return;
-    target.innerHTML = links.map(function (item) {
-      return [
-        '<article class="dashboard-link-builder">',
-        '<div class="split"><div><h3 class="dashboard-card-title">' + escapeHtml(item.name) + '</h3><p class="dashboard-card-subtitle">' + escapeHtml(item.tracking_link_id) + '</p></div><span class="mpc-badge mpc-badge-success">' + escapeHtml(item.status) + '</span></div>',
-        '<div class="dashboard-copy-row"><input type="text" value="' + escapeHtml(item.tracking_url) + '" readonly><button class="mpc-button mpc-button-outline" type="button" data-copy-text="' + escapeHtml(item.tracking_url) + '">Copy</button></div>',
-        '<small class="mpc-muted">' + Number(item.clicks || 0) + ' clicks · ' + Number(item.lead_submissions || 0) + ' lead submissions</small>',
-        '</article>'
-      ].join('');
-    }).join('');
+      return '<article class="dashboard-note"><strong>' + escapeHtml(item.title || item.label || "Alert") + '</strong><p>' + escapeHtml(item.message || "") + '</p></article>';
+    }).join("");
   }
 
   function decorateLiveMode() {
     renderAlerts();
-    renderTrackingLinks();
-    if (mode !== 'live' || status !== 'ready') return;
-    Array.prototype.slice.call(document.querySelectorAll('[data-lead-status]')).forEach(function (element) {
+    if (mode !== "live" || status !== "ready") return;
+    Array.prototype.slice.call(document.querySelectorAll("[data-lead-status]")).forEach(function (element) {
       element.disabled = true;
-      element.title = 'Lead statuses are read-only in partner live mode.';
+      element.title = "Lead statuses are read-only in partner live mode.";
     });
-    Array.prototype.slice.call(document.querySelectorAll('[data-remove-lead]')).forEach(function (element) {
-      element.hidden = true;
-    });
-    var sidebarNote = document.querySelector('.dashboard-sidebar-note');
-    if (sidebarNote) sidebarNote.textContent = 'Live partner workspace connected to Partner Command Center APIs.';
+    Array.prototype.slice.call(document.querySelectorAll("[data-remove-lead]")).forEach(function (element) { element.hidden = true; });
+    var profileForm = document.querySelector("[data-profile-form]");
+    if (profileForm) {
+      Array.prototype.slice.call(profileForm.elements || []).forEach(function (element) { element.disabled = true; });
+      profileForm.title = "Live profile identity is server-controlled.";
+    }
+    var sidebar = document.querySelector(".dashboard-sidebar-note");
+    if (sidebar) sidebar.textContent = "Live partner workspace connected to Partner Command Center APIs.";
   }
 
   function escapeHtml(value) {
-    return String(value == null ? '' : value).replace(/[&<>'"]/g, function (character) {
-      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character];
+    return String(value == null ? "" : value).replace(/[&<>'"]/g, function (character) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character];
     });
   }
 
-  async function loadLive() {
-    var token = captureToken();
-    var headers = { Accept: 'application/json' };
-    if (token) headers.Authorization = 'Bearer ' + token;
-    var response = await window.fetch('/api/dashboard/bootstrap?limit=25', {
-      method: 'GET',
-      credentials: 'include',
-      headers: headers
-    });
-    var data = await response.json().catch(function () { return null; });
-    if (!response.ok || !data || data.ok === false) {
-      var error = new Error(data && data.error && data.error.message || 'Live dashboard data is unavailable.');
-      error.code = data && data.error && data.error.code || 'dashboard_live_unavailable';
-      throw error;
-    }
-    return data;
-  }
-
-  async function initialize() {
+  function initialize() {
     mode = getMode();
-    var elements = modeElements();
-    if (elements.select) elements.select.value = mode;
+    var select = document.querySelector("[data-dashboard-mode]");
+    if (select) select.value = mode;
+    var publicLinks = dashboard.apiClient ? dashboard.apiClient.applyPublicLinks() : Promise.resolve();
 
-    if (mode === 'demo') {
-      setStatus('ready', 'Demo mode is active. Data stays in localStorage and is not written to Notion.', 'info');
-      renderAlerts();
-      return { mode: mode, status: 'ready' };
+    if (mode === "demo") {
+      return publicLinks.then(function () {
+        setStatus("ready", "Demo mode is active. Use fictional, non-sensitive data only.", "info");
+        renderAlerts();
+        return { mode: mode, status: "ready" };
+      });
     }
 
-    setStatus('loading', 'Loading live partner data…', 'info');
-    try {
-      var payload = await loadLive();
+    setStatus("loading", "Loading the partner-isolated live dashboard projection…", "info");
+    return publicLinks.then(function () {
+      if (!dashboard.apiClient) throw new Error("Dashboard API client is unavailable.");
+      return dashboard.apiClient.getDashboardPayload(captureToken(), 25);
+    }).then(function (payload) {
       applyLivePayload(payload);
-      setStatus('ready', 'Live API mode is active. Partner data is loaded from Partner Command Center.', 'success');
+      setStatus("ready", "Live API mode is active. Partner data is loaded from Partner Command Center.", "success");
       if (dashboard.controller && dashboard.controller.renderAll) dashboard.controller.renderAll();
       decorateLiveMode();
-      return { mode: mode, status: 'ready', payload: payload };
-    } catch (error) {
-      setStatus('error', error.message + ' Demo data remains available; switch back to Demo mode to continue.', 'warning');
+      return { mode: mode, status: "ready", payload: payload };
+    }).catch(function (error) {
+      setStatus("error", error.message + " Demo mode remains available.", "warning");
       renderAlerts();
-      return { mode: mode, status: 'error', error: error };
-    }
+      return { mode: mode, status: "error", error: error };
+    });
   }
 
   function bindModeControl() {
-    var elements = modeElements();
-    if (!elements.select || elements.select.dataset.bound === 'true') return;
-    elements.select.dataset.bound = 'true';
-    elements.select.addEventListener('change', function () {
-      window.localStorage.setItem(MODE_KEY, elements.select.value === 'live' ? 'live' : 'demo');
+    var select = document.querySelector("[data-dashboard-mode]");
+    if (!select || select.dataset.bound === "true") return;
+    select.dataset.bound = "true";
+    select.addEventListener("change", function () {
+      window.localStorage.setItem(MODE_KEY, select.value === "live" ? "live" : "demo");
       window.location.reload();
     });
   }
 
-  function isLive() {
-    return mode === 'live' && status === 'ready';
-  }
-
   function openReadiness(data) {
-    var state = dashboard.state && dashboard.state.getState ? dashboard.state.getState() : {};
+    var state = currentState();
     var partner = state.partnerProfile || {};
-    var params = new URLSearchParams({
-      partner_id: partner.partnerId || '',
-      source: 'partner_dashboard',
-      utm_source: 'partner_dashboard',
-      utm_medium: 'dashboard_referral',
-      utm_campaign: 'partner_lead_submission'
-    });
-    if (data && data.businessName) params.set('business_name', data.businessName);
-    window.location.href = 'https://am-i-fundable.vercel.app/?' + params.toString();
+    var params = {
+      partner_id: partner.partnerId || "",
+      source: "partner_dashboard",
+      utm_source: "partner_dashboard",
+      utm_medium: "dashboard_referral",
+      utm_campaign: "partner_lead_submission"
+    };
+    if (data && data.businessName) params.business_name = data.businessName;
+    if (dashboard.apiClient) {
+      dashboard.apiClient.getUrl("LEAD_SUBMISSION_URL", params).then(function (url) { window.location.href = url; });
+    }
   }
 
   dashboard.dataAdapter = {
     initialize: initialize,
     bindModeControl: bindModeControl,
-    isLive: isLive,
+    isLive: function () { return mode === "live" && status === "ready"; },
     getMode: function () { return mode; },
     getStatus: function () { return status; },
     decorateLiveMode: decorateLiveMode,
     openReadiness: openReadiness,
-    applyLivePayload: applyLivePayload
+    applyLivePayload: applyLivePayload,
+    getDashboardPayload: getDashboardPayload,
+    getPartnerProfile: function () { return Promise.resolve(currentState().partnerProfile || {}); },
+    getTrackingLinks: function () { return Promise.resolve(currentState().trackingLinks || []); },
+    getLeadSummaries: function () { return Promise.resolve(currentState().leads || []); },
+    getFundingReadinessLeads: function () { return Promise.resolve((currentState().leads || []).filter(function (lead) { return lead.readinessScore != null; })); },
+    getReviewQueue: function () { return Promise.resolve([]); },
+    getResources: function () { return Promise.resolve(dashboard.seedData && dashboard.seedData.resources || []); },
+    getWidgets: function () { return Promise.resolve(currentState().widgets || []); },
+    getEvents: function () { return Promise.resolve(currentState().events || []); },
+    getAlerts: function () { return Promise.resolve(currentState().notifications || []); },
+    getRecommendedNextActions: function () { return Promise.resolve([]); }
   };
 })(window, document);
