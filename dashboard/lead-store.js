@@ -83,6 +83,9 @@
       createdAt: now(),
       updatedAt: now(),
       nextStep: "Review demo lead details.",
+      followUpAt: now(),
+      followUpState: "open",
+      documentStatus: null,
       notes: "",
       tags: []
     }, data || {});

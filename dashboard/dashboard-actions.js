@@ -129,7 +129,7 @@
       if (offerCopyButton && dashboard.affiliateStore) {
         var offerHref = offerCopyButton.getAttribute("data-copy-offer-link");
         var partnerLink = dashboard.affiliateStore.buildLink(offerHref, { source: "dashboard_marketplace" });
-        ui.copyText(partnerLink).then(function copied) {
+        ui.copyText(partnerLink).then(function copied() {
           ui.toast(copied ? "Partner offer link copied." : "Copy may not be available.", {
             tone: copied ? "success" : "warning"
           });
@@ -183,6 +183,23 @@
         dashboard.leadStore.removeLead(leadId);
         ui.toast("Demo lead removed.", { tone: "warning" });
         render();
+        return;
+      }
+
+      var openClientButton = event.target.closest("[data-open-client]");
+      if (openClientButton) {
+        var clientId = openClientButton.getAttribute("data-open-client");
+        var leadRow = root.querySelector("[data-lead-card='" + clientId + "']");
+        var leadsSection = document.getElementById("leads");
+        if (leadsSection) leadsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (leadRow) {
+          leadRow.setAttribute("tabindex", "-1");
+          leadRow.classList.add("is-highlighted");
+          leadRow.focus();
+          window.setTimeout(function clearLeadHighlight() {
+            leadRow.classList.remove("is-highlighted");
+          }, 1800);
+        }
         return;
       }
 
