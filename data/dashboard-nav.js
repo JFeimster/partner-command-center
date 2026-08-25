@@ -1,5 +1,5 @@
 /* Partner Command navigation — only implemented routes are rendered. */
-(function initDashboardNav(window) {
+(function initDashboardNav(window, document) {
   "use strict";
   window.MoonshineData = window.MoonshineData || {};
   window.MoonshineData.dashboardNav = [
@@ -32,4 +32,24 @@
     { id: "compliance", group: "ACCOUNT", label: "Compliance", href: "./account.html#compliance", icon: "shield", description: "Review disclosures, agreements, terms, and privacy boundaries." },
     { id: "settings", group: "ACCOUNT", label: "Settings", href: "./account.html#settings", icon: "settings", description: "Control genuine Partner Command display and workspace preferences." }
   ];
-})(window);
+
+  if (document && document.addEventListener) {
+    document.addEventListener("click", function openClientWorkspace(event) {
+      var button = event.target.closest && event.target.closest("[data-open-client]");
+      if (!button) return;
+      var clientId = button.getAttribute("data-open-client");
+      var leadsSection = document.getElementById("leads");
+      var leadRow = document.querySelector("[data-lead-card='" + clientId + "']");
+      if (leadsSection) {
+        event.preventDefault();
+        leadsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      if (leadRow) {
+        leadRow.setAttribute("tabindex", "-1");
+        leadRow.classList.add("is-highlighted");
+        leadRow.focus();
+        window.setTimeout(function clearLeadHighlight() { leadRow.classList.remove("is-highlighted"); }, 1800);
+      }
+    });
+  }
+})(window, document);
