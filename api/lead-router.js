@@ -309,7 +309,7 @@ module.exports = async function leadRouter(req, res) {
     }
 
     const attribution = await resolveAttribution(request.lead);
-    const fundingLead = await upsertFundingLead(request, requestId);
+    const fundingLead = await upsertFundingLead(request, requestId, attribution);
     const warnings = [];
     let partnerEvent = { result: 'not_attempted', page: null };
 
