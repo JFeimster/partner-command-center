@@ -53,11 +53,23 @@
     return profile || getDefaultProfile();
   }
 
+  function meaningfulPatch(patch) {
+    var result = {};
+    Object.keys(patch || {}).forEach(function keepMeaningful(keyName) {
+      var value = patch[keyName];
+      if (value === "" || value == null || Array.isArray(value) && value.length === 0) return;
+      result[keyName] = value;
+    });
+    return result;
+  }
+
   function saveProfile(profile) {
     var existing = getProfile();
-    var saved = Object.assign({}, existing, profile || {}, {
+    var saved = Object.assign({}, existing, meaningfulPatch(profile), {
       id: existing.id || "partner_" + Date.now().toString(36),
-      partnerId: (profile && profile.partnerId) || existing.partnerId || generatePartnerId(profile || existing),
+      partnerId: existing.partnerId || generatePartnerId(existing),
+      referralCode: existing.referralCode,
+      slug: existing.slug,
       updatedAt: now(),
       createdAt: existing.createdAt || now(),
       localDemo: true
@@ -79,7 +91,7 @@
   }
 
   function updateProfile(patch) {
-    return saveProfile(Object.assign({}, getProfile(), patch || {}));
+    return saveProfile(patch || {});
   }
 
   function resetProfile() {

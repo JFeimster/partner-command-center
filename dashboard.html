@@ -78,17 +78,18 @@
 
           <div class="dashboard-grid dashboard-overview-grid">
             <div data-render-profile></div>
-            <article class="dashboard-card dashboard-card-pad dashboard-command-card">
-              <div class="dashboard-card-header">
-                <div>
-                  <span class="mpc-badge mpc-badge-success">Command list</span>
-                  <h3 class="dashboard-card-title mt-3">Next recommended actions</h3>
-                  <p class="dashboard-card-subtitle">The shortest route from partner signup to attributable production.</p>
-                </div>
-              </div>
-              <div data-render-next-actions></div>
-            </article>
           </div>
+
+          <article class="dashboard-card dashboard-card-pad dashboard-command-priority">
+            <div class="dashboard-card-header">
+              <div>
+                <span class="mpc-badge mpc-badge-warning">Needs attention</span>
+                <h3 class="dashboard-card-title mt-3">Command priority</h3>
+                <p class="dashboard-card-subtitle">One deterministic queue across the operating system.</p>
+              </div>
+            </div>
+            <div data-render-command-priority></div>
+          </article>
 
           <div class="dashboard-grid dashboard-grid-metrics" data-render-metrics></div>
 
@@ -171,6 +172,36 @@
           </details>
 
           <div class="dashboard-grid" data-render-leads></div>
+          <div class="dashboard-grid dashboard-grid-2 mt-5">
+            <article class="dashboard-card dashboard-card-pad">
+              <div class="dashboard-card-header">
+                <div>
+                  <span class="mpc-eyebrow">Lead queue</span>
+                  <h3 class="dashboard-card-title">Actionable pipeline</h3>
+                </div>
+              </div>
+              <div data-render-lead-queue></div>
+            </article>
+            <article class="dashboard-card dashboard-card-pad">
+              <div class="dashboard-card-header">
+                <div>
+                  <span class="mpc-eyebrow">Clients</span>
+                  <h3 class="dashboard-card-title">Client workspace</h3>
+                </div>
+              </div>
+              <div data-render-client-workspace></div>
+            </article>
+          </div>
+          <article class="dashboard-card dashboard-card-pad mt-5">
+            <div class="dashboard-card-header">
+              <div>
+                <span class="mpc-eyebrow">Follow-up</span>
+                <h3 class="dashboard-card-title">Follow-up queue</h3>
+                <p class="dashboard-card-subtitle">Who to contact and why.</p>
+              </div>
+            </div>
+            <div data-render-follow-up-queue></div>
+          </article>
         </section>
 
         <section id="links" class="dashboard-section" data-dashboard-section>
@@ -203,14 +234,10 @@
         </section>
 
         <section id="settings" class="dashboard-section" data-dashboard-section>
-          <div class="dashboard-section-header"><div><span class="mpc-eyebrow">Settings</span><h2>Profile, workspace, and integration status</h2><p>Manage client-safe preferences while partner identity, tier, verification, and live permissions remain server-controlled.</p></div></div>
+          <div class="dashboard-section-header"><div><span class="mpc-eyebrow">Settings</span><h2>Workspace and integration status</h2><p>Account owns profile identity and compliance. Dashboard settings remain a quick view into workspace preferences and connection state.</p></div><a class="mpc-button mpc-button-primary" href="./account.html">Open Account</a></div>
           <div class="dashboard-grid dashboard-grid-2">
             <div class="dashboard-card dashboard-card-pad" data-render-partner-id></div>
-            <form class="dashboard-card dashboard-card-pad dashboard-form" data-profile-form>
-              <h3 class="dashboard-card-title">Partner profile</h3>
-              <div class="dashboard-form-row"><div class="mpc-field"><label for="profileName">Name</label><input id="profileName" name="contactName" type="text"></div><div class="mpc-field"><label for="profileCompany">Company</label><input id="profileCompany" name="company" type="text"></div><div class="mpc-field"><label for="profileType">Partner type</label><select id="profileType" name="partnerType"><option value="funding-broker">Funding Broker</option><option value="referral-partner">Referral Partner</option><option value="affiliate-partner">Affiliate Partner</option><option value="center-of-influence">Center of Influence</option><option value="operator">Moonshine Operator</option></select></div><div class="mpc-field"><label for="profileAudience">Audience</label><input id="profileAudience" name="primaryAudience" type="text"></div></div>
-              <button class="mpc-button mpc-button-primary" type="submit">Save Demo Profile</button>
-            </form>
+            <article class="dashboard-card dashboard-card-pad"><h3 class="dashboard-card-title">Account boundary</h3><p class="dashboard-card-subtitle">Manage public profile fields, compliance documents, and preferences in the canonical Account surface.</p><a class="mpc-button mpc-button-outline" href="./account.html#profile">Edit Profile</a></article>
           </div>
           <div class="dashboard-grid dashboard-grid-2">
             <article class="dashboard-card dashboard-card-pad dashboard-form"><h3 class="dashboard-card-title">Appearance and local data</h3><div class="mpc-field"><label for="themeSelect">Theme</label><select id="themeSelect" data-theme-select><option value="dark">Dark</option><option value="light">Light</option></select></div><div class="mpc-actions"><button class="mpc-button mpc-button-outline" type="button" data-export-dashboard>Export Demo JSON</button><label class="mpc-button mpc-button-outline" for="importDashboard">Import Demo JSON</label><input class="sr-only" id="importDashboard" type="file" accept="application/json,.json" data-import-dashboard><button class="mpc-button mpc-button-danger" type="button" data-reset-dashboard>Reset Demo</button></div></article>

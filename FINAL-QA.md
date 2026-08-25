@@ -64,7 +64,7 @@ Then verify:
 - [ ] No page requires a build step.
 - [ ] No page requires React, Next.js, npm install, or bundling.
 - [ ] No backend is required for demo behavior.
-- [ ] `vercel.json` behavior matches your current deployment intention.
+- [ ] `vercel.json` keeps automatic Git deployments disabled with `deploymentEnabled: false`.
 - [ ] `robots.txt` and `sitemap.xml` match the intended domain before launch.
 
 ## Compliance QA
@@ -113,7 +113,7 @@ This repo is static-first and intentionally does not include:
 4. Verify Vercel deployment settings.
 5. Run a link checker or manual click-through.
 6. Review visual consistency across nested pages.
-7. Decide whether to enable Vercel deployments.
+7. Keep Vercel Git deployments disabled; use the manual production release path.
 8. Create a production backend branch only after static flow is approved.
 9. Convert `.example.js` API files only when backend requirements are ready.
 10. Replace placeholder brand assets with production assets.

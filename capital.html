@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Capital | Partner Command</title>
+  <meta name="description" content="Product fit, provider availability, and marketplace discovery for partner funding conversations.">
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/public.css">
+  <link rel="stylesheet" href="./styles/utilities.css">
+  <link rel="stylesheet" href="./styles/command-modules.css">
+  <link rel="stylesheet" href="./capital.css">
+</head>
+<body class="public-body command-page">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="public-header command-header"><div class="public-shell public-header-inner"><a class="public-logo" href="./index.html"><span class="public-logo-mark" aria-hidden="true">PC</span><span>Partner Command</span></a><nav class="public-nav" aria-label="Primary navigation"><a href="./dashboard.html">Command</a><a href="./capital.html" aria-current="page">Capital</a><a href="./marketplace.html">Marketplace</a><a href="./growth.html">Growth</a></nav><div class="public-header-actions"><a class="mpc-button mpc-button-primary mpc-button-sm" href="./dashboard.html#leads">Open Pipeline</a></div></div></header>
+  <main id="main">
+    <section class="command-hero"><div class="public-shell command-hero-grid"><div><span class="mpc-eyebrow">CAPITAL / OPERATING DESK</span><h1>FIND THE RIGHT PATH.</h1><p class="lead">Move from client need to product shortlist to verified submission options. Fit signals are guidance, not approval decisions.</p></div><aside class="command-brief"><span class="mpc-badge mpc-badge-warning">Desk sequence</span><h2 class="mt-4">NEED → PRODUCT → PROVIDER.</h2><ol><li>Capture the client context.</li><li>Filter and compare product paths.</li><li>Verify provider requirements before submission.</li></ol></aside></div></section>
+    <section class="command-section" id="product-desk" aria-labelledby="product-title"><div class="public-shell"><div class="command-section-head"><div><span class="mpc-eyebrow">Decision / Fit layer</span><h2 id="product-title">PRODUCT DESK.</h2></div><p>Uses the canonical funding router and marketplace funding records. No approval or lender-match claim.</p></div><form class="capital-filters" data-capital-filters><label>Use of funds<input name="use_of_funds" placeholder="equipment, inventory, invoices..."></label><label>Funding need<input name="funding_need" inputmode="decimal" placeholder="75000"></label><label>Time in business<input name="time_in_business" placeholder="3 years"></label><label>Monthly revenue<input name="monthly_revenue" inputmode="decimal" placeholder="50000"></label><label>Industry<input name="industry" placeholder="contractor"></label><label>Urgency<input name="urgency" placeholder="30 days"></label><button class="mpc-button mpc-button-primary" type="submit">Build Shortlist</button><button class="mpc-button mpc-button-outline" type="reset">Clear</button></form><div class="capital-route" data-route-result aria-live="polite"></div><div class="capital-list" data-product-list aria-live="polite"></div></div></section>
+    <section class="command-section" id="providers" aria-labelledby="provider-title"><div class="public-shell"><div class="command-section-head"><div><span class="mpc-eyebrow">Execution / Submission layer</span><h2 id="provider-title">PROVIDERS.</h2></div><p>Only verified provider records with current submission paths belong here.</p></div><div class="mpc-empty capital-empty"><strong>No verified provider records connected.</strong><p>Provider availability, requirements, and submission links are not present in the current canonical repository data. Review product requirements before using an external provider path.</p><a class="mpc-button mpc-button-outline" href="./marketplace.html">Browse Marketplace Discovery</a></div></div></section>
+    <section class="command-section" id="marketplace" aria-labelledby="marketplace-title"><div class="public-shell"><div class="command-section-head"><div><span class="mpc-eyebrow">Discovery / Browse layer</span><h2 id="marketplace-title">MARKETPLACE.</h2></div><p>Browse the normalized operating inventory without duplicating Product Desk or Provider records.</p></div><a class="mpc-button mpc-button-primary" href="./marketplace.html">Open Marketplace</a></div></section>
+    <section class="command-section"><div class="public-shell"><div class="mpc-disclaimer"><strong>Capital disclosure:</strong> Product-fit routing is an internal review aid. It is not underwriting, approval, a quote, a lender match, or a guarantee. Provider availability and terms require current verification.</div></div></section>
+  </main>
+  <script src="./data/marketplace-offers.js"></script><script src="./lib/funding-router.js"></script><script src="./capital.js"></script>
+</body>
+</html>

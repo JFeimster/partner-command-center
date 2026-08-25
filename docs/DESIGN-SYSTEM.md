@@ -2,16 +2,18 @@
 
 Status: canonical visual contract for Track B.
 
-Primary source of truth: `JFeimster/moonshine-capital-portal`.
+Primary source of truth:
+`JFeimster/moonshine-capital-portal`.
 
-Design direction:
+## Design direction
 
-**NEO-BRUTALISM × CAPITAL COMMAND DESK × FIELD MANUAL × TRADING TERMINAL × HIGH-END FINTECH OPERATIONS**
+NEO-BRUTALISM × CAPITAL COMMAND DESK × FIELD MANUAL × TRADING TERMINAL ×
+HIGH-END FINTECH OPERATIONS
 
 ## Colors
 
 | Token | Value | Use |
-|---|---|---|
+| --- | --- | --- |
 | `--neo-black` | `#0a0a0a` | Primary background / ink |
 | `--neo-white` | `#f4f4f0` | Primary text / hard contrast |
 | `--neo-cream` | `#e8e8e3` | Light surfaces |
@@ -21,7 +23,8 @@ Design direction:
 | `--neo-orange` | `#f97316` | Warning / follow-up |
 | `--neo-red` | `#ef4444` | Error / blocked / decline |
 
-Accent colors are semantic. Yellow is the default action accent. Do not decorate every panel with status colors.
+Accent colors are semantic. Yellow is the default action accent.
+Do not decorate every panel with status colors.
 
 ## Typography
 
@@ -91,7 +94,8 @@ Use deliberately:
 
 ## Panels
 
-Use panels when content needs a defined operational boundary. Do not make every datum a card.
+Use panels when content needs a defined operational
+boundary. Do not make every datum a card.
 
 Prefer:
 
@@ -114,7 +118,9 @@ Prefer:
 
 The spacing scale remains 4px-based (`--space-1` through `--space-24`).
 
-Command surfaces prioritize density over decorative whitespace. Large whitespace is reserved for major hierarchy changes, not between every data point.
+Command surfaces prioritize density over decorative whitespace.
+Large whitespace is reserved for major hierarchy changes,
+not between every data point.
 
 ## Navigation
 
@@ -132,7 +138,8 @@ TEAM
 ACCOUNT
 ```
 
-Only implemented routes may render as active navigation. Future IA entries must not become dead links.
+Only implemented routes may render as active navigation.
+Future IA entries must not become dead links.
 
 Desktop:
 
@@ -158,7 +165,8 @@ Breakpoints are behavior-based, not device-brand-based.
 - `<760px`: action stacks and single-column operational modules.
 - `<480px`: single-column metrics and compact spacing.
 
-Horizontal scrolling is acceptable only inside intentionally scrollable data tables; the overall dashboard must not overflow.
+Horizontal scrolling is acceptable only inside intentionally scrollable
+data tables; the overall dashboard must not overflow.
 
 ## Accessibility
 
@@ -171,15 +179,17 @@ Horizontal scrolling is acceptable only inside intentionally scrollable data tab
 
 ## Public gateway
 
-The Partner Command public index is a product gateway, not the canonical funding-agency recruitment property.
+The Partner Command public index is a product gateway, not the canonical
+funding-agency recruitment property.
 
 It should communicate only:
 
-**PARTNER COMMAND**
+### PARTNER COMMAND
 
-**Leads. Links. Training. Production. Next move.**
+Leads. Links. Training. Production. Next move.
 
-Recruitment and long-form business-opportunity education belong on `agency.distilledfunding.com`.
+Recruitment and long-form business-opportunity education belong on
+`agency.distilledfunding.com`.
 
 ## Donor rules
 
@@ -189,4 +199,6 @@ Recruitment and long-form business-opportunity education belong on `agency.disti
 - `funding-partners-os`: marketplace/resources donor only.
 - `partner-command-center`: canonical IA and runtime owner.
 
-Do not average donor styles. Imported UX/content must be normalized into this system.
+Do not average donor styles.
+Imported UX/content must be normalized into this
+system.

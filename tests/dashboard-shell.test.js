@@ -20,12 +20,37 @@ modules.forEach((id) => {
   assert.ok(nav.includes(`id: "${id}"`), `dashboard navigation must include ${id}`);
 });
 
-['marketplace', 'training', 'partner-id', 'integrations', 'notes'].forEach((id) => {
+['training', 'partner-id', 'integrations', 'notes'].forEach((id) => {
   assert.ok(!nav.includes(`id: "${id}"`), `partner MVP navigation must not include ${id}`);
 });
 
 assert.ok(html.includes('data-mobile-menu-toggle'), 'mobile menu control is required');
 assert.ok(html.includes('data-render-widgets'), 'widgets module target is required');
+assert.ok(html.includes('data-render-lead-queue'), 'lead queue module target is required');
+assert.ok(html.includes('data-render-client-workspace'), 'client workspace module target is required');
+assert.ok(html.includes('data-render-follow-up-queue'), 'follow-up queue module target is required');
+assert.ok(nav.includes('data-open-client'), 'loaded dashboard navigation runtime must activate client workspace controls');
+assert.ok(nav.includes('data-lead-card'), 'client workspace action must focus the corresponding lead row');
+assert.ok(nav.includes('id: "capital"'), 'Capital Product Desk navigation is required');
+assert.ok(nav.includes('id: "providers"'), 'Capital Providers navigation is required');
+assert.ok(nav.includes('id: "marketplace"'), 'Capital Marketplace navigation is required');
+assert.ok(nav.includes('id: "assets"'), 'Growth Marketing Assets navigation is required');
+assert.ok(nav.includes('href: "./growth.html#assets"'), 'Growth Marketing Assets must use its implemented anchor');
+assert.ok(nav.includes('id: "build"'), 'Build navigation is required');
+assert.ok(nav.includes('id: "tools"'), 'Tools navigation is required');
+assert.ok(nav.includes('id: "ai"'), 'AI navigation is required');
+assert.ok(nav.includes('id: "calculators"'), 'Calculators navigation is required');
+assert.ok(nav.includes('id: "learn"'), 'Learn navigation is required');
+assert.ok(nav.includes('id: "sprint"'), '30-Day Sprint navigation is required');
+assert.ok(nav.includes('id: "scripts"'), 'Scripts navigation is required');
+assert.ok(nav.includes('id: "events"'), 'Events navigation is required');
+assert.ok(nav.includes('id: "earn"'), 'Earn navigation is required');
+assert.ok(nav.includes('id: "production"'), 'Production navigation is required');
+assert.ok(nav.includes('id: "team"'), 'Team navigation is required');
+assert.ok(nav.includes('id: "game-plans"'), 'Game Plans navigation is required');
+assert.ok(nav.includes('id: "leadership"'), 'Leadership navigation is required');
+assert.ok(nav.includes('id: "account"'), 'Account Profile navigation is required');
+assert.ok(nav.includes('id: "compliance"'), 'Account Compliance navigation is required');
 assert.ok(html.includes('./dashboard/api-client.js'), 'explicit API client loading is required');
 assert.ok(html.includes('./dashboard/dashboard-data-adapter.js'), 'explicit data adapter loading is required');
 assert.ok(!read('dashboard/dashboard-config.js').includes('document.write'), 'dashboard config must not inject scripts with document.write');

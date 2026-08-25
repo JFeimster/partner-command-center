@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Earn | Partner Command</title>
+  <meta name="description" content="Production, revenue planning, and clearly labeled commission visibility for Funding Agents.">
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/public.css">
+  <link rel="stylesheet" href="./styles/utilities.css">
+  <link rel="stylesheet" href="./styles/command-modules.css">
+  <link rel="stylesheet" href="./earn.css">
+</head>
+<body class="public-body command-page">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="public-header command-header"><div class="public-shell public-header-inner"><a class="public-logo" href="./index.html"><span class="public-logo-mark" aria-hidden="true">PC</span><span>Partner Command</span></a><nav class="public-nav" aria-label="Primary navigation"><a href="./dashboard.html">Command</a><a href="./capital.html">Capital</a><a href="./growth.html">Growth</a><a href="./build.html">Build</a><a href="./learn.html">Learn</a><a href="./earn.html" aria-current="page">Earn</a></nav><div class="public-header-actions"><a class="mpc-button mpc-button-primary mpc-button-sm" href="./dashboard.html#leads">Open Pipeline</a></div></div></header>
+  <main id="main">
+    <section class="command-hero"><div class="public-shell command-hero-grid"><div><span class="mpc-eyebrow">EARN / PRODUCTION BOARD</span><h1>TURN ACTIVITY INTO PRODUCTION.</h1><p class="lead">Connect an income goal to editable assumptions, inspect actual lead movement, and keep commission visibility honest.</p></div><aside class="command-brief"><span class="mpc-badge mpc-badge-warning">Operator boundary</span><h2 class="mt-4">GOAL → TARGET → ACTUAL.</h2><ol><li>Set a planning goal.</li><li>Review lead-stage production.</li><li>Separate demo values from contractual earnings.</li></ol></aside></div></section>
+    <section class="command-section" id="revenue-plan" aria-labelledby="plan-title"><div class="public-shell"><div class="command-section-head"><div><span class="mpc-eyebrow">Planning layer</span><h2 id="plan-title">REVENUE PLAN.</h2></div><p>All inputs below are editable planning assumptions. No conversion rate or commission amount is presented as a fact.</p></div><form class="earn-plan" data-earn-plan><label>Monthly income goal<input name="income_goal" type="number" min="0" step="100" value="10000"></label><label>Avg commission / funded client<input name="avg_commission" type="number" min="0" step="50" value="750"></label><label>Funded from submitted (%)<input name="funded_rate" type="number" min="0" max="100" step="1" value="20"></label><label>Submitted from qualified (%)<input name="submitted_rate" type="number" min="0" max="100" step="1" value="50"></label><label>Qualified from conversations (%)<input name="qualified_rate" type="number" min="0" max="100" step="1" value="30"></label><button class="mpc-button mpc-button-primary" type="submit">Update Plan</button></form><div class="earn-plan-results" data-earn-plan-results aria-live="polite"></div><div class="mpc-disclaimer">Planning assumptions are not contractual compensation mechanics, historical conversion rates, or expected earnings. Verify signed program terms and actual production separately.</div></div></section>
+    <section class="command-section" id="production" aria-labelledby="production-title"><div class="public-shell"><div class="command-section-head"><div><span class="mpc-eyebrow">Operating scorecard</span><h2 id="production-title">PRODUCTION.</h2></div><p>Derived from the active Partner Command lead state when available. Sample records are used only as an explicit fallback.</p></div><div class="earn-metrics" data-earn-production></div><div class="earn-stage-list" data-earn-stages></div><div class="earn-detail-actions"><a class="mpc-button mpc-button-primary" href="./dashboard.html#leads">Open Pipeline</a><a class="mpc-button mpc-button-outline" href="./capital.html#product-desk">Open Product Desk</a></div></div></section>
+    <section class="command-section" id="commissions" aria-labelledby="commissions-title"><div class="public-shell"><div class="command-section-head"><div><span class="mpc-eyebrow">Payout ledger</span><h2 id="commissions-title">COMMISSIONS.</h2></div><p>Demo/sample records are shown for interface validation only. Live records require the connected compensation payload.</p></div><div class="earn-ledger" data-earn-commissions></div></div></section>
+    <section class="command-section"><div class="public-shell"><div class="mpc-disclaimer"><strong>Earn disclosure:</strong> Demo commissions, planning outputs, funded volume, and production targets are not guaranteed income, payable balances, approvals, funding commitments, or payout obligations.</div></div></section>
+  </main>
+  <script src="./data/sample-leads.js"></script>
+  <script src="./data/sample-commissions.js"></script>
+  <script src="./scripts/storage.js"></script>
+  <script src="./dashboard/dashboard-config.js"></script>
+  <script src="./dashboard/dashboard-seed-data.js"></script>
+  <script src="./dashboard/dashboard-state.js"></script>
+  <script src="./dashboard/lead-store.js"></script>
+  <script src="./earn.js"></script>
+</body>
+</html>

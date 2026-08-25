@@ -83,20 +83,54 @@
     }).join("");
   }
 
-  function renderNextActions() {
-    var target = document.querySelector("[data-render-next-actions]");
-    if (!target) return;
+  function getCommandPriority() {
     var state = getState();
-    var live = state.dashboardData && state.dashboardData.mode === "live";
-    var actions = [];
-    if (!getProfile().partnerId) actions.push(["01", "Complete your partner profile", "#settings"]);
-    if (!state.trackingLinks || !state.trackingLinks.length) actions.push(["02", "Create or copy a tracking link", "#links"]);
-    if (!state.leads || !state.leads.length) actions.push(["03", live ? "Start a funding-readiness submission" : "Add one fictional demo lead", "#leads"]);
-    actions.push(["04", "Open assigned partner resources", "#resources"]);
-    actions.push(["05", "Deploy the funding-readiness widget", "#widgets"]);
-    target.innerHTML = '<ol class="dashboard-next-list">' + actions.slice(0, 5).map(function (item) {
-      return '<li><span>' + esc(item[0]) + '</span><div><strong>' + esc(item[1]) + '</strong><br><a href="' + esc(item[2]) + '">Open step</a></div></li>';
-    }).join("") + '</ol>';
+    var leads = Array.isArray(state.leads) ? state.leads : [];
+    var items = [];
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    leads.forEach(function addLeadSignal(lead) {
+      if (["new", "reviewing", "needsInfo", "submitted"].indexOf(lead.status) < 0) return;
+      var due = lead.followUpAt ? new Date(lead.followUpAt) : null;
+      if (due && due < today) {
+        items.push({ priority: 10, label: "Overdue follow-up: " + (lead.businessName || "Client"), detail: lead.nextStep || "Review the latest client status.", href: "#leads", tone: "danger" });
+        return;
+      }
+      if (lead.status === "needsInfo" || lead.documentStatus === "requested") {
+        items.push({ priority: 20, label: "Waiting on client: " + (lead.businessName || "Client"), detail: lead.nextStep || "Request the missing readiness information.", href: "#leads", tone: "warning" });
+        return;
+      }
+      if (lead.status === "submitted") {
+        items.push({ priority: 30, label: "Provider review: " + (lead.businessName || "Client"), detail: lead.nextStep || "Check the latest submission status.", href: "#leads", tone: "info" });
+        return;
+      }
+      if (lead.status === "new") {
+        items.push({ priority: 40, label: "Review new lead: " + (lead.businessName || "Client"), detail: lead.nextStep || "Review the lead and choose the next move.", href: "#leads", tone: "info" });
+      }
+    });
+    var profile = getProfile();
+    var missingProfile = !(state.dashboardData && state.dashboardData.mode === "live") && [profile.company, profile.contactName, profile.primaryAudience].some(function missing(value) { return !value; });
+    if (missingProfile || state.dashboardData && state.dashboardData.mode === "live" && profile.profileCompleteness != null && profile.profileCompleteness < 100) {
+      items.push({ priority: 50, label: "Complete Account profile", detail: "Add the public profile information needed for Growth.", href: "./account.html#profile", tone: "warning" });
+    }
+    var modules = dashboard.seedData && dashboard.seedData.trainingModules || [];
+    var progress = state.trainingProgress || {};
+    var nextTraining = modules.find(function incomplete(moduleItem) { return !progress[moduleItem.id]; });
+    if (nextTraining) items.push({ priority: 60, label: "Next training: " + nextTraining.title, detail: nextTraining.summary, href: "./learn.html#training", tone: "info" });
+    if (Array.isArray(state.teamMembers) && state.teamMembers.length) items.push({ priority: 70, label: "Review team coaching", detail: "Open connected team attention and Game Plans.", href: "./team.html#my-team", tone: "info" });
+    if (leads.some(function funded(lead) { return lead.status === "funded"; })) items.push({ priority: 80, label: "Review production", detail: "Funded activity is available in the Earn scorecard.", href: "./earn.html#production", tone: "success" });
+    return items.sort(function sortPriority(a, b) { return a.priority - b.priority; }).slice(0, 5);
+  }
+
+  function renderCommandPriority() {
+    var target = document.querySelector("[data-render-command-priority]");
+    if (!target) return;
+    var items = getCommandPriority();
+    if (!items.length) {
+      target.innerHTML = '<div class="mpc-empty"><strong>No immediate attention signals.</strong><p>Command is clear. Open Pipeline, Growth, or Learn when you are ready for the next operating move.</p><div class="dashboard-row-actions"><a class="mpc-button mpc-button-outline mpc-button-sm" href="#leads">Open Pipeline</a><a class="mpc-button mpc-button-outline mpc-button-sm" href="./learn.html">Open Learn</a></div></div>';
+      return;
+    }
+    target.innerHTML = '<div class="dashboard-command-primary"><span class="mpc-eyebrow">Next move</span><strong>' + esc(items[0].label) + '</strong><p>' + esc(items[0].detail) + '</p><a class="mpc-button mpc-button-primary mpc-button-sm" href="' + esc(items[0].href) + '">Open Next Move</a></div><ol class="dashboard-priority-list">' + items.slice(1).map(function renderSignal(item) { return '<li><span class="mpc-badge mpc-badge-' + esc(item.tone === "danger" ? "danger" : item.tone === "warning" ? "warning" : item.tone === "success" ? "success" : "info") + '">' + esc(item.label) + '</span><div><strong>' + esc(item.detail) + '</strong><a href="' + esc(item.href) + '">Open</a></div></li>'; }).join("") + '</ol>';
   }
 
   function renderPartnerId() {
@@ -129,7 +163,7 @@
     var state = getState();
     if (dashboard.renderers && dashboard.renderers.renderAll) dashboard.renderers.renderAll(root, state);
     renderOnboarding();
-    renderNextActions();
+    renderCommandPriority();
     renderPartnerId();
     var theme = document.querySelector("[data-theme-select]");
     if (theme) theme.value = state.theme || document.documentElement.getAttribute("data-theme") || "dark";
@@ -370,6 +404,6 @@
     logEvent({ type: "dashboard.viewed", label: "Dashboard viewed", target: "Partner Command Center", message: "Opened the partner operations dashboard.", tone: "success" });
   }
 
-  dashboard.controller = { renderAll: renderAll, renderOnboarding: renderOnboarding, renderNextActions: renderNextActions };
+  dashboard.controller = { renderAll: renderAll, renderOnboarding: renderOnboarding, getCommandPriority: getCommandPriority, renderCommandPriority: renderCommandPriority };
   ready(init);
 })(window, document);

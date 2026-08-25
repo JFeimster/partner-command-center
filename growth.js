@@ -1,28 +1,149 @@
-(function () {
+(function (window, document) {
   'use strict';
+
   var TOKEN_KEY = 'pccDashboardToken';
   var profile = null;
-  function $(s){ return document.querySelector(s); }
-  function token(){ return sessionStorage.getItem(TOKEN_KEY) || new URLSearchParams(location.search).get('dashboard_token') || ''; }
-  function headers(extra){ var h = Object.assign({'Content-Type':'application/json'}, extra || {}); if(token()) h.Authorization='Bearer '+token(); return h; }
-  function copy(value){ if(!value) return; navigator.clipboard.writeText(value); }
-  function campaignUrl(){ if(!profile || !profile.referral_url) return ''; var u=new URL(profile.referral_url); var map={campaign:$('[data-campaign]').value,utm_source:$('[data-utm-source]').value,utm_medium:$('[data-utm-medium]').value,utm_campaign:$('[data-utm-campaign]').value}; Object.keys(map).forEach(function(k){ if(map[k].trim()) u.searchParams.set(k,map[k].trim()); }); return u.toString(); }
-  function fillForm(){ var f=$('[data-profile-form]'); if(!f||!profile)return; ['display_name','company_name','title','phone','email','website_url','booking_url','photo_url','logo_url','bio','primary_cta_label','primary_cta_url'].forEach(function(k){ if(f.elements[k]) f.elements[k].value=profile[k]||''; }); ['specialties','industries','markets','funding_types'].forEach(function(k){ if(f.elements[k]) f.elements[k].value=(profile[k]||[]).join(', '); }); }
-  function render(){
-    $('[data-growth-status]').hidden=true; $('[data-growth-content]').hidden=false;
-    $('[data-public-url]').value=profile.public_url||'Not published yet'; $('[data-referral-url]').value=profile.referral_url||''; $('[data-lead-form-url]').value=profile.lead_form_url||'';
-    document.querySelectorAll('[data-open-public]').forEach(function(a){ a.href=profile.public_url||'#'; if(!profile.public_url)a.setAttribute('aria-disabled','true'); });
-    $('[data-public-preview]').src=profile.public_url||'about:blank'; $('[data-publication-status]').textContent=profile.publication_status==='published'?'Published':'Not Published'; $('[data-completeness]').textContent=(profile.profile_completeness||0)+'% complete';
-    $('[data-qr-image]').src=profile.qr_png_url||''; $('[data-qr-png]').href=profile.qr_png_url||'#'; $('[data-qr-svg]').href=profile.qr_svg_url||'#'; $('[data-open-lead-form]').href=profile.lead_form_url||'#';
-    $('[data-lead-embed]').textContent=profile.lead_form_url?'<iframe src="'+profile.lead_form_url+'" width="100%" height="720" frameborder="0" title="Funding intake"></iframe>':''; fillForm();
+  var WIDGETS = [{
+    name: 'Funding Readiness Scorecard',
+    description: 'Federated readiness intake for a partner website or campaign.',
+    preview: 'https://embed-widgets-kappa.vercel.app/funding-readiness-scorecard-widget.html',
+    embed: 'https://embed-widgets-kappa.vercel.app/funding-readiness-scorecard-widget.html'
+  }];
+
+  function $(selector) { return document.querySelector(selector); }
+  function token() { return window.sessionStorage.getItem(TOKEN_KEY) || new URLSearchParams(window.location.search).get('dashboard_token') || ''; }
+  function headers(extra) { var result = Object.assign({ 'Content-Type': 'application/json' }, extra || {}); if (token()) result.Authorization = 'Bearer ' + token(); return result; }
+  function escapeHtml(value) { return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function copy(value) { return value && navigator.clipboard ? navigator.clipboard.writeText(value) : Promise.resolve(false); }
+  function text(selector, value) { var target = $(selector); if (target) target.textContent = value == null ? '' : value; }
+  function value(selector) { var target = $(selector); return target ? target.value.trim() : ''; }
+
+  function buildCampaignUrl(baseProfile, fields) {
+    if (!baseProfile || !baseProfile.referral_url) return '';
+    var url = new URL(baseProfile.referral_url);
+    ['campaign', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].forEach(function (key) { if (fields && fields[key] && fields[key].trim()) url.searchParams.set(key, fields[key].trim()); });
+    return url.toString();
   }
-  async function load(){
-    try { var r=await fetch('/api/dashboard/distribution',{headers:headers()}); var data=await r.json(); if(!r.ok)throw new Error(data.error&&data.error.message||'Unable to load distribution kit.'); profile=data.profile; render(); }
-    catch(e){ $('[data-growth-status]').className='growth-error'; $('[data-growth-status]').textContent=e.message; }
+
+  function campaignUrl() {
+    var fields = {};
+    ['campaign', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].forEach(function (key) { fields[key] = value('[data-' + key.replace('_', '-') + ']'); });
+    return buildCampaignUrl(profile, fields);
   }
-  document.addEventListener('click', function(e){ var c=e.target.closest('[data-copy]'); if(c){ var t=c.getAttribute('data-copy'); var value=t==='public'?profile&&profile.public_url:t==='referral'?profile&&profile.referral_url:t==='lead'?profile&&profile.lead_form_url:t==='campaign'?$('[data-campaign-url]').value:''; copy(value); c.textContent='Copied'; setTimeout(function(){c.textContent='Copy';},1200); }
-    if(e.target.closest('[data-build-campaign]')){ e.preventDefault(); $('[data-campaign-url]').value=campaignUrl(); }
+
+  function embedSnippet() { return profile && profile.lead_form_url ? '<iframe src="' + profile.lead_form_url + '" width="100%" height="720" frameborder="0" title="Funding intake"></iframe>' : ''; }
+
+  function buildWidgetUrl(widget, baseProfile) {
+    var activeProfile = baseProfile || profile;
+    var partnerId = activeProfile && (activeProfile.partner_id || activeProfile.partnerId);
+    if (!widget || !widget.embed || !partnerId) return '';
+    var url = new URL(widget.embed);
+    url.searchParams.set('partner_id', partnerId);
+    return url.toString();
+  }
+
+  function renderInventory() {
+    var assets = $('[data-growth-assets]');
+    var resources = window.MoonshineData && Array.isArray(window.MoonshineData.resources) ? window.MoonshineData.resources : [];
+    if (assets) assets.innerHTML = resources.length ? resources.map(function (resource) {
+      var href = resource.href || '';
+      return '<article class="growth-inventory-item"><div><h3>' + escapeHtml(resource.title) + '</h3><p>' + escapeHtml(resource.summary || resource.description || 'Partner resource') + '</p><small>' + escapeHtml(resource.category || resource.type || 'Resource') + '</small></div><a class="mpc-button mpc-button-outline mpc-button-sm" href="' + escapeHtml(href) + '">Open</a></article>';
+    }).join('') : '<div class="mpc-empty"><strong>No marketing assets assigned.</strong><p>Available partner resources will appear here when the inventory is connected.</p></div>';
+    var widgets = $('[data-growth-widgets]');
+    if (widgets) widgets.innerHTML = WIDGETS.length ? WIDGETS.map(function (widget) {
+      var scopedUrl = buildWidgetUrl(widget);
+      var snippet = scopedUrl ? '<iframe src="' + scopedUrl + '" width="100%" height="640" style="border:0" title="' + widget.name + '"></iframe>' : '';
+      var actions = scopedUrl
+        ? '<div class="growth-actions"><a class="mpc-button mpc-button-outline mpc-button-sm" href="' + escapeHtml(scopedUrl) + '" target="_blank" rel="noopener">Open</a><button class="mpc-button mpc-button-outline mpc-button-sm" type="button" data-copy-widget="' + escapeHtml(snippet) + '">Copy Embed</button></div>'
+        : '<span class="mpc-badge mpc-badge-warning">Partner profile required</span>';
+      return '<article class="growth-inventory-item"><div><h3>' + escapeHtml(widget.name) + '</h3><p>' + escapeHtml(widget.description) + '</p><small>Launch: partner-scoped Embed Widgets inventory</small></div>' + actions + '</article>';
+    }).join('') : '<div class="mpc-empty"><strong>No widgets assigned.</strong><p>Connected widget inventory will appear here when available.</p></div>';
+  }
+
+  function render() {
+    var publicUrl = profile.public_url || '';
+    var referralUrl = profile.referral_url || publicUrl;
+    var leadUrl = profile.lead_form_url || '';
+    var campaign = campaignUrl();
+    $('[data-growth-status]').hidden = true;
+    $('[data-growth-content]').hidden = false;
+    $('[data-public-url]').value = publicUrl || 'Not published yet';
+    $('[data-referral-url]').value = referralUrl;
+    $('[data-lead-form-url]').value = leadUrl;
+    $('[data-campaign-url]').value = campaign;
+    $('[data-public-preview]').src = publicUrl || 'about:blank';
+    $('[data-qr-image]').src = profile.qr_png_url || '';
+    $('[data-qr-png]').href = profile.qr_png_url || '#';
+    $('[data-qr-svg]').href = profile.qr_svg_url || '#';
+    $('[data-lead-embed]').textContent = embedSnippet();
+    document.querySelectorAll('[data-open-public]').forEach(function (link) { link.href = publicUrl || '#'; link.setAttribute('aria-disabled', String(!publicUrl)); });
+    document.querySelectorAll('[data-open-referral]').forEach(function (link) { link.href = referralUrl || '#'; link.setAttribute('aria-disabled', String(!referralUrl)); });
+    $('[data-open-lead-form]').href = leadUrl || '#';
+    $('[data-open-campaign]').href = campaign || '#';
+    text('[data-publication-status]', profile.publication_status === 'published' ? 'Published' : 'Not Published');
+    text('[data-completeness]', (profile.profile_completeness || 0) + '% complete');
+    fillForm();
+    renderInventory();
+  }
+
+  function fillForm() {
+    var form = $('[data-profile-form]');
+    if (!form || !profile) return;
+    ['display_name', 'company_name', 'title', 'phone', 'email', 'website_url', 'booking_url', 'photo_url', 'logo_url', 'bio', 'primary_cta_label', 'primary_cta_url'].forEach(function (key) { if (form.elements[key]) form.elements[key].value = profile[key] || ''; });
+    ['specialties', 'industries', 'markets', 'funding_types'].forEach(function (key) { if (form.elements[key]) form.elements[key].value = (profile[key] || []).join(', '); });
+  }
+
+  function showError(message) {
+    var status = $('[data-growth-status]');
+    status.hidden = false;
+    status.className = 'growth-error';
+    status.textContent = message;
+  }
+
+  async function load() {
+    try {
+      var response = await fetch('/api/dashboard/distribution', { headers: headers() });
+      var data = await response.json();
+      if (!response.ok) throw new Error(data.error && data.error.message || 'Unable to load distribution kit.');
+      profile = data.profile;
+      render();
+    } catch (error) {
+      showError(error.message || 'Unable to load distribution kit.');
+    }
+  }
+
+  document.addEventListener('click', function (event) {
+    var copyButton = event.target.closest('[data-copy]');
+    if (copyButton) {
+      var key = copyButton.getAttribute('data-copy');
+      var values = { public: profile && profile.public_url, referral: profile && profile.referral_url, qr: profile && profile.referral_url, lead: profile && profile.lead_form_url, embed: embedSnippet(), campaign: value('[data-campaign-url]') };
+      copy(values[key]).then(function () { var original = copyButton.textContent; copyButton.textContent = 'Copied'; window.setTimeout(function () { copyButton.textContent = original; }, 1200); });
+      return;
+    }
+    var widgetButton = event.target.closest('[data-copy-widget]');
+    if (widgetButton) { copy(widgetButton.getAttribute('data-copy-widget')).then(function () { widgetButton.textContent = 'Copied'; }); return; }
+    if (event.target.closest('[data-build-campaign]')) { event.preventDefault(); var url = campaignUrl(); $('[data-campaign-url]').value = url; $('[data-open-campaign]').href = url || '#'; }
   });
-  $('[data-profile-form]').addEventListener('submit', async function(e){ e.preventDefault(); var f=e.currentTarget; var changes={}; ['display_name','company_name','title','phone','email','website_url','booking_url','photo_url','logo_url','bio','primary_cta_label','primary_cta_url'].forEach(function(k){changes[k]=f.elements[k].value.trim();}); ['specialties','industries','markets','funding_types'].forEach(function(k){changes[k]=f.elements[k].value.split(',').map(function(x){return x.trim();}).filter(Boolean);}); var status=$('[data-save-status]'); status.textContent='Saving…'; try{var r=await fetch('/api/dashboard/profile',{method:'PATCH',headers:headers(),body:JSON.stringify(changes)});var data=await r.json();if(!r.ok)throw new Error(data.error&&data.error.message||'Update failed.');profile=data.profile;render();status.textContent='Saved';}catch(err){status.textContent=err.message;}});
+
+  $('[data-profile-form]').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    var form = event.currentTarget;
+    var changes = {};
+    ['display_name', 'company_name', 'title', 'phone', 'email', 'website_url', 'booking_url', 'photo_url', 'logo_url', 'bio', 'primary_cta_label', 'primary_cta_url'].forEach(function (key) { changes[key] = form.elements[key].value.trim(); });
+    ['specialties', 'industries', 'markets', 'funding_types'].forEach(function (key) { changes[key] = form.elements[key].value.split(',').map(function (item) { return item.trim(); }).filter(Boolean); });
+    var status = $('[data-save-status]');
+    status.textContent = 'Saving...';
+    try {
+      var response = await fetch('/api/dashboard/profile', { method: 'PATCH', headers: headers(), body: JSON.stringify(changes) });
+      var data = await response.json();
+      if (!response.ok) throw new Error(data.error && data.error.message || 'Update failed.');
+      profile = data.profile;
+      render();
+      status.textContent = 'Saved';
+    } catch (error) { status.textContent = error.message || 'Update failed.'; }
+  });
+
+  window.PartnerGrowth = { campaignUrl: campaignUrl, buildCampaignUrl: buildCampaignUrl, embedSnippet: embedSnippet, buildWidgetUrl: buildWidgetUrl, renderInventory: renderInventory };
+  renderInventory();
   load();
-})();
+})(window, document);
