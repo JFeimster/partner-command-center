@@ -31,12 +31,17 @@ test('Revenue Plan uses editable assumptions and translates goal to activity', (
   assert.match(earn, /not contractual compensation/);
 });
 
-test('Production reuses canonical lead statuses and funding amounts', () => {
+test('Production reuses active Partner Command lead state before sample fallback', () => {
   ['new', 'reviewing', 'submitted', 'funded'].forEach((status) => assert.match(controller, new RegExp(`['"]${status}['"]`)));
+  assert.match(controller, /dashboard\.state\.getState/);
+  assert.match(controller, /dashboard\.leadStore\.getLeads/);
+  assert.match(controller, /Sample fallback/);
   assert.match(controller, /fundingNeed/);
   assert.match(controller, /Active pipeline/);
   assert.match(controller, /Funded volume/);
   assert.match(controller, /Open Pipeline/);
+  assert.match(earn, /dashboard\/dashboard-state\.js/);
+  assert.match(earn, /dashboard\/lead-store\.js/);
   assert.match(leads, /status: "funded"/);
 });
 
