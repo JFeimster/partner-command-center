@@ -7,12 +7,16 @@ on:
       - 'dashboard/**'
       - 'dashboard.html'
       - 'dashboard.css'
+      - 'growth.html'
+      - 'growth.js'
       - 'data/app-config.json'
       - 'data/dashboard-nav.js'
       - 'data/demo/**'
       - 'lib/dashboard-bootstrap.js'
+      - 'lib/distribution-kit.js'
       - 'tests/dashboard-data-mode.test.js'
       - 'tests/dashboard-shell.test.js'
+      - 'tests/distribution-kit.test.js'
       - 'scripts/capture-dashboard-screenshots.mjs'
       - '.github/workflows/dashboard-data-mode.yml'
       - 'vercel.json'
@@ -37,16 +41,23 @@ jobs:
       - name: Run dashboard shell tests
         run: node tests/dashboard-shell.test.js
 
+      - name: Run partner distribution tests
+        run: node --test tests/distribution-kit.test.js
+
       - name: Check JavaScript syntax
         run: |
           node --check api/dashboard/bootstrap.js
+          node --check api/dashboard/distribution.js
+          node --check api/dashboard/profile.js
           node --check lib/dashboard-bootstrap.js
+          node --check lib/distribution-kit.js
           node --check dashboard.js
           node --check dashboard/api-client.js
           node --check dashboard/dashboard-config.js
           node --check dashboard/dashboard-renderers.js
           node --check dashboard/dashboard-data-adapter.js
           node --check dashboard/dashboard-data-mode-init.js
+          node --check growth.js
 
       - name: Validate JSON configuration
         run: |
