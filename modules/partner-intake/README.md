@@ -1,74 +1,104 @@
-# Partner Intake Module
+# Partner Intake + Activation
 
-## Purpose
+## Role
 
-This module defines how Partner Command Center consumes partner signup and activation logic from `partner-intake-os` without turning the live product shell into a spaghetti cannon.
+Partner Intake + Activation is the front door of Partner Command Center.
 
-Sprint 00 is documentation only. It creates the local module contract for the first live workflow:
+It turns a partner signup into:
 
-```text
-partner signup -> activation -> dashboard access -> tracking links -> lead submission later
-```
+- partner profile
+- partner type
+- tier/path recommendation
+- assigned resources
+- tracking/campaign next steps
+- Partner Event record
+- dashboard activation state
 
 ## Source-of-truth relationship
 
 | Repo | Role |
 |---|---|
-| `partner-command-center` | Live product shell and dashboard destination. |
-| `partner-intake-os` | Reference library for intake workflow, schemas, Tally fields, classification, onboarding, resources, and GPT/action docs. |
+| `partner-command-center` | Live product shell, dashboard destination, module registry, and integration map. |
+| `partner-intake-os` | Deeper source/reference library for intake workflow, schemas, Tally fields, classification, onboarding, GPT/action docs, and reference implementation. |
 
-Partner Command Center should not duplicate the entire Partner Intake OS library. It should import the concepts that matter for the live product experience.
+Partner Command Center should not duplicate every Partner Intake OS file. It should import the concepts that matter for the live product experience.
+
+## Primary surfaces
+
+- Funding Partners OS — primary partner acquisition page
+- FundStack AI — ecosystem partner entry point
+- Partner Command Center `partner-access.html` — temporary Tally intake bridge
+
+## Current intake form
+
+```text
+https://tally.so/r/mOe658
+```
+
+## Current backend path
+
+```text
+Tally mOe658
+→ https://partner-command-center-rho.vercel.app/api/router
+→ receivePartnerSignup
+→ Notion Partners DB
+→ Partner Events DB
+→ partner_id / activation lookup
+```
+
+## Dashboard destination
+
+Use FPOS-style dashboard shell for Partner Command Center v2.
+
+Initial dashboard panels:
+
+- Partner profile
+- Partner tier/path
+- Assigned resources
+- Tracking links
+- Campaign kits
+- Submitted leads
+- Partner events
+- Next best action
 
 ## What this module owns
 
-This module defines:
+- Partner signup workflow
+- Partner activation state
+- Partner ID / attribution spine
+- Onboarding path
+- Resource assignment request
+- Partner dashboard activation state
 
-- The Partner Command Center partner signup workflow.
-- The partner data object expected by future live API and dashboard surfaces.
-- Dashboard surfaces affected by partner activation.
-- Boundaries between partner activation and downstream lead routing.
+## What this module does not own
 
-## What this module does not own yet
+- Borrower lead routing
+- Funding path recommendation
+- Broker follow-up queue
+- COI prospecting
+- Affiliate offer review
 
-This module does not create:
+Those are separate workflow modules.
 
-- `/api/router.js`
-- Notion client code
-- Tally webhook code
-- Live dashboard JavaScript
-- Lead router logic
-- OpenAPI actions
+## Action/API layer
 
-Those arrive in later sprints.
-
-## First live workflow
-
-The first live workflow is **partner signup and activation**.
-
-Lead submission depends on partner identity and activation state. It must wait until `partner_id` exists.
-
-## Required live sequence
+Initial action operations:
 
 ```text
-Tally partner signup
-  -> API/router
-  -> Notion Partner record
-  -> partner_id
-  -> onboarding path
-  -> assigned resources
-  -> dashboard access
-  -> tracking links
-  -> lead submission
+classifyPartnerIntake
+recommendPartnerResources
+generatePartnerOnboardingPlan
+generatePartnerCampaignKit
+logPartnerEvent
 ```
 
-## Module files
+## Integration notes
 
-| File | Purpose |
-|---|---|
-| `README.md` | Defines module purpose and source-of-truth relationship. |
-| `workflow.md` | Defines the partner signup/activation workflow. |
-| `data-contract.md` | Defines the partner data object. |
-| `dashboard-spec.md` | Defines dashboard surfaces affected by activation. |
+- Keep Tally as intake source for now.
+- Use Notion as current CRM cockpit.
+- Mirror to Google Sheets later.
+- Do not expose the Tally webhook endpoint as a GPT Action.
+- Use Bearer/API key auth for GPT-facing API calls.
 
 ## Design principle
 
