@@ -29,6 +29,8 @@ assert.ok(html.includes('data-render-widgets'), 'widgets module target is requir
 assert.ok(html.includes('data-render-lead-queue'), 'lead queue module target is required');
 assert.ok(html.includes('data-render-client-workspace'), 'client workspace module target is required');
 assert.ok(html.includes('data-render-follow-up-queue'), 'follow-up queue module target is required');
+assert.ok(nav.includes('data-open-client'), 'loaded dashboard navigation runtime must activate client workspace controls');
+assert.ok(nav.includes('data-lead-card'), 'client workspace action must focus the corresponding lead row');
 assert.ok(nav.includes('id: "capital"'), 'Capital Product Desk navigation is required');
 assert.ok(nav.includes('id: "providers"'), 'Capital Providers navigation is required');
 assert.ok(nav.includes('id: "marketplace"'), 'Capital Marketplace navigation is required');
