@@ -66,3 +66,14 @@ test('leaves direct leads without attribution relations', () => {
   assert.equal('Partner' in properties, false);
   assert.equal('Tracking Link' in properties, false);
 });
+
+test('clears both attribution relations on an existing direct lead update', () => {
+  const properties = buildProperties(request(), 'req_test', {
+    status: 'direct',
+    partnerPageId: null,
+    trackingLinkPageId: null
+  }, { isUpdate: true });
+
+  assert.deepEqual(properties.Partner, { relation: [] });
+  assert.deepEqual(properties['Tracking Link'], { relation: [] });
+});
