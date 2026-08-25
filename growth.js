@@ -6,8 +6,8 @@
   var WIDGETS = [{
     name: 'Funding Readiness Scorecard',
     description: 'Federated readiness intake for a partner website or campaign.',
-    preview: 'https://embed-widgets-kappa.vercel.app/',
-    embed: 'https://am-i-fundable.vercel.app/embed.html'
+    preview: 'https://embed-widgets-kappa.vercel.app/funding-readiness-scorecard-widget.html',
+    embed: 'https://embed-widgets-kappa.vercel.app/funding-readiness-scorecard-widget.html'
   }];
 
   function $(selector) { return document.querySelector(selector); }
@@ -33,6 +33,15 @@
 
   function embedSnippet() { return profile && profile.lead_form_url ? '<iframe src="' + profile.lead_form_url + '" width="100%" height="720" frameborder="0" title="Funding intake"></iframe>' : ''; }
 
+  function buildWidgetUrl(widget, baseProfile) {
+    var activeProfile = baseProfile || profile;
+    var partnerId = activeProfile && (activeProfile.partner_id || activeProfile.partnerId);
+    if (!widget || !widget.embed || !partnerId) return '';
+    var url = new URL(widget.embed);
+    url.searchParams.set('partner_id', partnerId);
+    return url.toString();
+  }
+
   function renderInventory() {
     var assets = $('[data-growth-assets]');
     var resources = window.MoonshineData && Array.isArray(window.MoonshineData.resources) ? window.MoonshineData.resources : [];
@@ -42,8 +51,12 @@
     }).join('') : '<div class="mpc-empty"><strong>No marketing assets assigned.</strong><p>Available partner resources will appear here when the inventory is connected.</p></div>';
     var widgets = $('[data-growth-widgets]');
     if (widgets) widgets.innerHTML = WIDGETS.length ? WIDGETS.map(function (widget) {
-      var snippet = '<iframe src="' + widget.embed + '" width="100%" height="640" style="border:0" title="' + widget.name + '"></iframe>';
-      return '<article class="growth-inventory-item"><div><h3>' + escapeHtml(widget.name) + '</h3><p>' + escapeHtml(widget.description) + '</p><small>Launch: canonical Embed Widgets inventory</small></div><div class="growth-actions"><a class="mpc-button mpc-button-outline mpc-button-sm" href="' + escapeHtml(widget.preview) + '" target="_blank" rel="noopener">Open</a><button class="mpc-button mpc-button-outline mpc-button-sm" type="button" data-copy-widget="' + escapeHtml(snippet) + '">Copy Embed</button></div></article>';
+      var scopedUrl = buildWidgetUrl(widget);
+      var snippet = scopedUrl ? '<iframe src="' + scopedUrl + '" width="100%" height="640" style="border:0" title="' + widget.name + '"></iframe>' : '';
+      var actions = scopedUrl
+        ? '<div class="growth-actions"><a class="mpc-button mpc-button-outline mpc-button-sm" href="' + escapeHtml(scopedUrl) + '" target="_blank" rel="noopener">Open</a><button class="mpc-button mpc-button-outline mpc-button-sm" type="button" data-copy-widget="' + escapeHtml(snippet) + '">Copy Embed</button></div>'
+        : '<span class="mpc-badge mpc-badge-warning">Partner profile required</span>';
+      return '<article class="growth-inventory-item"><div><h3>' + escapeHtml(widget.name) + '</h3><p>' + escapeHtml(widget.description) + '</p><small>Launch: partner-scoped Embed Widgets inventory</small></div>' + actions + '</article>';
     }).join('') : '<div class="mpc-empty"><strong>No widgets assigned.</strong><p>Connected widget inventory will appear here when available.</p></div>';
   }
 
@@ -130,7 +143,7 @@
     } catch (error) { status.textContent = error.message || 'Update failed.'; }
   });
 
-  window.PartnerGrowth = { campaignUrl: campaignUrl, buildCampaignUrl: buildCampaignUrl, embedSnippet: embedSnippet, renderInventory: renderInventory };
+  window.PartnerGrowth = { campaignUrl: campaignUrl, buildCampaignUrl: buildCampaignUrl, embedSnippet: embedSnippet, buildWidgetUrl: buildWidgetUrl, renderInventory: renderInventory };
   renderInventory();
   load();
 })(window, document);
