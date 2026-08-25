@@ -44,8 +44,9 @@ function growthApi() {
 }
 
 const profile = { partner_id: 'partner_123', referral_code: 'REF123', slug: 'jane-smith' };
+const api = growthApi();
 const canonical = buildPublicUrl(profile);
-const campaign = growthApi().buildCampaignUrl({ referral_url: canonical }, {
+const campaign = api.buildCampaignUrl({ referral_url: canonical }, {
   campaign: 'q3_outreach',
   utm_source: 'linkedin',
   utm_medium: 'social',
@@ -67,12 +68,17 @@ assert.strictEqual(leadForm.searchParams.get('campaign'), 'q3_outreach');
 assert.strictEqual(leadForm.searchParams.get('utm_content'), 'lead_form');
 assert.strictEqual(leadForm.searchParams.get('utm_term'), 'contractors');
 
+const widgetUrl = new URL(api.buildWidgetUrl({ embed: 'https://embed-widgets-kappa.vercel.app/funding-readiness-scorecard-widget.html' }, profile));
+assert.strictEqual(widgetUrl.searchParams.get('partner_id'), 'partner_123');
+assert.strictEqual(widgetUrl.pathname, '/funding-readiness-scorecard-widget.html');
+
 const qr = new URL(qrUrl(canonical, 'png'));
 assert.strictEqual(qr.searchParams.get('data'), canonical);
 
 ['funding-page', 'referral-link', 'qr-code', 'lead-form', 'campaigns', 'assets', 'widgets', 'edit-profile'].forEach((id) => assert.ok(html.includes(`id="${id}"`), `Growth section ${id} is required`));
 ['data-open-public', 'data-open-referral', 'data-open-lead-form', 'data-open-campaign', 'data-qr-png', 'data-qr-svg'].forEach((action) => assert.ok(html.includes(action), `Growth action ${action} is required`));
 assert.ok(controller.includes('data-copy-widget'), 'runtime widget embed copy action is required');
+assert.ok(controller.includes("url.searchParams.set('partner_id', partnerId)"), 'widget embeds must preserve partner attribution');
 assert.ok(html.includes('data-publication-status'));
 assert.ok(html.includes('data-completeness'));
 assert.ok(html.includes('./data/resources.js'));
