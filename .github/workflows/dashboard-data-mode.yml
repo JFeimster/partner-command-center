@@ -1,4 +1,4 @@
-name: Dashboard data mode
+name: Partner Command validation
 
 on:
   pull_request:
@@ -7,12 +7,18 @@ on:
       - 'dashboard/**'
       - 'dashboard.html'
       - 'dashboard.css'
+      - 'index.html'
+      - 'marketplace.html'
+      - 'resources.html'
+      - 'styles/**'
+      - 'docs/DESIGN-SYSTEM.md'
       - 'data/app-config.json'
       - 'data/dashboard-nav.js'
       - 'data/demo/**'
       - 'lib/dashboard-bootstrap.js'
       - 'tests/dashboard-data-mode.test.js'
       - 'tests/dashboard-shell.test.js'
+      - 'tests/track-b-design.test.js'
       - 'scripts/capture-dashboard-screenshots.mjs'
       - '.github/workflows/dashboard-data-mode.yml'
       - 'vercel.json'
@@ -37,6 +43,9 @@ jobs:
       - name: Run dashboard shell tests
         run: node tests/dashboard-shell.test.js
 
+      - name: Run Track B design and route tests
+        run: node tests/track-b-design.test.js
+
       - name: Check JavaScript syntax
         run: |
           node --check api/dashboard/bootstrap.js
@@ -47,6 +56,7 @@ jobs:
           node --check dashboard/dashboard-renderers.js
           node --check dashboard/dashboard-data-adapter.js
           node --check dashboard/dashboard-data-mode-init.js
+          node --check tests/track-b-design.test.js
 
       - name: Validate JSON configuration
         run: |
