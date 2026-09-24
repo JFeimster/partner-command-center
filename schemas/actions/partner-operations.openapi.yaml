@@ -8,6 +8,27 @@ servers:
 security:
   - BearerAuth: []
 paths:
+  /api/partner-email-ingest:
+    post:
+      operationId: ingestPartnerEmail
+      summary: Convert a forwarded partner notification email into a canonical partner event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              properties:
+                from: { type: string }
+                subject: { type: string }
+                text: { type: string }
+                html: { type: string }
+                message_id: { type: string }
+                date: { type: string }
+      responses:
+        '200': { description: Duplicate email event replay }
+        '201': { description: Email event accepted }
   /api/partner-upsert:
     post:
       operationId: upsertPartner
