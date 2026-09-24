@@ -10,6 +10,12 @@ api/partner-links.js -> POST /api/partner-links
 api/lead-router.js -> POST /api/lead-router
 api/partner-signup.js -> POST /api/partner-signup
 api/partner-events.js -> POST /api/partner-events
+api/partner-upsert.js -> POST /api/partner-upsert
+api/partner-get.js -> GET|POST /api/partner-get
+api/partner-sync.js -> POST /api/partner-sync
+api/partner-tasks.js -> POST /api/partner-tasks
+api/partner-events-log.js -> POST /api/partner-events-log
+api/partner-resources.js -> POST /api/partner-resources
 ```
 
 Route roles:
@@ -17,6 +23,12 @@ Route roles:
 - `/api/router` remains the Tally/default partner signup router. Use `receivePartnerSignup` for default form ingestion.
 - `/api/partner-signup` is the GPT Action partner signup endpoint for partners, affiliates, referral partners, brokers, creators, consultants, and other partner-side signups.
 - `/api/partner-events` ingests trusted partner lifecycle events from email, Tally adapters, provider notifications, GPT/operator workflows, and CRM automations.
+- `/api/partner-upsert` creates or safely patches partner identity fields.
+- `/api/partner-get` returns a restricted partner profile projection.
+- `/api/partner-sync` treats Notion as primary and fans partner identity out to HubSpot plus the optional Google Sheets sync adapter.
+- `/api/partner-tasks` creates partner follow-up tasks in HubSpot and logs the event.
+- `/api/partner-events-log` writes explicit Partner Events.
+- `/api/partner-resources` assigns approved resources/content to a partner and logs the assignment.
 - `/api/partner-links` creates trusted partner tracking links after a partner exists.
 - `/api/lead-router` is for downstream partner-attributed funding leads, not partner signup.
 
