@@ -8,6 +8,12 @@
 | POST | `/api/lead-router` | Receive canonical direct or partner-attributed funding-readiness leads |
 | POST | `/api/partner-signup` | Create and classify a partner signup |
 | POST | `/api/partner-events` | Ingest and deduplicate trusted partner lifecycle events |
+| POST | `/api/partner-upsert` | Create or patch a partner identity |
+| GET/POST | `/api/partner-get` | Resolve a partner by ID or email |
+| POST | `/api/partner-sync` | Sync partner identity to secondary CRM/backups |
+| POST | `/api/partner-tasks` | Create a partner follow-up task |
+| POST | `/api/partner-events-log` | Log a partner activity event |
+| POST | `/api/partner-resources` | Assign a resource/content asset |
 | POST | `/api/partner-links` | Create a trusted partner tracking link |
 
 ## Planned partner-session routes
