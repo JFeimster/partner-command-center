@@ -7,6 +7,7 @@
 | GET | `/api/dashboard/bootstrap` | Return the authenticated partner dashboard projection |
 | POST | `/api/lead-router` | Receive canonical direct or partner-attributed funding-readiness leads |
 | POST | `/api/partner-signup` | Create and classify a partner signup |
+| POST | `/api/partner-events` | Ingest and deduplicate trusted partner lifecycle events |
 | POST | `/api/partner-links` | Create a trusted partner tracking link |
 
 ## Planned partner-session routes
@@ -28,6 +29,7 @@
 ```text
 /api/router           partner intake orchestration
 /api/partner-signup   partner signup
+/api/partner-events   partner lifecycle/event ingestion
 /api/lead-router      funding-readiness and partner-attributed leads
 /api/dashboard/*      authenticated partner-safe projections
 /admin/*              internal operator workflows
