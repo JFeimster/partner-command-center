@@ -89,10 +89,19 @@ module.exports = async function partnerLinks(req, res) {
 
     const now = new Date().toISOString();
     const destinationUrl = normalizeUrl(body.destination_url || body.destinationUrl || body.destination);
-    const trackingUrl = normalizeUrl(body.tracking_url || body.trackingUrl);
+    let trackingUrl = normalizeUrl(body.tracking_url || body.trackingUrl);
 
-    if (!destinationUrl || !trackingUrl) {
-      return sendJson(res, validationError('Explicit valid destination_url and tracking_url are required.'));
+    if (!destinationUrl) {
+      return sendJson(res, validationError('A valid destination_url is required.'));
+    }
+
+    if (!trackingUrl) {
+      const generated = new URL(destinationUrl);
+      generated.searchParams.set('ref', partnerId);
+      if (clean(body.utm_source || body.source)) generated.searchParams.set('utm_source', clean(body.utm_source || body.source));
+      if (clean(body.utm_medium || body.medium)) generated.searchParams.set('utm_medium', clean(body.utm_medium || body.medium));
+      if (clean(body.utm_campaign || body.campaign)) generated.searchParams.set('utm_campaign', clean(body.utm_campaign || body.campaign));
+      trackingUrl = generated.toString();
     }
 
     if (!trackingUrlMatchesPartner(trackingUrl, partnerId)) {

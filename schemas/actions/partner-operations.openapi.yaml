@@ -1,0 +1,150 @@
+openapi: 3.1.0
+info:
+  title: Partner Command Center Operations
+  version: 1.0.0
+  description: High-utility trusted partner operations for GPT Actions.
+servers:
+  - url: https://partner-command-center-rho.vercel.app
+security:
+  - BearerAuth: []
+paths:
+  /api/partner-upsert:
+    post:
+      operationId: upsertPartner
+      summary: Create or update a partner record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200': { description: Partner updated }
+        '201': { description: Partner created }
+  /api/partner-sync:
+    post:
+      operationId: syncPartnerRecords
+      summary: Synchronize a Notion partner to HubSpot and the Google Sheets backup adapter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerLookup'
+      responses:
+        '200': { description: Synchronization results }
+  /api/partner-get:
+    post:
+      operationId: getPartner
+      summary: Find a partner by Partner ID or email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerLookup'
+      responses:
+        '200': { description: Partner profile }
+  /api/partner-links:
+    post:
+      operationId: createPartnerTrackingLink
+      summary: Create a partner tracking/referral link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [partner_id, destination_url]
+              properties:
+                partner_id: { type: string }
+                destination_url: { type: string, format: uri }
+                tracking_url: { type: string, format: uri }
+                source: { type: string }
+                medium: { type: string }
+                campaign: { type: string }
+                utm_source: { type: string }
+                utm_medium: { type: string }
+                utm_campaign: { type: string }
+      responses:
+        '201': { description: Tracking link created }
+  /api/partner-tasks:
+    post:
+      operationId: createPartnerTask
+      summary: Create a HubSpot follow-up task for a partner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              required: [subject]
+              properties:
+                partner_id: { type: string }
+                email: { type: string, format: email }
+                subject: { type: string }
+                body: { type: string }
+                due_at: { type: string, format: date-time }
+                priority: { type: string }
+      responses:
+        '201': { description: Task created }
+  /api/partner-events-log:
+    post:
+      operationId: logPartnerEvent
+      summary: Log an explicit partner activity event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              required: [partner_id, event_type]
+              properties:
+                partner_id: { type: string }
+                event_type: { type: string }
+                source: { type: string }
+                status: { type: string }
+                summary: { type: string }
+                metadata: { type: object, additionalProperties: true }
+      responses:
+        '201': { description: Event logged }
+  /api/partner-resources:
+    post:
+      operationId: assignPartnerResource
+      summary: Assign a resource or content asset to a partner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              required: [partner_id, resource_title]
+              properties:
+                partner_id: { type: string }
+                resource_title: { type: string }
+                resource_url: { type: string, format: uri }
+                resource_type: { type: string }
+                reason: { type: string }
+      responses:
+        '201': { description: Resource assigned }
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: PARTNER_COMMAND_API_KEY
+  schemas:
+    PartnerLookup:
+      type: object
+      additionalProperties: false
+      properties:
+        partner_id: { type: string }
+        email: { type: string, format: email }
+      anyOf:
+        - required: [partner_id]
+        - required: [email]
