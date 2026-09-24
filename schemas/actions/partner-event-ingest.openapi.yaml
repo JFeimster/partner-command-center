@@ -1,0 +1,145 @@
+openapi: 3.1.0
+info:
+  title: Partner Command Center - Partner Event Ingestion
+  version: 1.0.0
+  description: >
+    Trusted GPT Action contract for ingesting partner and affiliate lifecycle events
+    from forwarded email, Tally adapters, provider notifications, CRM automations,
+    operator entry, and other trusted systems.
+servers:
+  - url: https://partner-command-center-rho.vercel.app
+paths:
+  /api/partner-events:
+    post:
+      operationId: ingestPartnerEvent
+      summary: Ingest a partner lifecycle event
+      description: >
+        Resolve an existing partner by Partner ID or email, create a minimal affiliate
+        partner record when no match exists, and write a deduplicated Partner Event.
+        Do not use for borrower funding applications.
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerEventRequest'
+            examples:
+              dacEnrollment:
+                summary: DAC broker enrollment notification
+                value:
+                  event_type: partner_enrollment_notification
+                  source: email
+                  provider: david_allen_capital
+                  external_event_id: email-message-id
+                  partner:
+                    name: Example Broker
+                    email: broker@example.com
+                    phone: "+12025550142"
+                  summary: DAC reported a broker enrollment or welcome-email resend.
+                  metadata:
+                    notification_type: broker_enrollment_or_resend
+      responses:
+        '201':
+          description: Event accepted and written.
+        '200':
+          description: Idempotent replay of an already-ingested event.
+        '400':
+          description: Invalid or unsafe event payload.
+        '401':
+          description: Missing or invalid trusted credential.
+        '502':
+          description: Primary Notion persistence failed.
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: PARTNER_COMMAND_API_KEY
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    PartnerEventRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - event_type
+        - source
+        - partner
+      properties:
+        event_id:
+          type: string
+          maxLength: 160
+        external_event_id:
+          type: string
+          maxLength: 300
+        event_type:
+          type: string
+          maxLength: 120
+        source:
+          type: string
+          enum:
+            - email
+            - tally
+            - gpt_action
+            - api
+            - manual
+            - provider_notification
+            - hubspot
+            - notion
+            - google_sheets
+            - automation
+        provider:
+          type: string
+          maxLength: 160
+        occurred_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          maxLength: 80
+        summary:
+          type: string
+          maxLength: 1000
+        metadata:
+          type: object
+          additionalProperties: true
+        partner:
+          type: object
+          additionalProperties: true
+          properties:
+            partner_id:
+              type: string
+            name:
+              type: string
+            first_name:
+              type: string
+            last_name:
+              type: string
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+            company:
+              type: string
+            website:
+              type: string
+              format: uri
+            partner_type:
+              type: string
+            audience:
+              type: string
+            status:
+              type: string
+            tier:
+              type: string
+            onboarding_path:
+              type: string
+          anyOf:
+            - required: [partner_id]
+            - required: [email]
