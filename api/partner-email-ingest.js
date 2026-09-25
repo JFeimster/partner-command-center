@@ -207,13 +207,13 @@ function externalId(input, parsed) {
   const forwardedMessageId = parsed && parsed.forwarded_headers
     ? clean(parsed.forwarded_headers.forwarded_message_id)
     : '';
-  const supplied = clean(input.external_event_id || input.internet_message_id || forwardedMessageId);
+  const supplied = clean(input.external_event_id || forwardedMessageId);
   if (supplied) return supplied;
 
   if (parsed && parsed.partner && parsed.partner.email) {
     const stablePayload = {
       provider: clean(parsed.provider),
-      subject: clean(input.subject).replace(/^(?:fwd?|re):\s*/i, ''),
+      subject: clean(input.subject).replace(/^(?:(?:fwd?|re):\s*)+/i, ''),
       name: clean(parsed.partner.name).toLowerCase(),
       email: clean(parsed.partner.email).toLowerCase(),
       phone: clean(parsed.partner.phone),
