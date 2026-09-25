@@ -159,6 +159,14 @@ function normalizePartnerCandidate(input, source, provider) {
     onboarding_path: onboardingPath,
     resource_recommendations: Array.isArray(input.resource_recommendations) ? input.resource_recommendations : [],
     campaign_recommendations: Array.isArray(input.campaign_recommendations) ? input.campaign_recommendations : [],
+    current_position: clean(input.current_position),
+    sales_experience: clean(input.sales_experience),
+    self_description: clean(input.self_description),
+    wants_strategy_call: clean(input.wants_strategy_call),
+    interest_reason: clean(input.interest_reason),
+    preferred_start: clean(input.preferred_start),
+    source_form: clean(input.source_form),
+    notes: clean(input.notes),
     created_at: clean(input.created_at) || now,
     updated_at: now
   };
