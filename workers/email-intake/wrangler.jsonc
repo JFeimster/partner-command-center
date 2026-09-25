@@ -6,4 +6,11 @@
   "vars": {
     "INTAKE_API_BASE_URL": "https://partner-command-center-rho.vercel.app"
   }
+,
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  }
 }
