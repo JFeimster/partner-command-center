@@ -152,6 +152,8 @@ function providerFromEmail(from, subject, body) {
 function parsePartnerNotification(input) {
   const rawText = [input.text, input.body_text, input.body, stripHtml(input.html)].filter(Boolean).join('\n');
   const provider = providerFromEmail(input.from, input.subject, rawText);
+  const questionAnswers = extractQuestionAnswerPairs(rawText);
+  const forwardedHeaders = extractForwardedHeaders(rawText);
 
   const identityLabels = [
     'broker name', 'agent name', 'full name', 'name',
@@ -160,24 +162,43 @@ function parsePartnerNotification(input) {
   ];
 
   let name = extractLabeled(rawText, ['broker name', 'agent name', 'full name', 'name'], identityLabels);
+  if (!name && provider === 'tally') {
+    name = answerFor(questionAnswers, [/what.?s your name/, /your name/, /full name/, /name.*rockstar/]);
+  }
+
   const labeledEmail = extractLabeled(
     rawText,
     ['broker e-mail', 'broker email', 'agent e-mail', 'agent email', 'email address', 'email'],
     identityLabels
   );
-  const email = labeledEmail || (provider === 'david_allen_capital'
+  const tallyEmail = provider === 'tally'
+    ? answerFor(questionAnswers, [/where should we send/, /email/, /e-mail/])
+    : '';
+  const email = labeledEmail || tallyEmail || (provider === 'david_allen_capital'
     ? firstNonProviderEmail(rawText, input.from)
     : firstEmail(rawText));
+
   const phone = extractLabeled(
     rawText,
     ['broker phone', 'agent phone', 'phone number', 'phone', 'mobile'],
     identityLabels
-  ) || firstPhone(rawText);
+  ) || answerFor(questionAnswers, [/phone/, /mobile/, /best number/]) || firstPhone(rawText);
 
+  const profile = {
+    current_work: answerFor(questionAnswers, [/current work/, /current.*hustle/, /what best describes your current/]),
+    sales_experience: answerFor(questionAnswers, [/worked in sales/, /sales.*finance/, /helping business owners/]),
+    self_description: answerFor(questionAnswers, [/describe yourself/, /how would you describe yourself/]),
+    wants_strategy_call: answerFor(questionAnswers, [/strategy call/, /1-on-1.*call/, /get started fast/]),
+    interest_reason: answerFor(questionAnswers, [/why.*interested/, /why.*join/, /what.*interested/]),
+    preferred_start: answerFor(questionAnswers, [/when.*start/, /preferred start/, /how soon/])
+  };
 
   return {
     provider,
     partner: { name, email, phone },
+    profile,
+    question_answers: questionAnswers,
+    forwarded_headers: forwardedHeaders,
     raw_text: rawText
   };
 }
