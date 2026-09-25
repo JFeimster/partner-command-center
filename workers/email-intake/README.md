@@ -67,3 +67,8 @@ PARTNER_COMMAND_API_KEY
 ## Failure behavior
 
 If the Vercel intake endpoint returns a non-2xx response, the Worker throws instead of silently treating the message as processed. Unknown message types are accepted by the API as `review_required`; they are not guessed into a partner or applicant record.
+
+
+## Git-connected deployment
+
+This Worker is connected to Cloudflare Workers Builds from the `main` branch with root directory `workers/email-intake`. Changes in this directory should trigger a production Worker build and deploy.
