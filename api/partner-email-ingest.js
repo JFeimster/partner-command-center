@@ -107,7 +107,7 @@ function gmailSearchUrl(messageId) {
 }
 
 function compactAttachmentMetadata(items) {
-  return Array.isArray(items) ? items.slice(0, 20).map((item) => ({
+  return Array.isArray(items) ? items.slice(0, 5).map((item) => ({
     filename: clean(item && item.filename),
     mime_type: clean(item && item.mime_type),
     size: item && item.size !== undefined ? item.size : null
@@ -115,9 +115,9 @@ function compactAttachmentMetadata(items) {
 }
 
 function compactQuestionAnswers(pairs) {
-  return (pairs || []).slice(0, 20).map((pair) => ({
-    q: normalizeWhitespace(pair.question).slice(0, 180),
-    a: normalizeWhitespace(pair.answer).slice(0, 300)
+  return (pairs || []).slice(0, 10).map((pair) => ({
+    q: normalizeWhitespace(pair.question).slice(0, 120),
+    a: normalizeWhitespace(pair.answer).slice(0, 180)
   }));
 }
 
@@ -281,7 +281,7 @@ module.exports = async function partnerEmailIngest(req, res) {
       email_message_id: outerMessageId || null,
       forwarded_message_id: forwardedMessageId || null,
       in_reply_to: clean(body.in_reply_to) || null,
-      references: clean(body.references) || null,
+      references: clean(body.references).slice(0, 500) || null,
       gmail_search_url: gmailSearchUrl(searchMessageId) || null,
       forwarded_from: clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_from) || null,
       forwarded_to: clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_to) || null,
@@ -290,7 +290,7 @@ module.exports = async function partnerEmailIngest(req, res) {
       attachments: compactAttachmentMetadata(body.attachments),
       question_answers: questionAnswers,
       parsed_profile: parsed.profile,
-      raw_text_excerpt: normalizeWhitespace(parsed.raw_text).slice(0, 1200),
+      raw_text_excerpt: normalizeWhitespace(parsed.raw_text).slice(0, 600),
       notification_type: clean(body.notification_type || 'enrollment_or_update_notification')
     }
   };
