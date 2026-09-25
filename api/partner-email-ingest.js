@@ -46,6 +46,81 @@ function firstPhone(text) {
   return match ? match[0].trim() : '';
 }
 
+function normalizeWhitespace(value) {
+  return String(value || '').replace(/\r/g, '').replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim();
+}
+
+function normalizedQuestion(value) {
+  return normalizeWhitespace(value)
+    .replace(/^Q\d+\s*[:.)-]?\s*/i, '')
+    .replace(/[?\s]+$/g, '')
+    .toLowerCase();
+}
+
+function looksLikeQuestion(line) {
+  const value = normalizeWhitespace(line);
+  return Boolean(value && (/[?]$/.test(value) || /^Q\d+\s*[:.)-]/i.test(value)));
+}
+
+function extractQuestionAnswerPairs(text) {
+  const lines = String(text || '').split(/\r?\n/).map((line) => normalizeWhitespace(line)).filter(Boolean);
+  const pairs = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    if (!looksLikeQuestion(lines[i])) continue;
+    const answer = lines[i + 1] && !looksLikeQuestion(lines[i + 1]) ? lines[i + 1] : '';
+    if (!answer) continue;
+    pairs.push({ question: lines[i], answer });
+    i += 1;
+  }
+  return pairs.slice(0, 30);
+}
+
+function answerFor(pairs, patterns) {
+  for (const pair of pairs || []) {
+    const question = normalizedQuestion(pair.question);
+    if ((patterns || []).some((pattern) => pattern.test(question))) return normalizeWhitespace(pair.answer);
+  }
+  return '';
+}
+
+function extractForwardedHeaders(text) {
+  const source = String(text || '');
+  const result = {};
+  const fields = [
+    ['forwarded_from', /(?:^|\n)From:\s*(.+)$/im],
+    ['forwarded_to', /(?:^|\n)To:\s*(.+)$/im],
+    ['forwarded_subject', /(?:^|\n)Subject:\s*(.+)$/im],
+    ['forwarded_date', /(?:^|\n)(?:Date|Sent):\s*(.+)$/im],
+    ['forwarded_message_id', /(?:^|\n)Message-ID:\s*(<[^>]+>|\S+)/im]
+  ];
+  for (const [key, regex] of fields) {
+    const match = source.match(regex);
+    if (match && match[1]) result[key] = normalizeWhitespace(match[1]);
+  }
+  return result;
+}
+
+function gmailSearchUrl(messageId) {
+  const id = clean(messageId).replace(/^<|>$/g, '');
+  if (!id) return '';
+  return 'https://mail.google.com/mail/u/0/#search/rfc822msgid%3A' + encodeURIComponent(id);
+}
+
+function compactAttachmentMetadata(items) {
+  return Array.isArray(items) ? items.slice(0, 20).map((item) => ({
+    filename: clean(item && item.filename),
+    mime_type: clean(item && item.mime_type),
+    size: item && item.size !== undefined ? item.size : null
+  })) : [];
+}
+
+function compactQuestionAnswers(pairs) {
+  return (pairs || []).slice(0, 20).map((pair) => ({
+    q: normalizeWhitespace(pair.question).slice(0, 180),
+    a: normalizeWhitespace(pair.answer).slice(0, 300)
+  }));
+}
+
 function escapeRegex(value) {
   return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
