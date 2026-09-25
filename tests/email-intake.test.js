@@ -18,6 +18,41 @@ const intake = require('../lib/email-intake');
   });
   assert.strictEqual(applicant.type, 'applicant');
 
+  const tallyFunding = intake.classify({
+    to: 'intake@myfunding.site',
+    from: 'jason@example.com',
+    subject: 'Fwd: New Tally Form Submission for Funding for ANY Reason',
+    text: 'Desired amount of funding?\n$0 - $25,000\nWhat is your first name?\nAlexander\nPrimary email\narhodges892@gmail.com'
+  });
+  assert.strictEqual(tallyFunding.type, 'applicant');
+
+  const tallyParsed = intake.parseApplicant({
+    subject: 'Fwd: New Tally Form Submission for Funding for ANY Reason',
+    text: [
+      'Desired amount of funding?',
+      '$0 - $25,000',
+      'What is your first name?',
+      'Alexander',
+      'What is your last name?',
+      'Hodges',
+      'Phone number',
+      '[+12108107187](tel:(210)%20810-7187)',
+      'Primary email',
+      'arhodges892@gmail.com',
+      'City',
+      'San Antonio',
+      'State',
+      'TX'
+    ].join('\n')
+  });
+  assert.strictEqual(tallyParsed.name, 'Alexander Hodges');
+  assert.strictEqual(tallyParsed.email, 'arhodges892@gmail.com');
+  assert.strictEqual(tallyParsed.phone, '+12108107187');
+  assert.strictEqual(tallyParsed.desiredFunding, '$0 - $25,000');
+  assert.strictEqual(tallyParsed.city, 'San Antonio');
+  assert.strictEqual(tallyParsed.state, 'TX');
+  assert.strictEqual(tallyParsed.routeDetected, 'Tally Funding Intake');
+
   const explicitUnknown = intake.classify({
     subject: 'Hello',
     text: 'No known intake signal here.'
