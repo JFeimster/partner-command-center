@@ -45,9 +45,9 @@ function parsePartnerNotification(input) {
   const rawText = [input.text, input.body_text, input.body, stripHtml(input.html)].filter(Boolean).join('\n');
   const provider = providerFromEmail(input.from, input.subject, rawText);
 
-  let name = extractLabeled(rawText, ['name', 'broker', 'agent', 'full name']);
-  const email = extractLabeled(rawText, ['email', 'email address']) || firstEmail(rawText);
-  const phone = extractLabeled(rawText, ['phone', 'phone number', 'mobile']) || firstPhone(rawText);
+  let name = extractLabeled(rawText, ['broker name', 'agent name', 'full name', 'name', 'broker', 'agent']);
+  const email = extractLabeled(rawText, ['broker e-mail', 'broker email', 'email address', 'email']) || firstEmail(rawText);
+  const phone = extractLabeled(rawText, ['broker phone', 'agent phone', 'phone number', 'phone', 'mobile']) || firstPhone(rawText);
 
   if (!name && provider === 'david_allen_capital') {
     const subjectName = clean(input.subject).match(/(?:enrolled|welcome).*?[-:|]\s*(.+)$/i);
