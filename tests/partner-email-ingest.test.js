@@ -32,3 +32,57 @@ test('generic notifications still extract first email and phone', () => {
 test('provider detection recognizes Tally notifications', () => {
   assert.equal(providerFromEmail('notify@tally.so', 'New submission', ''), 'tally');
 });
+
+
+test('extracts DAC broker identity from forwarded Gmail body instead of provider headers', () => {
+  const parsed = parsePartnerNotification({
+    from: 'jasonfeimster@gmail.com',
+    subject: "Fwd: Jason, You've enrolled a DAC Broker-or they requested we resend their welcome email!",
+    text: [
+      '---------- Forwarded message ---------',
+      'From: David Allen Capital, Inc. <support@davidallencapital.com>',
+      "Subject: Jason, You've enrolled a DAC Broker-or they requested we resend their welcome email!",
+      'Congratulations! You have a new Independent Broker!',
+      'Broker Name: Eunice Bajoie',
+      'Broker Phone: (504) 451-5774',
+      'Broker E-mail: ehowebajoie@gmail.com'
+    ].join('\n')
+  });
+
+  assert.equal(parsed.provider, 'david_allen_capital');
+  assert.equal(parsed.partner.name, 'Eunice Bajoie');
+  assert.equal(parsed.partner.email, 'ehowebajoie@gmail.com');
+  assert.equal(parsed.partner.phone, '(504) 451-5774');
+});
+
+test('extracts adjacent DAC labels when markup or forwarding flattens fields', () => {
+  const parsed = parsePartnerNotification({
+    from: 'jasonfeimster@gmail.com',
+    subject: 'Fwd: DAC broker enrollment',
+    html: '<div>From: David Allen Capital &lt;support@davidallencapital.com&gt;</div><div>Broker Name: Eunice Bajoie Broker Phone: (504) 451-5774 Broker E-mail: ehowebajoie@gmail.com</div>'
+  });
+
+  assert.equal(parsed.partner.name, 'Eunice Bajoie');
+  assert.equal(parsed.partner.email, 'ehowebajoie@gmail.com');
+  assert.equal(parsed.partner.phone, '(504) 451-5774');
+});
+
+test('stripHtml preserves structural line boundaries', () => {
+  const { stripHtml } = emailIngest._private;
+  assert.equal(
+    stripHtml('<div>Broker Name: Eunice Bajoie</div><div>Broker Phone: (504) 451-5774</div>'),
+    'Broker Name: Eunice Bajoie\nBroker Phone: (504) 451-5774'
+  );
+});
+
+
+test('does not treat forwarded DAC support identity as the broker', () => {
+  const parsed = parsePartnerNotification({
+    from: 'jasonfeimster@gmail.com',
+    subject: "Fwd: Jason, You've enrolled a DAC Broker-or they requested we resend their welcome email!",
+    text: 'From: David Allen Capital <support@davidallencapital.com>\nContact applicant at realbroker@example.com'
+  });
+
+  assert.equal(parsed.partner.name, '');
+  assert.equal(parsed.partner.email, 'realbroker@example.com');
+});
