@@ -24,9 +24,21 @@ function stripHtml(value) {
     .trim();
 }
 
+function allEmails(text) {
+  return Array.from(new Set((String(text || '').match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig) || [])
+    .map((value) => value.toLowerCase())));
+}
+
 function firstEmail(text) {
-  const match = clean(text).match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
-  return match ? match[0].toLowerCase() : '';
+  return allEmails(text)[0] || '';
+}
+
+function firstNonProviderEmail(text, inputFrom) {
+  const sender = clean(inputFrom).toLowerCase();
+  return allEmails(text).find((value) =>
+    value !== sender &&
+    !/@(?:davidallencapital\.com|sendgrid\.net)$/i.test(value)
+  ) || '';
 }
 
 function firstPhone(text) {
@@ -73,21 +85,20 @@ function parsePartnerNotification(input) {
   ];
 
   let name = extractLabeled(rawText, ['broker name', 'agent name', 'full name', 'name'], identityLabels);
-  const email = extractLabeled(
+  const labeledEmail = extractLabeled(
     rawText,
     ['broker e-mail', 'broker email', 'agent e-mail', 'agent email', 'email address', 'email'],
     identityLabels
-  ) || firstEmail(rawText);
+  );
+  const email = labeledEmail || (provider === 'david_allen_capital'
+    ? firstNonProviderEmail(rawText, input.from)
+    : firstEmail(rawText));
   const phone = extractLabeled(
     rawText,
     ['broker phone', 'agent phone', 'phone number', 'phone', 'mobile'],
     identityLabels
   ) || firstPhone(rawText);
 
-  if (!name && provider === 'david_allen_capital') {
-    const subjectName = clean(input.subject).match(/(?:enrolled|welcome).*?[-:|]\s*(.+)$/i);
-    if (subjectName) name = subjectName[1].trim();
-  }
 
   return {
     provider,
@@ -140,4 +151,4 @@ module.exports = async function partnerEmailIngest(req, res) {
   return partnerEvents(req, res);
 };
 
-module.exports._private = { stripHtml, firstEmail, firstPhone, escapeRegex, extractLabeled, providerFromEmail, parsePartnerNotification, externalId };
+module.exports._private = { stripHtml, allEmails, firstEmail, firstNonProviderEmail, firstPhone, escapeRegex, extractLabeled, providerFromEmail, parsePartnerNotification, externalId };
