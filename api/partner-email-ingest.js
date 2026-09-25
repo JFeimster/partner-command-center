@@ -203,9 +203,30 @@ function parsePartnerNotification(input) {
   };
 }
 
-function externalId(input) {
-  const supplied = clean(input.message_id || input.external_event_id || input.internet_message_id);
+function externalId(input, parsed) {
+  const forwardedMessageId = parsed && parsed.forwarded_headers
+    ? clean(parsed.forwarded_headers.forwarded_message_id)
+    : '';
+  const supplied = clean(input.external_event_id || input.internet_message_id || forwardedMessageId);
   if (supplied) return supplied;
+
+  if (parsed && parsed.partner && parsed.partner.email) {
+    const stablePayload = {
+      provider: clean(parsed.provider),
+      subject: clean(input.subject).replace(/^(?:fwd?|re):\s*/i, ''),
+      name: clean(parsed.partner.name).toLowerCase(),
+      email: clean(parsed.partner.email).toLowerCase(),
+      phone: clean(parsed.partner.phone),
+      qa: compactQuestionAnswers(parsed.question_answers)
+    };
+    return 'email_content_' + crypto.createHash('sha256')
+      .update(JSON.stringify(stablePayload))
+      .digest('hex').slice(0, 24);
+  }
+
+  const suppliedOuter = clean(input.message_id);
+  if (suppliedOuter) return suppliedOuter;
+
   return 'email_' + crypto.createHash('sha256')
     .update([clean(input.from), clean(input.subject), clean(input.date), clean(input.text || input.body || input.html)].join('|'))
     .digest('hex').slice(0, 24);
@@ -225,21 +246,51 @@ module.exports = async function partnerEmailIngest(req, res) {
     }));
   }
 
+  const outerMessageId = clean(body.message_id || body.internet_message_id);
+  const forwardedMessageId = clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_message_id);
+  const searchMessageId = forwardedMessageId || outerMessageId;
+  const questionAnswers = compactQuestionAnswers(parsed.question_answers);
+
   req.body = {
     event_type: clean(body.event_type || 'partner_enrollment_notification'),
     source: 'email',
     provider: parsed.provider,
-    external_event_id: externalId(body),
+    external_event_id: externalId(body, parsed),
     partner: {
       name: parsed.partner.name || parsed.partner.email,
       email: parsed.partner.email,
-      phone: parsed.partner.phone
+      phone: parsed.partner.phone,
+      current_position: clean(parsed.profile && parsed.profile.current_work),
+      sales_experience: clean(parsed.profile && parsed.profile.sales_experience),
+      self_description: clean(parsed.profile && parsed.profile.self_description),
+      wants_strategy_call: clean(parsed.profile && parsed.profile.wants_strategy_call),
+      interest_reason: clean(parsed.profile && parsed.profile.interest_reason),
+      preferred_start: clean(parsed.profile && parsed.profile.preferred_start),
+      source_form: parsed.provider === 'tally' ? clean(body.subject) : '',
+      notes: parsed.provider === 'tally' && questionAnswers.length
+        ? 'Parsed from forwarded Tally notification. Full question/answer set stored on the Partner Event.'
+        : ''
     },
     summary: clean(body.summary || ('Partner notification ingested from ' + parsed.provider + '.')),
     metadata: {
       email_from: clean(body.from),
+      email_to: clean(body.to),
+      email_reply_to: clean(body.reply_to),
       email_subject: clean(body.subject),
       email_date: clean(body.date),
+      email_message_id: outerMessageId || null,
+      forwarded_message_id: forwardedMessageId || null,
+      in_reply_to: clean(body.in_reply_to) || null,
+      references: clean(body.references) || null,
+      gmail_search_url: gmailSearchUrl(searchMessageId) || null,
+      forwarded_from: clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_from) || null,
+      forwarded_to: clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_to) || null,
+      forwarded_subject: clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_subject) || null,
+      forwarded_date: clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_date) || null,
+      attachments: compactAttachmentMetadata(body.attachments),
+      question_answers: questionAnswers,
+      parsed_profile: parsed.profile,
+      raw_text_excerpt: normalizeWhitespace(parsed.raw_text).slice(0, 1200),
       notification_type: clean(body.notification_type || 'enrollment_or_update_notification')
     }
   };
@@ -247,4 +298,4 @@ module.exports = async function partnerEmailIngest(req, res) {
   return partnerEvents(req, res);
 };
 
-module.exports._private = { stripHtml, allEmails, firstEmail, firstNonProviderEmail, firstPhone, escapeRegex, extractLabeled, providerFromEmail, parsePartnerNotification, externalId };
+module.exports._private = { stripHtml, allEmails, firstEmail, firstNonProviderEmail, firstPhone, normalizeWhitespace, normalizedQuestion, looksLikeQuestion, extractQuestionAnswerPairs, answerFor, extractForwardedHeaders, gmailSearchUrl, compactAttachmentMetadata, compactQuestionAnswers, escapeRegex, extractLabeled, providerFromEmail, parsePartnerNotification, externalId };
