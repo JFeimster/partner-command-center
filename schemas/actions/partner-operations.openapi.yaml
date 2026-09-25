@@ -8,6 +8,42 @@ servers:
 security:
   - BearerAuth: []
 paths:
+  /api/intake-message:
+    post:
+      operationId: routeIntakeMessage
+      summary: Route raw forwarded email or message text to the partner or applicant intake pipeline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              properties:
+                type: { type: string, enum: [partner, applicant] }
+                from: { type: string }
+                to: { type: string }
+                subject: { type: string }
+                text: { type: string }
+                html: { type: string }
+                raw_text: { type: string }
+                message_id: { type: string }
+                date: { type: string }
+      responses:
+        '200': { description: Unknown message accepted for review }
+        '201': { description: Intake accepted }
+  /api/applicant-email-ingest:
+    post:
+      operationId: ingestApplicantEmail
+      summary: Parse a forwarded funding-applicant notification and sync configured CRM projections
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Applicant message needs review }
+        '201': { description: Applicant notification accepted }
   /api/partner-email-ingest:
     post:
       operationId: ingestPartnerEmail
