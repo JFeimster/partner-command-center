@@ -441,3 +441,5 @@ This repo should be useful in three modes:
 3. **As a blueprint for future backend/API/CRM automation.**
 
 Keep it sharp, honest, and deployable. The mission is not to build a museum. The mission is to turn partner attention into partner action.
+
+<!-- Vercel redeploy trigger -->
