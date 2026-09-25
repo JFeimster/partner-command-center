@@ -21,6 +21,8 @@ export default {
       message_id: parsed.messageId || headerValue(parsed.headers, 'message-id') || '',
       date: parsed.date || headerValue(parsed.headers, 'date') || '',
       reply_to: parsed.replyTo?.map((entry) => entry.address).join(', ') || '',
+      in_reply_to: headerValue(parsed.headers, 'in-reply-to') || '',
+      references: headerValue(parsed.headers, 'references') || '',
       attachments: (parsed.attachments || []).map((item) => ({
         filename: item.filename || '',
         mime_type: item.mimeType || '',
