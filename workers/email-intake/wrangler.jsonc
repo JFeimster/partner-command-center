@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "partner-command-email-intake",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-24",
+  "vars": {
+    "INTAKE_API_BASE_URL": "https://partner-command-center-rho.vercel.app"
+  }
+}
