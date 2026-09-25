@@ -35,3 +35,21 @@ test('new partner candidates default to affiliate semantics', () => {
   assert.equal(partner.referral_source, 'email');
   assert.equal(partner.traffic_source, 'david_allen_capital');
 });
+
+
+const mappers = require('../lib/partner-mappers');
+const mappedEvent = mappers.partnerEventToNotionProperties({
+  event_id: 'evt_test',
+  partner_id: 'MS-P-TEST',
+  event_type: 'partner_enrollment_notification',
+  source: 'email',
+  status: 'received',
+  summary: 'DAC broker enrollment'
+});
+assert(mappedEvent['Event Name']);
+assert.strictEqual(mappedEvent['Event Type'].select.name, 'Intake Submitted');
+assert.strictEqual(mappedEvent['Source'].select.name, 'Email');
+assert.strictEqual(mappedEvent['Status'].select.name, 'intake_received');
+assert(mappedEvent['Occurred At']);
+assert(!mappedEvent['Event ID']);
+assert(!mappedEvent['Created At']);
