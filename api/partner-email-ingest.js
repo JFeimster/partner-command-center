@@ -46,6 +46,81 @@ function firstPhone(text) {
   return match ? match[0].trim() : '';
 }
 
+function normalizeWhitespace(value) {
+  return String(value || '').replace(/\r/g, '').replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim();
+}
+
+function normalizedQuestion(value) {
+  return normalizeWhitespace(value)
+    .replace(/^Q\d+\s*[:.)-]?\s*/i, '')
+    .replace(/[?\s]+$/g, '')
+    .toLowerCase();
+}
+
+function looksLikeQuestion(line) {
+  const value = normalizeWhitespace(line);
+  return Boolean(value && (/[?]$/.test(value) || /^Q\d+\s*[:.)-]/i.test(value)));
+}
+
+function extractQuestionAnswerPairs(text) {
+  const lines = String(text || '').split(/\r?\n/).map((line) => normalizeWhitespace(line)).filter(Boolean);
+  const pairs = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    if (!looksLikeQuestion(lines[i])) continue;
+    const answer = lines[i + 1] && !looksLikeQuestion(lines[i + 1]) ? lines[i + 1] : '';
+    if (!answer) continue;
+    pairs.push({ question: lines[i], answer });
+    i += 1;
+  }
+  return pairs.slice(0, 30);
+}
+
+function answerFor(pairs, patterns) {
+  for (const pair of pairs || []) {
+    const question = normalizedQuestion(pair.question);
+    if ((patterns || []).some((pattern) => pattern.test(question))) return normalizeWhitespace(pair.answer);
+  }
+  return '';
+}
+
+function extractForwardedHeaders(text) {
+  const source = String(text || '');
+  const result = {};
+  const fields = [
+    ['forwarded_from', /(?:^|\n)From:\s*(.+)$/im],
+    ['forwarded_to', /(?:^|\n)To:\s*(.+)$/im],
+    ['forwarded_subject', /(?:^|\n)Subject:\s*(.+)$/im],
+    ['forwarded_date', /(?:^|\n)(?:Date|Sent):\s*(.+)$/im],
+    ['forwarded_message_id', /(?:^|\n)Message-ID:\s*(<[^>]+>|\S+)/im]
+  ];
+  for (const [key, regex] of fields) {
+    const match = source.match(regex);
+    if (match && match[1]) result[key] = normalizeWhitespace(match[1]);
+  }
+  return result;
+}
+
+function gmailSearchUrl(messageId) {
+  const id = clean(messageId).replace(/^<|>$/g, '');
+  if (!id) return '';
+  return 'https://mail.google.com/mail/u/0/#search/rfc822msgid%3A' + encodeURIComponent(id);
+}
+
+function compactAttachmentMetadata(items) {
+  return Array.isArray(items) ? items.slice(0, 20).map((item) => ({
+    filename: clean(item && item.filename),
+    mime_type: clean(item && item.mime_type),
+    size: item && item.size !== undefined ? item.size : null
+  })) : [];
+}
+
+function compactQuestionAnswers(pairs) {
+  return (pairs || []).slice(0, 20).map((pair) => ({
+    q: normalizeWhitespace(pair.question).slice(0, 180),
+    a: normalizeWhitespace(pair.answer).slice(0, 300)
+  }));
+}
+
 function escapeRegex(value) {
   return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -77,6 +152,8 @@ function providerFromEmail(from, subject, body) {
 function parsePartnerNotification(input) {
   const rawText = [input.text, input.body_text, input.body, stripHtml(input.html)].filter(Boolean).join('\n');
   const provider = providerFromEmail(input.from, input.subject, rawText);
+  const questionAnswers = extractQuestionAnswerPairs(rawText);
+  const forwardedHeaders = extractForwardedHeaders(rawText);
 
   const identityLabels = [
     'broker name', 'agent name', 'full name', 'name',
@@ -85,31 +162,71 @@ function parsePartnerNotification(input) {
   ];
 
   let name = extractLabeled(rawText, ['broker name', 'agent name', 'full name', 'name'], identityLabels);
+  if (!name && provider === 'tally') {
+    name = answerFor(questionAnswers, [/what.?s your name/, /your name/, /full name/, /name.*rockstar/]);
+  }
+
   const labeledEmail = extractLabeled(
     rawText,
     ['broker e-mail', 'broker email', 'agent e-mail', 'agent email', 'email address', 'email'],
     identityLabels
   );
-  const email = labeledEmail || (provider === 'david_allen_capital'
+  const tallyEmail = provider === 'tally'
+    ? answerFor(questionAnswers, [/where should we send/, /email/, /e-mail/])
+    : '';
+  const email = labeledEmail || tallyEmail || (provider === 'david_allen_capital'
     ? firstNonProviderEmail(rawText, input.from)
     : firstEmail(rawText));
+
   const phone = extractLabeled(
     rawText,
     ['broker phone', 'agent phone', 'phone number', 'phone', 'mobile'],
     identityLabels
-  ) || firstPhone(rawText);
+  ) || answerFor(questionAnswers, [/phone/, /mobile/, /best number/]) || firstPhone(rawText);
 
+  const profile = {
+    current_work: answerFor(questionAnswers, [/current work/, /current.*hustle/, /what best describes your current/]),
+    sales_experience: answerFor(questionAnswers, [/worked in sales/, /sales.*finance/, /helping business owners/]),
+    self_description: answerFor(questionAnswers, [/describe yourself/, /how would you describe yourself/]),
+    wants_strategy_call: answerFor(questionAnswers, [/strategy call/, /1-on-1.*call/, /get started fast/]),
+    interest_reason: answerFor(questionAnswers, [/why.*interested/, /why.*join/, /what.*interested/]),
+    preferred_start: answerFor(questionAnswers, [/when.*start/, /preferred start/, /how soon/])
+  };
 
   return {
     provider,
     partner: { name, email, phone },
+    profile,
+    question_answers: questionAnswers,
+    forwarded_headers: forwardedHeaders,
     raw_text: rawText
   };
 }
 
-function externalId(input) {
-  const supplied = clean(input.message_id || input.external_event_id || input.internet_message_id);
+function externalId(input, parsed) {
+  const forwardedMessageId = parsed && parsed.forwarded_headers
+    ? clean(parsed.forwarded_headers.forwarded_message_id)
+    : '';
+  const supplied = clean(input.external_event_id || input.internet_message_id || forwardedMessageId);
   if (supplied) return supplied;
+
+  if (parsed && parsed.partner && parsed.partner.email) {
+    const stablePayload = {
+      provider: clean(parsed.provider),
+      subject: clean(input.subject).replace(/^(?:fwd?|re):\s*/i, ''),
+      name: clean(parsed.partner.name).toLowerCase(),
+      email: clean(parsed.partner.email).toLowerCase(),
+      phone: clean(parsed.partner.phone),
+      qa: compactQuestionAnswers(parsed.question_answers)
+    };
+    return 'email_content_' + crypto.createHash('sha256')
+      .update(JSON.stringify(stablePayload))
+      .digest('hex').slice(0, 24);
+  }
+
+  const suppliedOuter = clean(input.message_id);
+  if (suppliedOuter) return suppliedOuter;
+
   return 'email_' + crypto.createHash('sha256')
     .update([clean(input.from), clean(input.subject), clean(input.date), clean(input.text || input.body || input.html)].join('|'))
     .digest('hex').slice(0, 24);
@@ -129,21 +246,51 @@ module.exports = async function partnerEmailIngest(req, res) {
     }));
   }
 
+  const outerMessageId = clean(body.message_id || body.internet_message_id);
+  const forwardedMessageId = clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_message_id);
+  const searchMessageId = forwardedMessageId || outerMessageId;
+  const questionAnswers = compactQuestionAnswers(parsed.question_answers);
+
   req.body = {
     event_type: clean(body.event_type || 'partner_enrollment_notification'),
     source: 'email',
     provider: parsed.provider,
-    external_event_id: externalId(body),
+    external_event_id: externalId(body, parsed),
     partner: {
       name: parsed.partner.name || parsed.partner.email,
       email: parsed.partner.email,
-      phone: parsed.partner.phone
+      phone: parsed.partner.phone,
+      current_position: clean(parsed.profile && parsed.profile.current_work),
+      sales_experience: clean(parsed.profile && parsed.profile.sales_experience),
+      self_description: clean(parsed.profile && parsed.profile.self_description),
+      wants_strategy_call: clean(parsed.profile && parsed.profile.wants_strategy_call),
+      interest_reason: clean(parsed.profile && parsed.profile.interest_reason),
+      preferred_start: clean(parsed.profile && parsed.profile.preferred_start),
+      source_form: parsed.provider === 'tally' ? clean(body.subject) : '',
+      notes: parsed.provider === 'tally' && questionAnswers.length
+        ? 'Parsed from forwarded Tally notification. Full question/answer set stored on the Partner Event.'
+        : ''
     },
     summary: clean(body.summary || ('Partner notification ingested from ' + parsed.provider + '.')),
     metadata: {
       email_from: clean(body.from),
+      email_to: clean(body.to),
+      email_reply_to: clean(body.reply_to),
       email_subject: clean(body.subject),
       email_date: clean(body.date),
+      email_message_id: outerMessageId || null,
+      forwarded_message_id: forwardedMessageId || null,
+      in_reply_to: clean(body.in_reply_to) || null,
+      references: clean(body.references) || null,
+      gmail_search_url: gmailSearchUrl(searchMessageId) || null,
+      forwarded_from: clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_from) || null,
+      forwarded_to: clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_to) || null,
+      forwarded_subject: clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_subject) || null,
+      forwarded_date: clean(parsed.forwarded_headers && parsed.forwarded_headers.forwarded_date) || null,
+      attachments: compactAttachmentMetadata(body.attachments),
+      question_answers: questionAnswers,
+      parsed_profile: parsed.profile,
+      raw_text_excerpt: normalizeWhitespace(parsed.raw_text).slice(0, 1200),
       notification_type: clean(body.notification_type || 'enrollment_or_update_notification')
     }
   };
@@ -151,4 +298,4 @@ module.exports = async function partnerEmailIngest(req, res) {
   return partnerEvents(req, res);
 };
 
-module.exports._private = { stripHtml, allEmails, firstEmail, firstNonProviderEmail, firstPhone, escapeRegex, extractLabeled, providerFromEmail, parsePartnerNotification, externalId };
+module.exports._private = { stripHtml, allEmails, firstEmail, firstNonProviderEmail, firstPhone, normalizeWhitespace, normalizedQuestion, looksLikeQuestion, extractQuestionAnswerPairs, answerFor, extractForwardedHeaders, gmailSearchUrl, compactAttachmentMetadata, compactQuestionAnswers, escapeRegex, extractLabeled, providerFromEmail, parsePartnerNotification, externalId };
