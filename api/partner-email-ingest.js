@@ -35,19 +35,8 @@ function firstPhone(text) {
 }
 
 function escapeRegex(value) {
-  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\function extractLabeled(text, labels) {
-  const lines = String(text || '').split(/\r?\n/).map((x)=>x.trim()).filter(Boolean);
-  for (const line of lines) {
-    for (const label of labels) {
-      const re = new RegExp('^' + label + '\\s*[:\\-]\\s*(.+)$', 'i');
-      const m = line.match(re);
-      if (m) return m[1].trim();
-    }
-  }
-  return '';
-}');
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
-
 function extractLabeled(text, labels, stopLabels) {
   const source = String(text || '').replace(/\r/g, '');
   const allStops = Array.from(new Set([...(stopLabels || []), ...(labels || [])]))
