@@ -74,3 +74,15 @@ test('stripHtml preserves structural line boundaries', () => {
     'Broker Name: Eunice Bajoie\nBroker Phone: (504) 451-5774'
   );
 });
+
+
+test('does not treat forwarded DAC support identity as the broker', () => {
+  const parsed = parsePartnerNotification({
+    from: 'jasonfeimster@gmail.com',
+    subject: "Fwd: Jason, You've enrolled a DAC Broker-or they requested we resend their welcome email!",
+    text: 'From: David Allen Capital <support@davidallencapital.com>\nContact applicant at realbroker@example.com'
+  });
+
+  assert.equal(parsed.partner.name, '');
+  assert.equal(parsed.partner.email, 'realbroker@example.com');
+});
