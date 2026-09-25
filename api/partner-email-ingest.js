@@ -9,7 +9,19 @@ const { validationError, unauthorized, methodNotAllowed, sendJson } = require('.
 const { clean, isAuthorized, parseBody } = require('../lib/action-auth');
 
 function stripHtml(value) {
-  return clean(value).replace(/<br\s*\/?\s*>/gi, '\n').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
+  return String(value || '')
+    .replace(/<br\s*\/?\s*>/gi, '\n')
+    .replace(/<\/(?:p|div|li|tr|td|table|section|article|blockquote|h[1-6])\s*>/gi, '\n')
+    .replace(/<(?:p|div|li|tr|td|table|section|article|blockquote|h[1-6])(?:\s[^>]*)?>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&#39;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/\r/g, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s*\n+/g, '\n')
+    .trim();
 }
 
 function firstEmail(text) {
@@ -22,7 +34,8 @@ function firstPhone(text) {
   return match ? match[0].trim() : '';
 }
 
-function extractLabeled(text, labels) {
+function escapeRegex(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\function extractLabeled(text, labels) {
   const lines = String(text || '').split(/\r?\n/).map((x)=>x.trim()).filter(Boolean);
   for (const line of lines) {
     for (const label of labels) {
@@ -30,6 +43,25 @@ function extractLabeled(text, labels) {
       const m = line.match(re);
       if (m) return m[1].trim();
     }
+  }
+  return '';
+}');
+}
+
+function extractLabeled(text, labels, stopLabels) {
+  const source = String(text || '').replace(/\r/g, '');
+  const allStops = Array.from(new Set([...(stopLabels || []), ...(labels || [])]))
+    .map(escapeRegex)
+    .sort((a, b) => b.length - a.length);
+
+  for (const label of labels || []) {
+    const escaped = escapeRegex(label);
+    const stopPattern = allStops.length
+      ? '(?=\\s*(?:' + allStops.join('|') + ')\\s*[:\\-]|\\n|$)'
+      : '(?=\\n|$)';
+    const re = new RegExp('(?:^|\\n|\\s)' + escaped + '\\s*[:\\-]\\s*(.+?)' + stopPattern, 'i');
+    const match = source.match(re);
+    if (match && match[1]) return match[1].trim();
   }
   return '';
 }
@@ -45,9 +77,23 @@ function parsePartnerNotification(input) {
   const rawText = [input.text, input.body_text, input.body, stripHtml(input.html)].filter(Boolean).join('\n');
   const provider = providerFromEmail(input.from, input.subject, rawText);
 
-  let name = extractLabeled(rawText, ['broker name', 'agent name', 'full name', 'name', 'broker', 'agent']);
-  const email = extractLabeled(rawText, ['broker e-mail', 'broker email', 'email address', 'email']) || firstEmail(rawText);
-  const phone = extractLabeled(rawText, ['broker phone', 'agent phone', 'phone number', 'phone', 'mobile']) || firstPhone(rawText);
+  const identityLabels = [
+    'broker name', 'agent name', 'full name', 'name',
+    'broker phone', 'agent phone', 'phone number', 'phone', 'mobile',
+    'broker e-mail', 'broker email', 'agent e-mail', 'agent email', 'email address', 'email'
+  ];
+
+  let name = extractLabeled(rawText, ['broker name', 'agent name', 'full name', 'name'], identityLabels);
+  const email = extractLabeled(
+    rawText,
+    ['broker e-mail', 'broker email', 'agent e-mail', 'agent email', 'email address', 'email'],
+    identityLabels
+  ) || firstEmail(rawText);
+  const phone = extractLabeled(
+    rawText,
+    ['broker phone', 'agent phone', 'phone number', 'phone', 'mobile'],
+    identityLabels
+  ) || firstPhone(rawText);
 
   if (!name && provider === 'david_allen_capital') {
     const subjectName = clean(input.subject).match(/(?:enrolled|welcome).*?[-:|]\s*(.+)$/i);
@@ -105,4 +151,4 @@ module.exports = async function partnerEmailIngest(req, res) {
   return partnerEvents(req, res);
 };
 
-module.exports._private = { stripHtml, firstEmail, firstPhone, extractLabeled, providerFromEmail, parsePartnerNotification, externalId };
+module.exports._private = { stripHtml, firstEmail, firstPhone, escapeRegex, extractLabeled, providerFromEmail, parsePartnerNotification, externalId };
