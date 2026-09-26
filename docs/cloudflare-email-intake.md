@@ -31,11 +31,22 @@ Existing partner CRM sync remains available through `/api/partner-sync`.
 ```text
 /api/intake-message
   -> /api/applicant-email-ingest
-  -> HubSpot contact + deal when configured
-  -> optional Google Sheets sync webhook
+  -> parse applicant identity + funding facts
+  -> HubSpot contact upsert
+  -> HubSpot funding deal upsert
+  -> Notion Funding Leads upsert
+  -> Google Sheets applicant sync webhook
 ```
 
-A raw applicant notification is intentionally not converted into a fabricated full Funding Leads record in Notion. The canonical `/api/lead-router` still requires a complete funding-lead contract.
+Applicant email intake now converges on existing records instead of creating a new record for every forwarded notification:
+
+- HubSpot contacts are resolved by normalized email before create.
+- HubSpot funding deals are searched and updated when a matching applicant deal exists; otherwise a deal is created when HubSpot deal access is configured.
+- Notion Funding Leads are resolved by applicant email. The same Funding Lead is updated when possible; duplicate-email conflicts are returned for review instead of guessed.
+- Google Sheets receives `action: upsert_applicant_notification` with the normalized applicant plus HubSpot and Notion record IDs in the context object.
+- Source event/message IDs are retained for replay detection and auditability.
+
+The email parser writes only high-confidence structured fields. Existing lifecycle fields are preserved on later notifications rather than being reset by a routine forwarded email.
 
 ### Unknown
 
@@ -100,13 +111,37 @@ The old Funding Applicant OS n8n workflow files remain reference material only. 
 
 Vercel already requires `PARTNER_COMMAND_API_KEY`.
 
-Optional applicant fan-out:
+Applicant persistence configuration:
 
 ```text
 HUBSPOT_PRIVATE_APP_TOKEN
+NOTION_API_KEY
+NOTION_FUNDING_LEADS_DB_ID
 GOOGLE_SHEETS_SYNC_WEBHOOK_URL
 GOOGLE_SHEETS_SYNC_SECRET
 ```
+
+If a destination is not configured or rejects a write, the other destinations continue processing. The API response and Vercel runtime log include per-destination status for `hubspot_contact`, `hubspot_deal`, `notion`, and `google_sheets`.
+
+### Runtime observability
+
+Each applicant intake emits one compact production log event:
+
+```text
+[applicant-email-ingest] {
+  event_id,
+  result,
+  destinations: {
+    hubspot_contact,
+    hubspot_deal,
+    notion,
+    google_sheets
+  },
+  failed_systems
+}
+```
+
+The log intentionally excludes applicant name, email, phone, and raw email text. Google Sheets receiver diagnostics are reduced to safe fields such as HTTP status, action/result, row/record ID, and error/message when the receiver provides them.
 
 Cloudflare Worker secret:
 
