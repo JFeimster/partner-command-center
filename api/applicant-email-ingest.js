@@ -4,7 +4,25 @@ const { parseApplicant, externalId, clean } = require('../lib/email-intake');
 const { isAuthorized, parseBody } = require('../lib/action-auth');
 const { upsertApplicantContact, upsertApplicantDeal } = require('../lib/hubspot-client');
 const { syncApplicant } = require('../lib/google-sheets-sync');
-const { validationError, unauthorized, methodNotAllowed, sendJson, created, success, serverError } = require('../lib/response');
+const { upsertEmailFundingLead } = require('../lib/notion/funding-leads');
+const { validationError, unauthorized, methodNotAllowed, sendJson, created, success } = require('../lib/response');
+
+function failureResult(error) {
+  return {
+    status: 'failed',
+    code: error && error.code || 'unknown_error',
+    http_status: error && error.status || null,
+    message: error && error.message ? error.message : 'Unknown error'
+  };
+}
+
+async function capture(work) {
+  try {
+    return await work();
+  } catch (error) {
+    return failureResult(error);
+  }
+}
 
 module.exports = async function applicantEmailIngest(req, res) {
   if (!req || req.method !== 'POST') return sendJson(res, methodNotAllowed(req && req.method, ['POST']));
@@ -36,12 +54,15 @@ module.exports = async function applicantEmailIngest(req, res) {
     email: parsed.email.toLowerCase(),
     phone: parsed.phone,
     business_name: parsed.businessName,
-    monthly_revenue: parsed.revenue,
+    monthly_revenue: parsed.monthlyRevenue || parsed.revenue,
+    lowest_monthly_revenue: parsed.lowestMonthlyRevenue,
     desired_funding_amount: parsed.desiredFunding,
+    account_type: parsed.bankAccountType,
     city: parsed.city,
     state: parsed.state,
     status: parsed.status,
     route_detected: parsed.routeDetected,
+    routing_outcome: parsed.routingOutcome,
     source: 'forwarded_email',
     email_subject: clean(body.subject),
     email_from: clean(body.from),
@@ -49,43 +70,49 @@ module.exports = async function applicantEmailIngest(req, res) {
     raw_body_preview: parsed.raw_text.slice(0, 1200)
   };
 
-  try {
-    const hubspotContact = await upsertApplicantContact(applicant);
-    const hubspotDeal = await upsertApplicantDeal(applicant, hubspotContact && hubspotContact.contact_id);
-    const sheets = await syncApplicant(applicant, {
-      hubspot_contact_id: hubspotContact && hubspotContact.contact_id || null,
-      hubspot_deal_id: hubspotDeal && hubspotDeal.deal_id || null
-    });
+  const [hubspotContact, notion] = await Promise.all([
+    capture(() => upsertApplicantContact(applicant)),
+    capture(() => upsertEmailFundingLead(applicant))
+  ]);
 
-    return sendJson(res, created({
-      action: 'ingestApplicantEmail',
-      result: 'accepted',
-      applicant: {
-        name: applicant.name,
-        email: applicant.email,
-        business_name: applicant.business_name || null,
-        desired_funding_amount: applicant.desired_funding_amount || null,
-        city: applicant.city || null,
-        state: applicant.state || null,
-        status: applicant.status,
-        route_detected: applicant.route_detected
-      },
-      persistence: {
-        hubspot_contact: hubspotContact,
-        hubspot_deal: hubspotDeal,
-        google_sheets: sheets,
-        notion: {
-          status: 'not_written',
-          reason: 'raw email notifications do not fabricate a complete Funding Leads record'
-        }
-      },
-      external_event_id: applicant.external_event_id
-    }));
-  } catch (error) {
-    return sendJson(res, serverError('Applicant email ingestion failed.', {
-      code: error && error.code,
-      status: error && error.status,
-      message: error && error.message ? error.message : 'Unknown error'
-    }));
-  }
+  const hubspotDeal = hubspotContact && hubspotContact.status !== 'failed'
+    ? await capture(() => upsertApplicantDeal(applicant, hubspotContact && hubspotContact.contact_id))
+    : { status: 'skipped', reason: 'hubspot_contact_failed' };
+
+  const sheets = await capture(() => syncApplicant(applicant, {
+    hubspot_contact_id: hubspotContact && hubspotContact.contact_id || null,
+    hubspot_deal_id: hubspotDeal && hubspotDeal.deal_id || null,
+    notion_page_id: notion && notion.notion_page_id || null,
+    notion_external_lead_id: notion && notion.external_lead_id || null
+  }));
+
+  const persistence = {
+    hubspot_contact: hubspotContact,
+    hubspot_deal: hubspotDeal,
+    notion,
+    google_sheets: sheets
+  };
+  const failedSystems = Object.entries(persistence)
+    .filter(([, value]) => value && value.status === 'failed')
+    .map(([key]) => key);
+
+  return sendJson(res, created({
+    action: 'ingestApplicantEmail',
+    result: failedSystems.length ? 'accepted_with_errors' : 'accepted',
+    applicant: {
+      name: applicant.name,
+      email: applicant.email,
+      business_name: applicant.business_name || null,
+      desired_funding_amount: applicant.desired_funding_amount || null,
+      city: applicant.city || null,
+      state: applicant.state || null,
+      status: applicant.status,
+      route_detected: applicant.route_detected
+    },
+    persistence,
+    failed_systems: failedSystems,
+    external_event_id: applicant.external_event_id
+  }));
 };
+
+module.exports._private = { failureResult, capture };
