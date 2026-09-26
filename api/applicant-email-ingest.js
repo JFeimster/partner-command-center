@@ -96,6 +96,16 @@ module.exports = async function applicantEmailIngest(req, res) {
     .filter(([, value]) => value && value.status === 'failed')
     .map(([key]) => key);
 
+  console.log('[applicant-email-ingest]', JSON.stringify({
+    external_event_id: applicant.external_event_id,
+    result: failedSystems.length ? 'accepted_with_errors' : 'accepted',
+    hubspot_contact: hubspotContact && hubspotContact.status === 'failed' ? 'failed' : 'ok',
+    hubspot_deal: hubspotDeal && hubspotDeal.status ? hubspotDeal.status : (hubspotDeal && hubspotDeal.deal_id ? 'ok' : 'unknown'),
+    notion: notion && notion.status ? notion.status : 'unknown',
+    google_sheets: sheets && sheets.status ? sheets.status : 'unknown',
+    failed_systems: failedSystems
+  }));
+
   return sendJson(res, created({
     action: 'ingestApplicantEmail',
     result: failedSystems.length ? 'accepted_with_errors' : 'accepted',
