@@ -24,6 +24,38 @@ async function capture(work) {
   }
 }
 
+function persistenceSummary(value) {
+  if (!value) return { status: 'missing' };
+  return {
+    configured: value.configured === undefined ? null : Boolean(value.configured),
+    status: value.status || 'unknown',
+    code: value.code || null,
+    http_status: value.http_status || null,
+    contact_id: value.contact_id || null,
+    deal_id: value.deal_id || null,
+    notion_page_id: value.notion_page_id || null,
+    external_lead_id: value.external_lead_id || null,
+    contact_association: value.contact_association || null,
+    receiver: value.receiver || null
+  };
+}
+
+function logPersistence(externalEventId, persistence, failedSystems) {
+  const summary = {
+    event_id: externalEventId || null,
+    result: failedSystems.length ? 'accepted_with_errors' : 'accepted',
+    destinations: {
+      hubspot_contact: persistenceSummary(persistence.hubspot_contact),
+      hubspot_deal: persistenceSummary(persistence.hubspot_deal),
+      notion: persistenceSummary(persistence.notion),
+      google_sheets: persistenceSummary(persistence.google_sheets)
+    },
+    failed_systems: failedSystems
+  };
+  console.log('[applicant-email-ingest]', JSON.stringify(summary));
+  return summary;
+}
+
 module.exports = async function applicantEmailIngest(req, res) {
   if (!req || req.method !== 'POST') return sendJson(res, methodNotAllowed(req && req.method, ['POST']));
   if (!isAuthorized(req)) return sendJson(res, unauthorized('Trusted API key is required.'));
@@ -96,6 +128,8 @@ module.exports = async function applicantEmailIngest(req, res) {
     .filter(([, value]) => value && value.status === 'failed')
     .map(([key]) => key);
 
+  const persistenceStatus = logPersistence(applicant.external_event_id, persistence, failedSystems);
+
   return sendJson(res, created({
     action: 'ingestApplicantEmail',
     result: failedSystems.length ? 'accepted_with_errors' : 'accepted',
@@ -110,9 +144,10 @@ module.exports = async function applicantEmailIngest(req, res) {
       route_detected: applicant.route_detected
     },
     persistence,
+    persistence_status: persistenceStatus,
     failed_systems: failedSystems,
     external_event_id: applicant.external_event_id
   }));
 };
 
-module.exports._private = { failureResult, capture };
+module.exports._private = { failureResult, capture, persistenceSummary, logPersistence };
