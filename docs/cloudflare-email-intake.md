@@ -143,6 +143,16 @@ Each applicant intake emits one compact production log event:
 
 The log intentionally excludes applicant name, email, phone, and raw email text. Google Sheets receiver diagnostics are reduced to safe fields such as HTTP status, action/result, row/record ID, and error/message when the receiver provides them.
 
+A public, secret-free configuration health check is available at:
+
+```text
+GET /api/intake-health
+```
+
+It reports only whether the HubSpot, Notion, and Google Sheets destinations are configured. It never exposes tokens, webhook URLs, or secret values.
+
+When one or more persistence destinations are absent, applicant ingestion returns `accepted_with_gaps` and lists them in `unavailable_systems` instead of reporting a misleading fully-successful result.
+
 Cloudflare Worker secret:
 
 ```text
