@@ -120,7 +120,7 @@ test('email property mapper writes a tight create projection', () => {
   assert.equal(props['Revenue (Lowest Monthly)'].number, 5000);
   assert.equal(props['Account Type'].select.name, 'personal');
   assert.equal(props['Intake Channel'].select.name, 'Email');
-  assert.equal(props['Submission Method'].select.name, 'Email');
+  assert.equal(props['Submission Method'].select.name, 'Imported Email');
   assert.equal(props['Lead Status'].status.name, 'New');
   assert.equal(props['Review Status'].status.name, 'Received');
 });
