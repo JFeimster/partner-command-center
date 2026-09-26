@@ -67,5 +67,18 @@ const intake = require('../lib/email-intake');
   assert.strictEqual(parsed.routeDetected, 'Giggle Finance');
   assert.strictEqual(parsed.status, 'Submission started');
 
+  const bankBreezy = intake.parseApplicant({
+    subject: 'Fwd: BankBreezy Submission Started for Vincent Tellone',
+    text: [
+      'Owner Email: vtellone@aol.com',
+      'Owner Phone: (224) 389-1784',
+      'They stated their lowest monthly revenue in the last 3 months was: $5,000',
+      'They indicated the bank account is In Your Personal Name'
+    ].join('\n')
+  });
+  assert.strictEqual(bankBreezy.name, 'Vincent Tellone');
+  assert.strictEqual(bankBreezy.lowestMonthlyRevenue, '5000');
+  assert.strictEqual(bankBreezy.bankAccountType, 'personal');
+
   console.log('email-intake tests passed');
 })();
