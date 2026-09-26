@@ -40,17 +40,21 @@ function persistenceSummary(value) {
   };
 }
 
-function logPersistence(externalEventId, persistence, failedSystems) {
+function logPersistence(externalEventId, persistence, failedSystems, unavailableSystems) {
+  const result = failedSystems.length
+    ? 'accepted_with_errors'
+    : ((unavailableSystems || []).length ? 'accepted_with_gaps' : 'accepted');
   const summary = {
     event_id: externalEventId || null,
-    result: failedSystems.length ? 'accepted_with_errors' : 'accepted',
+    result,
     destinations: {
       hubspot_contact: persistenceSummary(persistence.hubspot_contact),
       hubspot_deal: persistenceSummary(persistence.hubspot_deal),
       notion: persistenceSummary(persistence.notion),
       google_sheets: persistenceSummary(persistence.google_sheets)
     },
-    failed_systems: failedSystems
+    failed_systems: failedSystems,
+    unavailable_systems: unavailableSystems || []
   };
   console.log('[applicant-email-ingest]', JSON.stringify(summary));
   return summary;
@@ -128,11 +132,24 @@ module.exports = async function applicantEmailIngest(req, res) {
     .filter(([, value]) => value && value.status === 'failed')
     .map(([key]) => key);
 
-  const persistenceStatus = logPersistence(applicant.external_event_id, persistence, failedSystems);
+  const unavailableSystems = Object.entries(persistence)
+    .filter(([, value]) => value && value.status === 'not_configured')
+    .map(([key]) => key);
+
+  const persistenceStatus = logPersistence(
+    applicant.external_event_id,
+    persistence,
+    failedSystems,
+    unavailableSystems
+  );
+
+  const result = failedSystems.length
+    ? 'accepted_with_errors'
+    : (unavailableSystems.length ? 'accepted_with_gaps' : 'accepted');
 
   return sendJson(res, created({
     action: 'ingestApplicantEmail',
-    result: failedSystems.length ? 'accepted_with_errors' : 'accepted',
+    result,
     applicant: {
       name: applicant.name,
       email: applicant.email,
@@ -146,6 +163,7 @@ module.exports = async function applicantEmailIngest(req, res) {
     persistence,
     persistence_status: persistenceStatus,
     failed_systems: failedSystems,
+    unavailable_systems: unavailableSystems,
     external_event_id: applicant.external_event_id
   }));
 };
