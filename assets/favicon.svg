@@ -1,12 +1,1 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="g" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#34D399"/>
-      <stop offset="0.58" stop-color="#A7F3D0"/>
-      <stop offset="1" stop-color="#FBBF24"/>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="18" fill="#020617"/>
-  <rect x="10" y="10" width="44" height="44" rx="15" fill="url(#g)"/>
-  <path d="M19 42V22H26L32 32.2L38 22H45V42H38.8V31L33.8 39H30.2L25.2 31V42H19Z" fill="#02110C"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="10" x2="54" y1="8" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#34D399"/><stop offset=".58" stop-color="#A7F3D0"/><stop offset="1" stop-color="#FBBF24"/></linearGradient></defs><rect width="64" height="64" fill="#020617" rx="18"/><rect width="44" height="44" x="10" y="10" fill="url(#g)" rx="15"/><path fill="#02110C" d="M19 42V22H26L32 32.2L38 22H45V42H38.8V31L33.8 39H30.2L25.2 31V42H19Z"/></svg>
