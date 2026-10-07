@@ -95,5 +95,10 @@
       "source": "/terms",
       "destination": "/terms.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/reconcile-applicants.js": {
+      "maxDuration": 60
+    }
+  }
 }
