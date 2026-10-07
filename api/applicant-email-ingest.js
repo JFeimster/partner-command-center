@@ -3,7 +3,7 @@
 const { parseApplicant, externalId, clean } = require('../lib/email-intake');
 const { isAuthorized, parseBody } = require('../lib/action-auth');
 const { upsertApplicantContact, upsertApplicantDeal } = require('../lib/hubspot-client');
-const { syncApplicant } = require('../lib/google-sheets-sync');
+const { syncApplicant, findApplicantSyncContext } = require('../lib/google-sheets-sync');
 const { upsertEmailFundingLead } = require('../lib/notion/funding-leads');
 const { validationError, unauthorized, methodNotAllowed, sendJson, created, success } = require('../lib/response');
 
@@ -102,17 +102,26 @@ module.exports = async function applicantEmailIngest(req, res) {
     source: 'forwarded_email',
     email_subject: clean(body.subject),
     email_from: clean(body.from),
-    email_date: clean(body.date),
+    email_date: clean(parsed.originalEmailDate || body.date),
     raw_body_preview: parsed.raw_text.slice(0, 1200)
   };
 
-  const [hubspotContact, notion] = await Promise.all([
+  const [hubspotContact, notion, existingSheetContext] = await Promise.all([
     capture(() => upsertApplicantContact(applicant)),
-    capture(() => upsertEmailFundingLead(applicant))
+    capture(() => upsertEmailFundingLead(applicant)),
+    capture(() => findApplicantSyncContext(applicant))
   ]);
 
+  const preferredDealId = existingSheetContext && existingSheetContext.status !== 'failed'
+    ? existingSheetContext.hubspot_deal_id
+    : null;
+
   const hubspotDeal = hubspotContact && hubspotContact.status !== 'failed'
-    ? await capture(() => upsertApplicantDeal(applicant, hubspotContact && hubspotContact.contact_id))
+    ? await capture(() => upsertApplicantDeal(
+        applicant,
+        hubspotContact && hubspotContact.contact_id,
+        { preferred_deal_id: preferredDealId }
+      ))
     : { status: 'skipped', reason: 'hubspot_contact_failed' };
 
   const sheets = await capture(() => syncApplicant(applicant, {
@@ -164,7 +173,12 @@ module.exports = async function applicantEmailIngest(req, res) {
     persistence_status: persistenceStatus,
     failed_systems: failedSystems,
     unavailable_systems: unavailableSystems,
-    external_event_id: applicant.external_event_id
+    external_event_id: applicant.external_event_id,
+    reconciliation: {
+      sheet_row: existingSheetContext && existingSheetContext.row_number || null,
+      preferred_hubspot_deal_id: preferredDealId || null,
+      deal_match_strategy: hubspotDeal && hubspotDeal.match_strategy || null
+    }
   }));
 };
 

@@ -7,7 +7,8 @@ const {
   stableEmailLeadId,
   numericMoney,
   normalizedAccountType,
-  buildEmailFundingLeadProperties
+  buildEmailFundingLeadProperties,
+  selectEmailFundingLeadMatch
 } = require('../lib/notion/funding-leads');
 
 function request() {
@@ -163,4 +164,18 @@ test('new declined email leads start in terminal Notion lifecycle without changi
   }, { isUpdate: true });
   assert.equal('Lead Status' in update, false);
   assert.equal('Review Status' in update, false);
+});
+
+
+test('duplicate applicant emails resolve to the case closest to the original provider event', () => {
+  const selected = selectEmailFundingLeadMatch([
+    { id: 'older-case', created_time: '2026-04-20T20:24:31.000Z', properties: {} },
+    { id: 'matching-case', created_time: '2026-04-21T20:46:14.000Z', properties: {} }
+  ], {
+    email: 'clar80837@gmail.com',
+    email_date: '2026-04-21T20:46:00.000Z',
+    external_event_id: '<new-message@example.com>'
+  });
+
+  assert.equal(selected.id, 'matching-case');
 });

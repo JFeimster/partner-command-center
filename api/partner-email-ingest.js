@@ -142,6 +142,11 @@ function extractLabeled(text, labels, stopLabels) {
   return '';
 }
 
+function looksLikeCompanyName(value) {
+  const normalized = normalizeWhitespace(value);
+  return /\b(?:llc|l\.l\.c\.|inc\.?|corp(?:oration)?|company|co\.?|industries|holdings|group|solutions|services|capital|partners?)\b/i.test(normalized);
+}
+
 function providerFromEmail(from, subject, body) {
   const haystack = [from, subject, body].join(' ').toLowerCase();
   if (/david\s*allen\s*capital|davidallencapital\.com|dac broker/.test(haystack)) return 'david_allen_capital';
@@ -184,6 +189,10 @@ function parsePartnerNotification(input) {
     identityLabels
   ) || answerFor(questionAnswers, [/phone/, /mobile/, /best number/]) || firstPhone(rawText);
 
+  const companyLabels = [...identityLabels, 'broker company', 'company', 'business name'];
+  const labeledCompany = extractLabeled(rawText, ['broker company', 'company', 'business name'], companyLabels);
+  const company = labeledCompany || (provider === 'david_allen_capital' && looksLikeCompanyName(name) ? name : '');
+
   const profile = {
     current_work: answerFor(questionAnswers, [/current work/, /current.*hustle/, /what best describes your current/]),
     sales_experience: answerFor(questionAnswers, [/worked in sales/, /sales.*finance/, /helping business owners/]),
@@ -195,7 +204,7 @@ function parsePartnerNotification(input) {
 
   return {
     provider,
-    partner: { name, email, phone },
+    partner: { name, email, phone, company },
     profile,
     question_answers: questionAnswers,
     forwarded_headers: forwardedHeaders,
@@ -260,6 +269,7 @@ module.exports = async function partnerEmailIngest(req, res) {
       name: parsed.partner.name || parsed.partner.email,
       email: parsed.partner.email,
       phone: parsed.partner.phone,
+      company: parsed.partner.company,
       current_position: clean(parsed.profile && parsed.profile.current_work),
       sales_experience: clean(parsed.profile && parsed.profile.sales_experience),
       self_description: clean(parsed.profile && parsed.profile.self_description),
@@ -298,4 +308,4 @@ module.exports = async function partnerEmailIngest(req, res) {
   return partnerEvents(req, res);
 };
 
-module.exports._private = { stripHtml, allEmails, firstEmail, firstNonProviderEmail, firstPhone, normalizeWhitespace, normalizedQuestion, looksLikeQuestion, extractQuestionAnswerPairs, answerFor, extractForwardedHeaders, gmailSearchUrl, compactAttachmentMetadata, compactQuestionAnswers, escapeRegex, extractLabeled, providerFromEmail, parsePartnerNotification, externalId };
+module.exports._private = { stripHtml, allEmails, firstEmail, firstNonProviderEmail, firstPhone, normalizeWhitespace, normalizedQuestion, looksLikeQuestion, extractQuestionAnswerPairs, answerFor, extractForwardedHeaders, gmailSearchUrl, compactAttachmentMetadata, compactQuestionAnswers, escapeRegex, extractLabeled, looksLikeCompanyName, providerFromEmail, parsePartnerNotification, externalId };

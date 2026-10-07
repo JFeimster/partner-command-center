@@ -7,6 +7,7 @@
 const crypto = require('crypto');
 const {
   upsertPartner,
+  updatePartnerMissingFields,
   createPartnerEvent,
   findPartnerByPartnerId,
   findPartnerByEmail,
@@ -221,10 +222,17 @@ module.exports = async function partnerEvents(req, res) {
   try {
     const replay = await findPartnerEventByEventId(eventId);
     if (replay) {
+      const replayPartner = await resolveExistingPartner(partnerInput);
+      const replayEnrichment = replayPartner
+        ? await updatePartnerMissingFields(replayPartner, partnerInput)
+        : { action: 'unchanged', page: replayPartner, updated_fields: [] };
       return sendJson(res, success({
         action: 'ingestPartnerEvent',
         result: 'duplicate_replayed',
         event_id: eventId,
+        partner_storage_action: replayEnrichment.action,
+        partner_enriched_fields: replayEnrichment.updated_fields || [],
+        notion_partner_page: safePageSummary(replayEnrichment.page || replayPartner),
         notion_event_page: safePageSummary(replay)
       }));
     }
@@ -254,8 +262,13 @@ module.exports = async function partnerEvents(req, res) {
       storageAction = result.action;
       partnerPage = result.page;
       partnerId = candidate.partner_id;
-    } else if (!partnerId && clean(partnerInput.partner_id)) {
-      partnerId = clean(partnerInput.partner_id);
+    } else {
+      const enrichment = await updatePartnerMissingFields(existingPage, partnerInput);
+      storageAction = enrichment.action;
+      partnerPage = enrichment.page || existingPage;
+      if (!partnerId && clean(partnerInput.partner_id)) {
+        partnerId = clean(partnerInput.partner_id);
+      }
     }
 
     if (!partnerId) {
@@ -287,6 +300,7 @@ module.exports = async function partnerEvents(req, res) {
       partner_id: partnerId,
       partner_storage_action: storageAction,
       partner_created: storageAction === 'created',
+      partner_enriched: storageAction === 'enriched',
       notion_partner_page: safePageSummary(partnerPage),
       notion_event_page: safePageSummary(eventPage)
     }));

@@ -80,6 +80,42 @@ const intake = require('../lib/email-intake');
   assert.strictEqual(bankBreezy.lowestMonthlyRevenue, '5000');
   assert.strictEqual(bankBreezy.bankAccountType, 'personal');
 
+  const blankCompany = intake.parseApplicant({
+    subject: 'Fwd: BankBreezy Submission Started for Amanda Bravo',
+    text: [
+      'Client Information:',
+      'Name: Amanda Bravo',
+      'Owner Email: theamandabravo@gmail.com',
+      'Company:',
+      '*Details:*',
+      '- They stated their lowest monthly revenue in the last 3 months was: $2,000'
+    ].join('\n')
+  });
+  assert.strictEqual(blankCompany.businessName, '');
+
+  const moonshinePrequal = intake.parseApplicant({
+    subject: 'Fwd: Funding Pre-Qualification got a new submission',
+    text: [
+      '---------- Forwarded message ---------',
+      'From: Moonshine Capital <admin@distilledfunding.com>',
+      'Date: Tue, May 12, 2026 at 4:29 PM',
+      'Subject: Funding Pre-Qualification got a new submission',
+      'Desired amount of funding?:',
+      'Less than $25,000',
+      'First Name:',
+      'Nicole',
+      'Last Name:',
+      'Ross',
+      'Email:',
+      'support@turnthetidehomecarellc.com'
+    ].join('\n')
+  });
+  assert.strictEqual(moonshinePrequal.name, 'Nicole Ross');
+  assert.strictEqual(moonshinePrequal.routeDetected, 'Moonshine Pre-Qualification');
+  assert.strictEqual(moonshinePrequal.status, 'Submission received');
+  assert.strictEqual(moonshinePrequal.desiredFunding, 'Less than $25,000');
+  assert.strictEqual(moonshinePrequal.originalEmailDate, 'Tue, May 12, 2026 at 4:29 PM');
+
   const declined = intake.parseApplicant({
     subject: 'Fwd: BankBreezy Submission Started for EARL WOODMAN',
     text: [
