@@ -141,3 +141,26 @@ test('email update projection preserves lifecycle fields and keeps identity fiel
   assert.equal(props['Account Type'].select.name, 'business');
   assert.equal(normalizedAccountType('business account'), 'business');
 });
+
+
+test('new declined email leads start in terminal Notion lifecycle without changing update behavior', () => {
+  const props = buildEmailFundingLeadProperties({
+    external_event_id: 'declined-1',
+    name: 'Earl Woodman',
+    email: 'earl@example.com',
+    status: 'Declined',
+    route_detected: 'BankBreezy'
+  });
+
+  assert.equal(props['Lead Status'].status.name, 'Lost');
+  assert.equal(props['Review Status'].status.name, 'Declined');
+
+  const update = buildEmailFundingLeadProperties({
+    external_event_id: 'declined-2',
+    name: 'Earl Woodman',
+    email: 'earl@example.com',
+    status: 'Declined'
+  }, { isUpdate: true });
+  assert.equal('Lead Status' in update, false);
+  assert.equal('Review Status' in update, false);
+});
