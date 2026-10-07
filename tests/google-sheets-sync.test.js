@@ -8,7 +8,8 @@ const {
   exactMoney,
   normalizedStatus,
   applicantValues,
-  safeApplicantUpdateValues
+  safeApplicantUpdateValues,
+  selectApplicantCaseCandidate
 } = require('../lib/google-sheets-sync');
 
 test('stable applicant record IDs converge by normalized email', () => {
@@ -126,4 +127,34 @@ test('existing applicant updates preserve lifecycle and notes from stale forward
   assert.equal(values.AQ, '123');
   assert.equal(values.AS, '456');
   assert.equal(values.N, '2025550101');
+});
+
+
+test('case-aware sheet matching prefers the application closest to the original provider event', () => {
+  const index = (column) => {
+    let value = 0;
+    for (const ch of column) value = value * 26 + (ch.charCodeAt(0) - 64);
+    return value - 1;
+  };
+  const older = new Array(46).fill('');
+  older[index('B')] = '2026-04-20T20:24:26.000Z';
+  older[index('F')] = '<older@example.com>';
+  older[index('AS')] = 'deal-old';
+
+  const matching = new Array(46).fill('');
+  matching[index('B')] = '2026-04-21T20:46:09.000Z';
+  matching[index('F')] = '<matching@example.com>';
+  matching[index('AS')] = 'deal-matching';
+
+  const selected = selectApplicantCaseCandidate([
+    { row_number: 152, row: older },
+    { row_number: 155, row: matching }
+  ], {
+    email: 'clar80837@gmail.com',
+    email_date: '2026-04-21T20:46:00.000Z',
+    external_event_id: '<new-forward@example.com>'
+  });
+
+  assert.equal(selected.row_number, 155);
+  assert.equal(selected.match_strategy, 'event_time');
 });
