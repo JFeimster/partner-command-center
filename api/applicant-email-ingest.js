@@ -109,7 +109,7 @@ module.exports = async function applicantEmailIngest(req, res) {
   const [hubspotContact, notion, existingSheetContext] = await Promise.all([
     capture(() => upsertApplicantContact(applicant)),
     capture(() => upsertEmailFundingLead(applicant)),
-    capture(() => findApplicantSyncContext(applicant.email))
+    capture(() => findApplicantSyncContext(applicant))
   ]);
 
   const preferredDealId = existingSheetContext && existingSheetContext.status !== 'failed'
