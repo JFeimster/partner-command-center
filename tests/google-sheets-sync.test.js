@@ -7,7 +7,8 @@ const {
   stableApplicantRecordId,
   exactMoney,
   normalizedStatus,
-  applicantValues
+  applicantValues,
+  safeApplicantUpdateValues
 } = require('../lib/google-sheets-sync');
 
 test('stable applicant record IDs converge by normalized email', () => {
@@ -91,4 +92,38 @@ test('service account JSON can supply direct credentials without split env vars'
     if (previousKey === undefined) delete process.env.GOOGLE_PRIVATE_KEY;
     else process.env.GOOGLE_PRIVATE_KEY = previousKey;
   }
+});
+
+
+test('existing applicant updates preserve lifecycle and notes from stale forwards', () => {
+  const existing = new Array(46).fill('');
+  const index = (column) => {
+    let value = 0;
+    for (const ch of column) value = value * 26 + (ch.charCodeAt(0) - 64);
+    return value - 1;
+  };
+  existing[index('M')] = 'amanda@example.com';
+  existing[index('Y')] = 'Under Review';
+  existing[index('AM')] = 'Operator notes that must survive old email replay';
+
+  const values = safeApplicantUpdateValues({
+    external_event_id: '<old-message@example.com>',
+    name: 'Amanda Rhodes',
+    email: 'amanda@example.com',
+    phone: '2025550101',
+    status: 'Submission started',
+    route_detected: 'BankBreezy',
+    routing_outcome: 'Advanced to Giggle Finance',
+    email_subject: 'Old BankBreezy notification'
+  }, {
+    hubspot_contact_id: '123',
+    hubspot_deal_id: '456'
+  }, existing);
+
+  assert.equal('Y' in values, false);
+  assert.equal('AM' in values, false);
+  assert.equal(values.F, '<old-message@example.com>');
+  assert.equal(values.AQ, '123');
+  assert.equal(values.AS, '456');
+  assert.equal(values.N, '2025550101');
 });
