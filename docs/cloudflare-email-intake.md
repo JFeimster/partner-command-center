@@ -114,12 +114,26 @@ Vercel already requires `PARTNER_COMMAND_API_KEY`.
 Applicant persistence configuration:
 
 ```text
+# HubSpot — either legacy name works
 HUBSPOT_PRIVATE_APP_TOKEN
+# or
+HUBSPOT_ACCESS_TOKEN
+
 NOTION_API_KEY
 NOTION_FUNDING_LEADS_DB_ID
+
+# Google Sheets — preferred direct mode
+GOOGLE_SERVICE_ACCOUNT_EMAIL
+GOOGLE_PRIVATE_KEY
+GOOGLE_SHEET_ID
+GOOGLE_SHEETS_APPLICANT_TAB=Master Applicants
+
+# Google Sheets — optional legacy webhook mode
 GOOGLE_SHEETS_SYNC_WEBHOOK_URL
 GOOGLE_SHEETS_SYNC_SECRET
 ```
+
+The direct Google Sheets mode reuses the existing **Master Applicants CRM** workbook and upserts applicants by normalized email / `dedupe_key`. A new spreadsheet or Apps Script receiver is not required when service-account credentials are available. The webhook integration remains supported as a fallback.
 
 If a destination is not configured or rejects a write, the other destinations continue processing. The API response and Vercel runtime log include per-destination status for `hubspot_contact`, `hubspot_deal`, `notion`, and `google_sheets`.
 
