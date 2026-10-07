@@ -5,8 +5,10 @@
   "compatibility_date": "2026-09-24",
   "vars": {
     "INTAKE_API_BASE_URL": "https://partner-command-center-rho.vercel.app"
-  }
-,
+  },
+  "triggers": {
+    "crons": ["15 */6 * * *"]
+  },
   "observability": {
     "logs": {
       "enabled": true,
