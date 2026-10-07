@@ -80,5 +80,52 @@ const intake = require('../lib/email-intake');
   assert.strictEqual(bankBreezy.lowestMonthlyRevenue, '5000');
   assert.strictEqual(bankBreezy.bankAccountType, 'personal');
 
+  const declined = intake.parseApplicant({
+    subject: 'Fwd: BankBreezy Submission Started for EARL WOODMAN',
+    text: [
+      'Based on their answers they were declined - Revenue was too low',
+      'Name: EARL WOODMAN',
+      'Owner Email: earljwoodman5@gmail.com'
+    ].join('\n')
+  });
+  assert.strictEqual(declined.status, 'Declined');
+  assert.strictEqual(declined.routingOutcome, 'Declined - revenue too low');
+
+  const hubspotForm = intake.classify({
+    subject: 'Fwd: You\'ve got a new submission on the HubSpot Form "Pre-Qualification Form"',
+    text: 'Funding Requested\n$100,000 - $150,000\nFirst name\nIndia\nLast name\nMackie\nEmail\nthreadtheroys@simplecgllc.com'
+  });
+  assert.strictEqual(hubspotForm.type, 'applicant');
+
+  const hubspotParsed = intake.parseApplicant({
+    subject: 'Fwd: You\'ve got a new submission on the HubSpot Form "Pre-Qualification Form"',
+    text: [
+      'CONTACT',
+      'India Mackie',
+      'Funding Requested',
+      '$100,000 - $150,000',
+      'First name',
+      'India',
+      'Last name',
+      'Mackie',
+      'Phone number',
+      '9547322924',
+      'Email',
+      'threadtheroys@simplecgllc.com',
+      'City',
+      'Hollywood',
+      'State/Region',
+      'FL'
+    ].join('\n')
+  });
+  assert.strictEqual(hubspotParsed.name, 'India Mackie');
+  assert.strictEqual(hubspotParsed.email, 'threadtheroys@simplecgllc.com');
+  assert.strictEqual(hubspotParsed.phone, '9547322924');
+  assert.strictEqual(hubspotParsed.desiredFunding, '$100,000 - $150,000');
+  assert.strictEqual(hubspotParsed.city, 'Hollywood');
+  assert.strictEqual(hubspotParsed.state, 'FL');
+  assert.strictEqual(hubspotParsed.routeDetected, 'HubSpot Form');
+  assert.strictEqual(hubspotParsed.status, 'Submission received');
+
   console.log('email-intake tests passed');
 })();
