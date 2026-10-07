@@ -1,7 +1,7 @@
 'use strict';
 
 const { isConfigured: hubspotConfigured } = require('../lib/hubspot-client');
-const { isConfigured: sheetsConfigured } = require('../lib/google-sheets-sync');
+const { isConfigured: sheetsConfigured, configurationStatus: sheetsConfigurationStatus } = require('../lib/google-sheets-sync');
 const { configured: notionConfigured } = require('../lib/notion/funding-leads');
 const { methodNotAllowed, sendJson, success } = require('../lib/response');
 
@@ -20,6 +20,7 @@ module.exports = async function intakeHealth(req, res) {
     service: 'forwarded-email-intake',
     ready: systems.hubspot && systems.notion && systems.google_sheets,
     systems,
+    google_sheets: sheetsConfigurationStatus(),
     checked_at: new Date().toISOString()
   }));
 };
