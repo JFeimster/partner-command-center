@@ -46,12 +46,30 @@ const PUBLIC_ACTIONS = ['getPartnerActivation'];
 const TALLY_FIELD_MAP = {
   'first name': 'first_name',
   'last name': 'last_name',
+  'full name': 'full_name',
   'email': 'email',
+  'best email for your partner account': 'email',
   'phone': 'phone',
+  'mobile phone': 'phone',
   'company / brand': 'company',
   'company': 'company',
+  'business or agency name': 'company',
   'website or profile url': 'website',
+  'website or booking link': 'website',
   'website': 'website',
+  'city': 'city',
+  'state': 'state',
+  'what best describes your current work or business?': 'current_position',
+  'do you have experience in sales, finance, or working with business owners?': 'sales_experience',
+  'tell us briefly about that experience': 'funding_experience',
+  'how soon would you like to get started?': 'launch_timeline',
+  'what are you hoping to build through moonshine capital?': 'success_goal',
+  'tell prospective clients a little about yourself': 'bio',
+  'who do you primarily work with?': 'audience',
+  'which best describes how you tend to operate?': 'self_description',
+  'would you like a 1-on-1 strategy call to get started?': 'wants_strategy_call',
+  'were you referred by a moonshine capital / dac agent or partner?': 'referred_by',
+  'agreement': 'partner_acknowledgment',
   'which best describes you?': 'partner_type_claimed',
   'are you applying as an individual, company, or organization?': 'applicant_entity_type',
   'who do you serve?': 'audience',
@@ -193,6 +211,14 @@ function extractTallyFields(body) {
     const internalKey = TALLY_FIELD_MAP[normalizeKey(key)] || key;
     normalized[internalKey] = tallyValueToString(direct[key]);
   });
+
+  // The live Funding Agent form uses one explicit Agreement checkbox covering
+  // contact permission, storage, and optional public-profile use. Reuse that
+  // single affirmative answer for both consent gates expected by the router.
+  if (hasAffirmativeConsent(normalized.partner_acknowledgment) && !normalized.contact_permission) {
+    normalized.contact_permission = normalized.partner_acknowledgment;
+  }
+
   return normalized;
 }
 function getTallySubmissionId(body) {
@@ -265,6 +291,8 @@ function normalizePartnerFromSignup(body) {
     phone: cleanString(fields.phone),
     company: cleanString(fields.company),
     website: cleanString(fields.website),
+    city: cleanString(fields.city),
+    state: cleanString(fields.state),
     partner_type: partnerType,
     audience: cleanString(fields.audience || fields.industry || 'Unknown audience'),
     referral_source: cleanString(fields.referral_source || 'tally_partner_signup'),
@@ -274,6 +302,16 @@ function normalizePartnerFromSignup(body) {
     onboarding_path: onboardingPath,
     resource_recommendations: [],
     campaign_recommendations: [],
+    current_position: cleanString(fields.current_position),
+    sales_experience: cleanString(fields.sales_experience),
+    self_description: cleanString(fields.self_description),
+    wants_strategy_call: cleanString(fields.wants_strategy_call),
+    interest_reason: cleanString(fields.success_goal),
+    preferred_start: cleanString(fields.launch_timeline),
+    bio: cleanString(fields.bio),
+    referred_by: cleanString(fields.referred_by),
+    source_form: 'mOe658',
+    consent_to_contact: hasAffirmativeConsent(fields.contact_permission),
     tally_submission_id: getTallySubmissionId(body),
     created_at: submittedAt,
     updated_at: new Date().toISOString()
