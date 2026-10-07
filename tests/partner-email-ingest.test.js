@@ -86,3 +86,20 @@ test('does not treat forwarded DAC support identity as the broker', () => {
   assert.equal(parsed.partner.name, '');
   assert.equal(parsed.partner.email, 'realbroker@example.com');
 });
+
+
+test('DAC organization-style broker names are captured as company enrichment', () => {
+  const parsed = parsePartnerNotification({
+    from: 'jasonfeimster@gmail.com',
+    subject: "Fwd: Jason, You've enrolled a DAC Broker-or they requested we resend their welcome email!",
+    text: [
+      'From: David Allen Capital, Inc <support@davidallencapital.com>',
+      'Broker Name: K & J Industries, LLC',
+      'Broker Phone: (469) 301-8541',
+      'Broker E-mail: darwin.hanneman@gmail.com'
+    ].join('\n')
+  });
+
+  assert.equal(parsed.partner.email, 'darwin.hanneman@gmail.com');
+  assert.equal(parsed.partner.company, 'K & J Industries, LLC');
+});
