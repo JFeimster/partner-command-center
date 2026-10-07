@@ -69,6 +69,18 @@ const TALLY_FIELD_MAP = {
   'which best describes how you tend to operate?': 'self_description',
   'would you like a 1-on-1 strategy call to get started?': 'wants_strategy_call',
   'were you referred by a moonshine capital / dac agent or partner?': 'referred_by',
+  'what’s your name, rockstar?': 'full_name',
+  "what's your name, rockstar?": 'full_name',
+  'where should we send your onboarding link and resources?': 'email',
+  'got a cell number? (optional but helps us help you)': 'phone',
+  'what best describes your current work or hustle?': 'current_position',
+  'q5: ever worked in sales, finance, or helping business owners before?': 'sales_experience',
+  '🔥 nice. give us the quick and dirty — tell us what you’ve done.': 'funding_experience',
+  "🔥 nice. give us the quick and dirty — tell us what you've done.": 'funding_experience',
+  'q6: how soon are you looking to start earning as a partner?': 'launch_timeline',
+  'q7: why are you interested in becoming a moonshine capital partner?': 'success_goal',
+  'q8: how would you describe yourself?': 'self_description',
+  'q9: want a 1-on-1 strategy call to get started fast?': 'wants_strategy_call',
   'agreement': 'partner_acknowledgment',
   'which best describes you?': 'partner_type_claimed',
   'are you applying as an individual, company, or organization?': 'applicant_entity_type',
@@ -233,7 +245,7 @@ function generatePartnerId(seedInput) {
   return `MS-P-${stamp}-${hash}`;
 }
 function classifyPartner(input) {
-  const text = [input.partner_type_claimed, input.desired_partner_role, input.audience, input.industry, input.funding_experience, input.notes].map(cleanString).join(' ').toLowerCase();
+  const text = [input.partner_type_claimed, input.desired_partner_role, input.current_position, input.audience, input.industry, input.sales_experience, input.funding_experience, input.notes].map(cleanString).join(' ').toLowerCase();
   if (/internal|operator|admin|moonshine/.test(text)) return 'internal_operator';
   if (/broker|iso|funding advisor|commercial finance|business funding/.test(text)) return 'funding_broker';
   if (/affiliate|creator|influencer|publisher|newsletter|youtube|podcast|media/.test(text)) return 'affiliate_partner';
@@ -276,6 +288,15 @@ function recommendCampaignsForPartner(partner) {
   if (partner.onboarding_path === 'referral_partner_path') return ['Warm Referral Starter Campaign'];
   return ['Manual Review Follow-Up'];
 }
+function isHistoricalTallyReplayWithoutConsent(body, fields) {
+  if (cleanString(getTallyData(body).formId || body.formId) !== 'mOe658') return false;
+  if (hasAffirmativeConsent(fields.partner_acknowledgment) || hasAffirmativeConsent(fields.contact_permission)) return false;
+  const submittedAt = cleanString(getTallyData(body).createdAt || getTallyData(body).submittedAt || body.createdAt);
+  const timestamp = Date.parse(submittedAt);
+  if (!Number.isFinite(timestamp)) return false;
+  return Date.now() - timestamp > 24 * 60 * 60 * 1000;
+}
+
 function normalizePartnerFromSignup(body) {
   const fields = extractTallyFields(body);
   const submittedAt = cleanString(getTallyData(body).createdAt || getTallyData(body).submittedAt || body.createdAt) || new Date().toISOString();
@@ -283,7 +304,8 @@ function normalizePartnerFromSignup(body) {
   const partnerType = PARTNER_TYPES.includes(fields.partner_type) ? fields.partner_type : classifyPartner(fields);
   const tier = estimateTier(fields, partnerType, sensitiveMatches);
   const onboardingPath = ONBOARDING_PATHS.includes(fields.onboarding_path) ? fields.onboarding_path : assignOnboardingPathForPartner(partnerType, tier);
-  const status = tier === 'manual_review' || tier === 'watchlist' ? 'needs_review' : 'intake_received';
+  const legacyWithoutConsent = isHistoricalTallyReplayWithoutConsent(body, fields);
+  const status = legacyWithoutConsent || tier === 'manual_review' || tier === 'watchlist' ? 'needs_review' : 'intake_received';
   const partner = {
     partner_id: cleanString(fields.partner_id) || generatePartnerId({ email: fields.email, submission: getTallySubmissionId(body) }),
     name: buildName(fields) || cleanString(fields.company) || cleanString(fields.email),
@@ -311,14 +333,15 @@ function normalizePartnerFromSignup(body) {
     bio: cleanString(fields.bio),
     referred_by: cleanString(fields.referred_by),
     source_form: 'mOe658',
-    consent_to_contact: hasAffirmativeConsent(fields.contact_permission),
+    consent_to_contact: legacyWithoutConsent ? false : hasAffirmativeConsent(fields.contact_permission),
+    legacy_submission_without_consent: legacyWithoutConsent,
     tally_submission_id: getTallySubmissionId(body),
     created_at: submittedAt,
     updated_at: new Date().toISOString()
   };
   partner.resource_recommendations = recommendResourcesForPartner(partner);
   partner.campaign_recommendations = recommendCampaignsForPartner(partner);
-  return { partner, raw_fields: fields, sensitive_matches: sensitiveMatches };
+  return { partner, raw_fields: fields, sensitive_matches: sensitiveMatches, legacy_without_consent: legacyWithoutConsent };
 }
 function safePageSummary(page) { return page ? { id: page.id, url: page.url, created_time: page.created_time, last_edited_time: page.last_edited_time } : null; }
 function firstPlainText(items) { return Array.isArray(items) && items[0] && items[0].plain_text ? items[0].plain_text : ''; }
@@ -373,12 +396,14 @@ function assertAuthorized(req, body, action) {
 async function handleReceivePartnerSignup(body) {
   const normalized = normalizePartnerFromSignup(body);
   const missingConsent = validateSignupConsent(normalized.raw_fields);
-  if (missingConsent.length > 0) return validationError('Partner signup consent is required before storage.', { fields: missingConsent });
+  if (missingConsent.length > 0 && !normalized.legacy_without_consent) {
+    return validationError('Partner signup consent is required before storage.', { fields: missingConsent });
+  }
   if (normalized.sensitive_matches.length > 0) return validationError('Sensitive data detected in partner signup payload.', normalized.sensitive_matches);
   const validation = validatePartnerForNotion(normalized.partner);
   if (!validation.valid) return validationError('Partner signup payload failed validation.', validation.errors);
   const result = await upsertPartner(normalized.partner);
-  await createPartnerEvent({ partner_id: normalized.partner.partner_id, event_type: result.action === 'created' ? 'partner_created' : 'partner_updated', source: 'tally', status: normalized.partner.status, summary: 'Partner signup received, normalized, classified, and stored in Notion.', metadata: { tally_submission_id: normalized.partner.tally_submission_id, partner_type: normalized.partner.partner_type, tier: normalized.partner.tier, onboarding_path: normalized.partner.onboarding_path, match_strategy: result.match_strategy }, created_at: new Date().toISOString() });
+  await createPartnerEvent({ partner_id: normalized.partner.partner_id, event_type: result.action === 'created' ? 'partner_created' : 'partner_updated', source: 'tally', status: normalized.partner.status, summary: 'Partner signup received, normalized, classified, and stored in Notion.', metadata: { tally_submission_id: normalized.partner.tally_submission_id, partner_type: normalized.partner.partner_type, tier: normalized.partner.tier, onboarding_path: normalized.partner.onboarding_path, match_strategy: result.match_strategy, legacy_without_consent: normalized.legacy_without_consent }, created_at: new Date().toISOString() });
   return created({ action: 'receivePartnerSignup', result: result.action, partner_id: normalized.partner.partner_id, partner: normalized.partner, notion_page: safePageSummary(result.page) });
 }
 async function handleCreatePartner(body) {
