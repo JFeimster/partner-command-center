@@ -66,3 +66,29 @@ test('applicant row mapping targets the existing Master Applicants CRM schema', 
   assert.equal(values.AT, 'northga70@gmail.com');
   assert.match(values.A, /^MAIL-/);
 });
+
+
+test('service account JSON can supply direct credentials without split env vars', () => {
+  const previous = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  const previousEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const previousKey = process.env.GOOGLE_PRIVATE_KEY;
+  try {
+    process.env.GOOGLE_SERVICE_ACCOUNT_KEY = JSON.stringify({
+      client_email: 'partner-command-center@example.iam.gserviceaccount.com',
+      private_key: '-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----\\n'
+    });
+    delete process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    delete process.env.GOOGLE_PRIVATE_KEY;
+    const mod = require('../lib/google-sheets-sync');
+    const parsed = mod.serviceAccountJson();
+    assert.equal(parsed.client_email, 'partner-command-center@example.iam.gserviceaccount.com');
+    assert.match(parsed.private_key, /BEGIN PRIVATE KEY/);
+  } finally {
+    if (previous === undefined) delete process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+    else process.env.GOOGLE_SERVICE_ACCOUNT_KEY = previous;
+    if (previousEmail === undefined) delete process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    else process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL = previousEmail;
+    if (previousKey === undefined) delete process.env.GOOGLE_PRIVATE_KEY;
+    else process.env.GOOGLE_PRIVATE_KEY = previousKey;
+  }
+});
