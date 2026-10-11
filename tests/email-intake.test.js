@@ -163,5 +163,26 @@ const intake = require('../lib/email-intake');
   assert.strictEqual(hubspotParsed.routeDetected, 'HubSpot Form');
   assert.strictEqual(hubspotParsed.status, 'Submission received');
 
+  const giggleProviderOnly = intake.parseApplicant({
+    subject: 'Fwd: Giggle Finance - Bank not connected',
+    text: [
+      'Funding Request from Nikita Chelsey did not connect their bank account via Plaid, please reach out to them.',
+      'info@gigglefinance.com'
+    ].join('\n')
+  });
+  assert.strictEqual(giggleProviderOnly.name, 'Nikita Chelsey');
+  assert.strictEqual(giggleProviderOnly.email, '');
+  assert.strictEqual(giggleProviderOnly.routeDetected, 'Giggle Finance');
+  assert.strictEqual(giggleProviderOnly.status, 'Bank Connection Pending');
+  assert.strictEqual(intake.isProviderEmail('info@gigglefinance.com'), true);
+
+  const giggleCreated = intake.parseApplicant({
+    subject: 'Fwd: Giggle Finance - Funding Request Created',
+    text: 'New Funding Request from Nikita Chelsey has been received.\ninfo@gigglefinance.com'
+  });
+  assert.strictEqual(giggleCreated.name, 'Nikita Chelsey');
+  assert.strictEqual(giggleCreated.email, '');
+  assert.strictEqual(giggleCreated.status, 'Submitted');
+
   console.log('email-intake tests passed');
 })();
