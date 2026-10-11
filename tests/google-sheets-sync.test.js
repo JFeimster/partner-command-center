@@ -27,6 +27,8 @@ test('exact money refuses to invent a number from a range', () => {
   assert.equal(exactMoney('$5,000'), 5000);
   assert.equal(exactMoney('$10,000 - $25,000'), '');
   assert.equal(exactMoney('$0 – $25,000'), '');
+  assert.equal(exactMoney('Less than $3,000'), '');
+  assert.equal(exactMoney('$50,000+'), '');
 });
 
 test('status normalization prioritizes terminal funding states', () => {
