@@ -7,6 +7,8 @@ const {
   stableApplicantRecordId,
   exactMoney,
   normalizedStatus,
+  normalizedSubstage,
+  normalizedFundingProduct,
   applicantValues,
   safeApplicantUpdateValues,
   shouldApplyOperationalUpdate,
@@ -61,8 +63,10 @@ test('applicant row mapping targets the existing Master Applicants CRM schema', 
   assert.equal(values.J, 'Linda');
   assert.equal(values.K, 'Johnson');
   assert.equal(values.M, 'northga70@gmail.com');
-  assert.equal(values.U, 'BankBreezy');
+  assert.equal(values.U, 'Giggle');
   assert.equal(values.V, undefined);
+  assert.equal(values.W, 'Submission Started');
+  assert.equal(values.X, 'Applicant Started');
   assert.equal(values.Y, 'Submission Started');
   assert.equal(values.AQ, '123');
   assert.equal(values.AS, '456');
@@ -190,4 +194,28 @@ test('newer provider events can advance operational status while older replays c
   assert.equal(values.Y, 'Bank Connection Pending');
   assert.equal(values.D, 'Giggle Finance');
   assert.match(values.AM, /Event date:/);
+});
+
+
+test('status-map projection clears stale lost substages when a newer provider event requires action', () => {
+  assert.equal(normalizedStatus('Bank Connection Pending'), 'Bank Connection Pending');
+  assert.equal(normalizedSubstage('Bank Connection Pending'), 'Awaiting Bank Link');
+  assert.equal(normalizedFundingProduct({
+    route_detected: 'BankBreezy',
+    routing_outcome: 'Advanced to Giggle Finance'
+  }), 'Giggle');
+
+  const values = applicantValues({
+    name: 'Nikita Chelsey',
+    email: 'nikita@example.com',
+    status: 'Bank Connection Pending',
+    route_detected: 'Giggle Finance',
+    email_subject: 'Giggle Finance - Bank not connected',
+    email_date: '2026-02-05T01:16:46.000Z'
+  }, {}, { isNew: false });
+
+  assert.equal(values.U, 'Giggle');
+  assert.equal(values.W, 'Bank Connection Pending');
+  assert.equal(values.X, 'Awaiting Bank Link');
+  assert.equal(values.Y, 'Bank Connection Pending');
 });
