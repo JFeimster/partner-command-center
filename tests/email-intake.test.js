@@ -80,6 +80,38 @@ const intake = require('../lib/email-intake');
   assert.strictEqual(bankBreezy.lowestMonthlyRevenue, '5000');
   assert.strictEqual(bankBreezy.bankAccountType, 'personal');
 
+  const legacyBankBreezy = intake.parseApplicant({
+    subject: 'BankBreezy Submission Started.',
+    text: [
+      'Based on their answers - we advanced their application for completion with BankBreezy Bigger Funding.',
+      'Customer Information: Neal Thakkar of .',
+      'Owner Phone: (732) 546-8698',
+      'Owner Email: neal@evolvere.co',
+      'They stated their lowest monthly revenue in last 3 months was: $50,000+ and their bank account type was: "In Your Business Name".'
+    ].join('\n')
+  });
+  assert.strictEqual(legacyBankBreezy.name, 'Neal Thakkar');
+  assert.strictEqual(legacyBankBreezy.businessName, '');
+  assert.strictEqual(legacyBankBreezy.email, 'neal@evolvere.co');
+  assert.strictEqual(legacyBankBreezy.lowestMonthlyRevenue, '$50,000+ and their bank account type was: "In Your Business Name"');
+  assert.strictEqual(legacyBankBreezy.routingOutcome, 'Advanced to BankBreezy Bigger Funding');
+
+  const legacyDeclined = intake.parseApplicant({
+    subject: 'BankBreezy Submission Started.',
+    text: [
+      'Based on their answers - we advanced their application for completion with none-their revenue did not meet the minimum required to apply. We declined them and asked they check back when revenue surpasses minium requirements.',
+      'Customer Information: Jared Wagner of Source Nature.',
+      'Owner Phone: (253) 397-5739',
+      'Owner Email: jared@sourcenature.net',
+      'They stated their lowest monthly revenue in last 3 months was: Less than $3,000 and their bank account type was: "In Your Business Name".'
+    ].join('\n')
+  });
+  assert.strictEqual(legacyDeclined.name, 'Jared Wagner');
+  assert.strictEqual(legacyDeclined.businessName, 'Source Nature');
+  assert.strictEqual(legacyDeclined.status, 'Declined');
+  assert.strictEqual(legacyDeclined.routingOutcome, 'Declined - revenue too low');
+  assert.match(legacyDeclined.lowestMonthlyRevenue, /Less than \$3,000/);
+
   const blankCompany = intake.parseApplicant({
     subject: 'Fwd: BankBreezy Submission Started for Amanda Bravo',
     text: [

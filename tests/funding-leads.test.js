@@ -96,6 +96,8 @@ test('money parser does not turn a funding range into a fake exact amount', () =
   assert.equal(numericMoney('$5,000'), 5000);
   assert.equal(numericMoney('$10,000 - $25,000'), null);
   assert.equal(numericMoney(''), null);
+  assert.equal(numericMoney('Less than $3,000'), null);
+  assert.equal(numericMoney('$50,000+'), null);
 });
 
 test('email property mapper writes a tight create projection', () => {
