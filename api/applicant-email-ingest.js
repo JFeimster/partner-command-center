@@ -3,7 +3,7 @@
 const { parseApplicant, externalId, clean } = require('../lib/email-intake');
 const { isAuthorized, parseBody } = require('../lib/action-auth');
 const { upsertApplicantContact, upsertApplicantDeal } = require('../lib/hubspot-client');
-const { syncApplicant, findApplicantSyncContext, findApplicantIdentityByName } = require('../lib/google-sheets-sync');
+const { syncApplicant, findApplicantSyncContext, findApplicantIdentityByName, isCaseStartEvent } = require('../lib/google-sheets-sync');
 const { upsertEmailFundingLead } = require('../lib/notion/funding-leads');
 const { validationError, unauthorized, methodNotAllowed, sendJson, created, success } = require('../lib/response');
 
@@ -71,7 +71,10 @@ module.exports = async function applicantEmailIngest(req, res) {
   const parsed = parseApplicant(body || {});
   let resolvedIdentity = null;
   if (!parsed.email && parsed.name) {
-    resolvedIdentity = await capture(() => findApplicantIdentityByName(parsed.name));
+    resolvedIdentity = await capture(() => findApplicantIdentityByName(
+      parsed.name,
+      clean(parsed.originalEmailDate || body.date)
+    ));
   }
 
   const resolvedEmail = parsed.email || (
@@ -134,7 +137,10 @@ module.exports = async function applicantEmailIngest(req, res) {
     ? await capture(() => upsertApplicantDeal(
         applicant,
         hubspotContact && hubspotContact.contact_id,
-        { preferred_deal_id: preferredDealId }
+        {
+          preferred_deal_id: preferredDealId,
+          case_start: isCaseStartEvent(applicant)
+        }
       ))
     : { status: 'skipped', reason: 'hubspot_contact_failed' };
 

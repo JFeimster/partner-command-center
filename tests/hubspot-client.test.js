@@ -2,7 +2,7 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const { safeApplicantContactUpdateProperties } = require('../lib/hubspot-client');
+const { safeApplicantContactUpdateProperties, parseDealEventTimestamp } = require('../lib/hubspot-client');
 
 test('stale applicant emails only fill blank HubSpot contact fields', () => {
   const existing = {
@@ -26,4 +26,18 @@ test('stale applicant emails only fill blank HubSpot contact fields', () => {
   });
 
   assert.deepEqual(safe, { company: 'Rhodes LLC' });
+});
+
+
+test('HubSpot deal source dates are parseable for historical case matching', () => {
+  const ts = parseDealEventTimestamp({
+    properties: {
+      description: [
+        'Original email subject: BankBreezy Submission Started for Repeat Applicant',
+        'Original email date: 2026-03-15T12:00:00.000Z',
+        'Applicant email: repeat@example.com'
+      ].join('\n')
+    }
+  });
+  assert.equal(ts, Date.parse('2026-03-15T12:00:00.000Z'));
 });

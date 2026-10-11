@@ -218,3 +218,25 @@ test('Notion case matching uses source email date from audit payload before page
   assert.equal(selected.id, 'matching');
   assert.equal(shouldApplyEmailLifecycle(matching, { email_date: '2026-04-21T21:00:00.000Z' }), true);
 });
+
+
+test('separated BankBreezy starts create a new Funding Lead case instead of overwriting an old one', () => {
+  const prior = {
+    id: 'prior',
+    created_time: '2026-10-11T08:00:00.000Z',
+    properties: {
+      'API Payload': { rich_text: [{ plain_text: JSON.stringify({ email_date: '2026-01-01T12:00:00.000Z' }) }] }
+    }
+  };
+  const selected = selectEmailFundingLeadMatch([prior], {
+    email: 'repeat@example.com',
+    email_date: '2026-03-15T12:00:00.000Z',
+    status: 'Submission started',
+    route_detected: 'BankBreezy'
+  });
+  assert.equal(selected, null);
+  assert.notEqual(
+    stableEmailLeadId('repeat@example.com', '2026-01-01T12:00:00Z', 'BankBreezy'),
+    stableEmailLeadId('repeat@example.com', '2026-03-15T12:00:00Z', 'BankBreezy')
+  );
+});

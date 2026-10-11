@@ -219,3 +219,30 @@ test('status-map projection clears stale lost substages when a newer provider ev
   assert.equal(values.X, 'Awaiting Bank Link');
   assert.equal(values.Y, 'Bank Connection Pending');
 });
+
+
+test('separated BankBreezy application starts create distinct cases', () => {
+  const index = (column) => {
+    let value = 0;
+    for (const ch of column) value = value * 26 + (ch.charCodeAt(0) - 64);
+    return value - 1;
+  };
+  const prior = new Array(46).fill('');
+  prior[index('B')] = '2026-01-01T12:00:00.000Z';
+  prior[index('AM')] = 'Event date: 2026-01-01T12:00:00.000Z';
+
+  const selected = selectApplicantCaseCandidate([
+    { row_number: 10, row: prior }
+  ], {
+    email: 'repeat@example.com',
+    email_date: '2026-03-15T12:00:00.000Z',
+    status: 'Submission started',
+    route_detected: 'BankBreezy'
+  });
+
+  assert.equal(selected, null);
+  assert.notEqual(
+    stableApplicantRecordId('repeat@example.com', '2026-01-01T12:00:00Z', 'BankBreezy'),
+    stableApplicantRecordId('repeat@example.com', '2026-03-15T12:00:00Z', 'BankBreezy')
+  );
+});
