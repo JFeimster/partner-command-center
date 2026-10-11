@@ -217,6 +217,8 @@ const intake = require('../lib/email-intake');
   });
   assert.strictEqual(wrappedForwardedGiggle.name, 'Nikita Chelsey');
   assert.strictEqual(wrappedForwardedGiggle.email, '');
+  assert.strictEqual(wrappedForwardedGiggle.phone, '');
+  assert.strictEqual(wrappedForwardedGiggle.providerOnlyEvent, true);
   assert.strictEqual(intake.isSystemEmail('jasonfeimster@gmail.com'), true);
 
   console.log('email-intake tests passed');
