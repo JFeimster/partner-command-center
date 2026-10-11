@@ -112,6 +112,23 @@ const intake = require('../lib/email-intake');
   assert.strictEqual(legacyDeclined.routingOutcome, 'Declined - revenue too low');
   assert.match(legacyDeclined.lowestMonthlyRevenue, /Less than \$3,000/);
 
+  const legacyBoilerplateNotFunded = intake.parseApplicant({
+    subject: 'BankBreezy Submission Started.',
+    text: [
+      'Based on their answers - we advanced their application for completion with BankBreezy Bigger Funding.',
+      'Customer Information: Neal Thakkar of .',
+      'Owner Email: neal@evolvere.co',
+      'Once funded, we will notify you about the outcome.'
+    ].join('\n')
+  });
+  assert.strictEqual(legacyBoilerplateNotFunded.status, 'Submission started');
+
+  const explicitFunded = intake.parseApplicant({
+    subject: 'Your client has been funded',
+    text: 'Client Neal Thakkar has been funded.'
+  });
+  assert.strictEqual(explicitFunded.status, 'Funded');
+
   const blankCompany = intake.parseApplicant({
     subject: 'Fwd: BankBreezy Submission Started for Amanda Bravo',
     text: [
