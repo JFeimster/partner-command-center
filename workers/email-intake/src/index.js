@@ -49,6 +49,16 @@ export default {
       return;
     }
 
+    if (
+      String(from).toLowerCase() === 'jasonfeimster@gmail.com' &&
+      /^system:\s*cleanup failed nikita backfill$/i.test(String(subject).trim())
+    ) {
+      await postAuthorized(env, '/api/cleanup-backfill-artifacts', {
+        cleanup_id: 'nikita-backfill-20261011'
+      });
+      return;
+    }
+
     const payload = {
       source: 'cloudflare_email_worker',
       from,

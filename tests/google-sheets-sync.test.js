@@ -9,6 +9,7 @@ const {
   normalizedStatus,
   applicantValues,
   safeApplicantUpdateValues,
+  shouldApplyOperationalUpdate,
   selectApplicantCaseCandidate
 } = require('../lib/google-sheets-sync');
 
@@ -157,4 +158,36 @@ test('case-aware sheet matching prefers the application closest to the original 
 
   assert.equal(selected.row_number, 155);
   assert.equal(selected.match_strategy, 'event_time');
+});
+
+
+test('newer provider events can advance operational status while older replays cannot regress it', () => {
+  const index = (column) => {
+    let value = 0;
+    for (const ch of column) value = value * 26 + (ch.charCodeAt(0) - 64);
+    return value - 1;
+  };
+  const existing = new Array(46).fill('');
+  existing[index('B')] = '2026-02-05T00:15:48.000Z';
+  existing[index('W')] = 'Submission Started';
+  existing[index('Y')] = 'Submission Started';
+  existing[index('AM')] = 'Subject: start | Event date: 2026-02-05T00:15:48.000Z';
+
+  assert.equal(shouldApplyOperationalUpdate({ email_date: '2026-02-05T01:16:46.000Z' }, existing), true);
+  assert.equal(shouldApplyOperationalUpdate({ email_date: '2026-02-04T23:00:00.000Z' }, existing), false);
+
+  const values = safeApplicantUpdateValues({
+    external_event_id: '<bank-pending@example.com>',
+    name: 'Nikita Chelsey',
+    email: 'nikita@example.com',
+    status: 'Bank Connection Pending',
+    route_detected: 'Giggle Finance',
+    email_subject: 'Giggle Finance - Bank not connected',
+    email_date: '2026-02-05T01:16:46.000Z'
+  }, {}, existing);
+
+  assert.equal(values.W, 'Bank Connection Pending');
+  assert.equal(values.Y, 'Bank Connection Pending');
+  assert.equal(values.D, 'Giggle Finance');
+  assert.match(values.AM, /Event date:/);
 });

@@ -3,7 +3,7 @@
 const { parseApplicant, externalId, clean } = require('../lib/email-intake');
 const { isAuthorized, parseBody } = require('../lib/action-auth');
 const { upsertApplicantContact, upsertApplicantDeal } = require('../lib/hubspot-client');
-const { syncApplicant, findApplicantSyncContext } = require('../lib/google-sheets-sync');
+const { syncApplicant, findApplicantSyncContext, findApplicantIdentityByName } = require('../lib/google-sheets-sync');
 const { upsertEmailFundingLead } = require('../lib/notion/funding-leads');
 const { validationError, unauthorized, methodNotAllowed, sendJson, created, success } = require('../lib/response');
 
@@ -69,27 +69,41 @@ module.exports = async function applicantEmailIngest(req, res) {
   catch (_) { return sendJson(res, validationError('Invalid JSON request body.')); }
 
   const parsed = parseApplicant(body || {});
-  if (!parsed.email) {
+  let resolvedIdentity = null;
+  if (!parsed.email && parsed.name) {
+    resolvedIdentity = await capture(() => findApplicantIdentityByName(parsed.name));
+  }
+
+  const resolvedEmail = parsed.email || (
+    resolvedIdentity &&
+    resolvedIdentity.status === 'resolved' &&
+    resolvedIdentity.email
+  ) || '';
+
+  if (!resolvedEmail) {
     return sendJson(res, success({
       action: 'ingestApplicantEmail',
       result: 'review_required',
-      reason: 'applicant_email_not_found',
+      reason: resolvedIdentity && resolvedIdentity.status === 'ambiguous'
+        ? 'applicant_identity_ambiguous'
+        : 'applicant_email_not_found',
       external_event_id: externalId(body || {}),
       parsed: {
         name: parsed.name || null,
         business_name: parsed.businessName || null,
         status: parsed.status,
         route_detected: parsed.routeDetected
-      }
+      },
+      identity_resolution: resolvedIdentity || null
     }));
   }
 
   const applicant = {
     external_event_id: externalId(body || {}),
-    name: parsed.name || parsed.email,
-    email: parsed.email.toLowerCase(),
-    phone: parsed.phone,
-    business_name: parsed.businessName,
+    name: parsed.name || (resolvedIdentity && resolvedIdentity.name) || resolvedEmail,
+    email: resolvedEmail.toLowerCase(),
+    phone: parsed.phone || (resolvedIdentity && resolvedIdentity.phone) || '',
+    business_name: parsed.businessName || (resolvedIdentity && resolvedIdentity.business_name) || '',
     monthly_revenue: parsed.monthlyRevenue || parsed.revenue,
     lowest_monthly_revenue: parsed.lowestMonthlyRevenue,
     desired_funding_amount: parsed.desiredFunding,
@@ -175,6 +189,7 @@ module.exports = async function applicantEmailIngest(req, res) {
     unavailable_systems: unavailableSystems,
     external_event_id: applicant.external_event_id,
     reconciliation: {
+      identity_resolution: resolvedIdentity || null,
       sheet_row: existingSheetContext && existingSheetContext.row_number || null,
       preferred_hubspot_deal_id: preferredDealId || null,
       deal_match_strategy: hubspotDeal && hubspotDeal.match_strategy || null
