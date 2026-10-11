@@ -11,6 +11,15 @@ const intake = require('../lib/email-intake');
   });
   assert.strictEqual(partner.type, 'partner');
 
+  assert.strictEqual(
+    intake.externalId({ receipt_id: 'receiptabc', from: 'relay@example.com', text: 'same email' }),
+    'receipt_receiptabc'
+  );
+  assert.strictEqual(
+    intake.externalId({ message_fingerprint: 'f'.repeat(64), from: 'relay@example.com' }),
+    'mail_sha256_' + 'f'.repeat(64)
+  );
+
   const applicant = intake.classify({
     to: 'intake@example.com',
     subject: 'Application Incomplete - BankBreezy',

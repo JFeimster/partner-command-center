@@ -3,6 +3,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const { emailLeadPageToApplicant } = require('../lib/notion/funding-leads');
+const { failureDiagnostics } = require('../lib/reconciliation/applicants');
 
 function rich(value) {
   return { rich_text: value ? [{ plain_text: value }] : [] };
@@ -45,4 +46,25 @@ test('maps an imported Notion Funding Lead back into an applicant for reconcilia
   assert.equal(applicant.route_detected, 'BankBreezy');
   assert.equal(applicant.status, 'Submission started');
   assert.equal(applicant.source, 'reconciliation_backfill');
+});
+
+test('reconciliation diagnostics group failures by destination and retry cause', () => {
+  const diagnostics = failureDiagnostics([
+    { failures: [
+      { system: 'hubspot_contact', code: 'hubspot_error', status: 409 },
+      { system: 'google_sheets', code: 'google_sheets_error', status: 503 }
+    ] },
+    { failures: [{ system: 'notion_reconciliation', code: 'notion_error', status: 429 }] }
+  ]);
+  assert.deepEqual(diagnostics.failure_counts_by_system, {
+    hubspot_contact: 1,
+    google_sheets: 1,
+    notion_reconciliation: 1
+  });
+  assert.deepEqual(diagnostics.failure_counts_by_cause, {
+    'hubspot_contact:409': 1,
+    'google_sheets:503': 1,
+    'notion_reconciliation:429': 1
+  });
+  assert.equal(diagnostics.retryable_failures, 2);
 });

@@ -1,6 +1,7 @@
 'use strict';
 
 const { parseApplicant, externalId, clean } = require('../lib/email-intake');
+const crypto = require('crypto');
 const { isAuthorized, parseBody } = require('../lib/action-auth');
 const { upsertApplicantContact, upsertApplicantDeal } = require('../lib/hubspot-client');
 const { syncApplicant, findApplicantSyncContext, findApplicantIdentityByName, isCaseStartEvent } = require('../lib/google-sheets-sync');
@@ -45,7 +46,9 @@ function logPersistence(externalEventId, persistence, failedSystems, unavailable
     ? 'accepted_with_errors'
     : ((unavailableSystems || []).length ? 'accepted_with_gaps' : 'accepted');
   const summary = {
-    event_id: externalEventId || null,
+    event_id_hash: externalEventId
+      ? crypto.createHash('sha256').update(String(externalEventId)).digest('hex').slice(0, 16)
+      : null,
     result,
     destinations: {
       hubspot_contact: persistenceSummary(persistence.hubspot_contact),
@@ -103,6 +106,7 @@ module.exports = async function applicantEmailIngest(req, res) {
 
   const applicant = {
     external_event_id: externalId(body || {}),
+    receipt_id: clean(body.receipt_id) || '',
     name: parsed.name || (resolvedIdentity && resolvedIdentity.name) || resolvedEmail,
     email: resolvedEmail.toLowerCase(),
     phone: parsed.phone || (resolvedIdentity && resolvedIdentity.phone) || '',
@@ -129,7 +133,7 @@ module.exports = async function applicantEmailIngest(req, res) {
     capture(() => findApplicantSyncContext(applicant))
   ]);
 
-  const preferredDealId = existingSheetContext && existingSheetContext.status !== 'failed'
+  const preferredDealId = existingSheetContext && existingSheetContext.status !== 'failed' && !existingSheetContext.ambiguous
     ? existingSheetContext.hubspot_deal_id
     : null;
 
@@ -165,6 +169,14 @@ module.exports = async function applicantEmailIngest(req, res) {
     .filter(([, value]) => value && value.status === 'not_configured')
     .map(([key]) => key);
 
+  const retryableSystems = Object.entries(persistence)
+    .filter(([, value]) => {
+      if (!value || value.status !== 'failed') return false;
+      const status = Number(value.http_status);
+      return !status || status === 408 || status === 425 || status === 429 || status >= 500;
+    })
+    .map(([key]) => key);
+
   const persistenceStatus = logPersistence(
     applicant.external_event_id,
     persistence,
@@ -193,6 +205,8 @@ module.exports = async function applicantEmailIngest(req, res) {
     persistence_status: persistenceStatus,
     failed_systems: failedSystems,
     unavailable_systems: unavailableSystems,
+    retryable_systems: retryableSystems,
+    receipt_id: applicant.receipt_id || null,
     external_event_id: applicant.external_event_id,
     reconciliation: {
       identity_resolution: resolvedIdentity || null,

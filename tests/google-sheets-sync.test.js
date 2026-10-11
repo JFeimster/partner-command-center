@@ -10,6 +10,7 @@ const {
   normalizedSubstage,
   normalizedFundingProduct,
   applicantValues,
+  receiverSummary,
   safeApplicantUpdateValues,
   shouldApplyOperationalUpdate,
   selectApplicantCaseCandidate
@@ -21,6 +22,13 @@ test('stable applicant record IDs converge by normalized email', () => {
     stableApplicantRecordId('jane@example.com')
   );
   assert.match(stableApplicantRecordId('jane@example.com'), /^MAIL-[A-F0-9]{16}$/);
+});
+
+test('Google Sheets runtime summaries omit free-text error fields that may contain applicant data', () => {
+  assert.deepEqual(receiverSummary({ action: 'error', row_number: 93, message: 'Jane Smith jane@example.com', error: 'raw provider detail' }), {
+    action: 'error',
+    row_number: 93
+  });
 });
 
 test('exact money refuses to invent a number from a range', () => {
@@ -130,7 +138,7 @@ test('existing applicant updates preserve lifecycle and notes from stale forward
 
   assert.equal('Y' in values, false);
   assert.equal('AM' in values, false);
-  assert.equal(values.F, '<old-message@example.com>');
+  assert.equal('F' in values, false);
   assert.equal(values.AQ, '123');
   assert.equal(values.AS, '456');
   assert.equal(values.N, '2025550101');
@@ -166,6 +174,15 @@ test('case-aware sheet matching prefers the application closest to the original 
   assert.equal(selected.match_strategy, 'event_time');
 });
 
+test('case matching flags multiple same-email rows without a safe event match', () => {
+  const first = new Array(46).fill('');
+  const second = new Array(46).fill('');
+  assert.equal(selectApplicantCaseCandidate([
+    { row_number: 12, row: first },
+    { row_number: 14, row: second }
+  ], { email: 'same@example.com' }).ambiguous, true);
+});
+
 
 test('newer provider events can advance operational status while older replays cannot regress it', () => {
   const index = (column) => {
@@ -194,7 +211,7 @@ test('newer provider events can advance operational status while older replays c
 
   assert.equal(values.W, 'Bank Connection Pending');
   assert.equal(values.Y, 'Bank Connection Pending');
-  assert.equal(values.D, 'Giggle Finance');
+  assert.equal(values.U, 'Giggle');
   assert.match(values.AM, /Event date:/);
 });
 

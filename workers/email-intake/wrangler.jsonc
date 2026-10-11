@@ -6,8 +6,32 @@
   "vars": {
     "INTAKE_API_BASE_URL": "https://partner-command-center-rho.vercel.app"
   },
+  "r2_buckets": [
+    {
+      "binding": "EMAIL_RECEIPTS",
+      "bucket_name": "partner-command-email-receipts"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "EMAIL_INTAKE_QUEUE",
+        "queue": "partner-command-email-intake"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "partner-command-email-intake",
+        "max_batch_size": 1,
+        "max_retries": 10,
+        "retry_delay": 15,
+        "max_concurrency": 1,
+        "dead_letter_queue": "partner-command-email-intake-dlq"
+      }
+    ]
+  },
   "triggers": {
-    "crons": ["15 */6 * * *"]
+    "crons": ["*/5 * * * *", "15 */6 * * *"]
   },
   "observability": {
     "logs": {

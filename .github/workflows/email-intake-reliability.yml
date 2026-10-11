@@ -1,0 +1,67 @@
+name: Email intake reliability
+
+on:
+  pull_request:
+    paths:
+      - 'api/applicant-email-ingest.js'
+      - 'api/intake-message.js'
+      - 'api/partner-email-ingest.js'
+      - 'lib/email-intake.js'
+      - 'lib/google-sheets-sync.js'
+      - 'lib/hubspot-client.js'
+      - 'lib/notion/funding-leads.js'
+      - 'lib/reconciliation/applicants.js'
+      - 'workers/email-intake/**'
+      - 'tests/**intake**'
+      - 'tests/applicant-reconciliation.test.js'
+      - 'tests/cleanup-backfill.test.js'
+      - 'tests/funding-leads.test.js'
+      - 'tests/google-sheets-sync.test.js'
+      - 'tests/hubspot-client.test.js'
+      - '.github/workflows/email-intake-reliability.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install Worker dependencies
+        working-directory: workers/email-intake
+        run: npm ci --ignore-scripts
+
+      - name: Run intake regression tests
+        run: >-
+          node --test
+          tests/applicant-reconciliation.test.js
+          tests/cleanup-backfill.test.js
+          tests/email-intake.test.js
+          tests/email-intake-worker.test.mjs
+          tests/funding-leads.test.js
+          tests/google-sheets-sync.test.js
+          tests/hubspot-client.test.js
+          tests/partner-email-ingest.test.js
+
+      - name: Run site build regression test
+        run: node tests/build.test.js
+
+      - name: Build Worker with configured bindings
+        working-directory: workers/email-intake
+        run: npx wrangler deploy --dry-run
+
+      - name: Check changed JavaScript syntax
+        run: |
+          node --check api/applicant-email-ingest.js
+          node --check api/intake-message.js
+          node --check api/partner-email-ingest.js
+          node --check lib/email-intake.js
+          node --check lib/google-sheets-sync.js
+          node --check lib/hubspot-client.js
+          node --check lib/notion/funding-leads.js
+          node --check lib/reconciliation/applicants.js
