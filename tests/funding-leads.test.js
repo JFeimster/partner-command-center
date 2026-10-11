@@ -10,7 +10,8 @@ const {
   buildEmailFundingLeadProperties,
   pageEmailEventTimestamp,
   shouldApplyEmailLifecycle,
-  selectEmailFundingLeadMatch
+  selectEmailFundingLeadMatch,
+  upsertEmailFundingLead
 } = require('../lib/notion/funding-leads');
 
 function request() {
@@ -221,7 +222,6 @@ test('Notion case matching uses source email date from audit payload before page
   assert.equal(shouldApplyEmailLifecycle(matching, { email_date: '2026-04-21T21:00:00.000Z' }), true);
 });
 
-
 test('separated BankBreezy starts create a new Funding Lead case instead of overwriting an old one', () => {
   const prior = {
     id: 'prior',
@@ -241,4 +241,45 @@ test('separated BankBreezy starts create a new Funding Lead case instead of over
     stableEmailLeadId('repeat@example.com', '2026-01-01T12:00:00Z', 'BankBreezy'),
     stableEmailLeadId('repeat@example.com', '2026-03-15T12:00:00Z', 'BankBreezy')
   );
+});
+
+test('Notion exact email event replay reuses the existing page without creating a duplicate', async () => {
+  const previousKey = process.env.NOTION_API_KEY;
+  const previousDatabase = process.env.NOTION_FUNDING_LEADS_DB_ID;
+  const previousFetch = global.fetch;
+  process.env.NOTION_API_KEY = 'test-key';
+  process.env.NOTION_FUNDING_LEADS_DB_ID = 'funding-leads-db';
+  let pageCreateCalled = false;
+  const eventId = '<same-message@example.com>';
+  const existing = {
+    id: 'existing-page',
+    properties: {
+      'Email': { email: 'jane@example.com' },
+      'Webhook Event ID': { rich_text: [{ plain_text: eventId }] },
+      'External Lead ID': { rich_text: [{ plain_text: 'maillead_existing' }] }
+    }
+  };
+  global.fetch = async (url, options = {}) => {
+    if (String(url).endsWith('/databases/funding-leads-db/query')) {
+      return new Response(JSON.stringify({ results: [existing], has_more: false }), { status: 200 });
+    }
+    if (String(url).endsWith('/pages') && options.method === 'POST') pageCreateCalled = true;
+    return new Response(JSON.stringify({}), { status: 200 });
+  };
+  try {
+    const result = await upsertEmailFundingLead({
+      external_event_id: eventId,
+      name: 'Jane Smith',
+      email: 'jane@example.com'
+    });
+    assert.equal(result.status, 'duplicate_replayed');
+    assert.equal(result.notion_page_id, 'existing-page');
+    assert.equal(pageCreateCalled, false);
+  } finally {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.NOTION_API_KEY;
+    else process.env.NOTION_API_KEY = previousKey;
+    if (previousDatabase === undefined) delete process.env.NOTION_FUNDING_LEADS_DB_ID;
+    else process.env.NOTION_FUNDING_LEADS_DB_ID = previousDatabase;
+  }
 });

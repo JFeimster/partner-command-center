@@ -216,8 +216,12 @@ function externalId(input, parsed) {
   const forwardedMessageId = parsed && parsed.forwarded_headers
     ? clean(parsed.forwarded_headers.forwarded_message_id)
     : '';
-  const supplied = clean(input.external_event_id || forwardedMessageId);
+  const supplied = clean(input.external_event_id || forwardedMessageId || input.internet_message_id || input.message_id);
   if (supplied) return supplied;
+  const receiptId = clean(input.receipt_id);
+  if (receiptId) return 'receipt_' + receiptId.slice(0, 120);
+  const fingerprint = clean(input.message_fingerprint);
+  if (fingerprint) return 'email_sha256_' + fingerprint.slice(0, 64);
 
   if (parsed && parsed.partner && parsed.partner.email) {
     const stablePayload = {

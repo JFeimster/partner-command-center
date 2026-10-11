@@ -84,4 +84,4 @@ module.exports = async function cleanupBackfillArtifacts(req, res) {
   }));
 };
 
-module.exports._private = { CLEANUP_ID, HUBSPOT_DEALS, HUBSPOT_CONTACT, NOTION_PAGES, BAD_ASSOCIATIONS };
+module.exports._private = { CLEANUP_ID, HUBSPOT_DEALS, HUBSPOT_CONTACT, NOTION_PAGES, BAD_ASSOCIATIONS, capture };

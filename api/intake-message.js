@@ -24,8 +24,7 @@ module.exports = async function intakeMessage(req, res) {
     : classify(body);
 
   console.log('[intake-message]', JSON.stringify({
-    message_id: clean(body.message_id || body.internet_message_id) || null,
-    subject: clean(body.subject) || null,
+    receipt_id: clean(body.receipt_id) || null,
     classification: decision.type,
     confidence: decision.confidence,
     reason: decision.reason
