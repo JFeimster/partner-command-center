@@ -41,3 +41,16 @@ test('HubSpot deal source dates are parseable for historical case matching', () 
   });
   assert.equal(ts, Date.parse('2026-03-15T12:00:00.000Z'));
 });
+
+
+test('deal event timestamps support same-event stage correction', () => {
+  const existing = {
+    properties: {
+      description: 'Original email date: Tue, 07 Mar 2023 21:23:29 +0000'
+    }
+  };
+  assert.equal(
+    parseDealEventTimestamp(existing),
+    Date.parse('Tue, 07 Mar 2023 21:23:29 +0000')
+  );
+});
