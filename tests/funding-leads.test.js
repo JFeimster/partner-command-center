@@ -8,6 +8,8 @@ const {
   numericMoney,
   normalizedAccountType,
   buildEmailFundingLeadProperties,
+  pageEmailEventTimestamp,
+  shouldApplyEmailLifecycle,
   selectEmailFundingLeadMatch
 } = require('../lib/notion/funding-leads');
 
@@ -178,4 +180,41 @@ test('duplicate applicant emails resolve to the case closest to the original pro
   });
 
   assert.equal(selected.id, 'matching-case');
+});
+
+
+test('provider action statuses map to applicant-action lifecycle when applied', () => {
+  const props = buildEmailFundingLeadProperties({
+    external_event_id: 'bank-pending',
+    name: 'Nikita Chelsey',
+    email: 'nikita@example.com',
+    status: 'Bank Connection Pending'
+  }, { isUpdate: true, applyLifecycle: true });
+
+  assert.equal(props['Lead Status'].status.name, 'Needs Applicant Action');
+  assert.equal(props['Review Status'].status.name, 'Missing Info');
+});
+
+test('Notion case matching uses source email date from audit payload before page creation time', () => {
+  const oldPage = {
+    id: 'old',
+    created_time: '2026-10-11T08:00:00.000Z',
+    properties: {
+      'API Payload': { rich_text: [{ plain_text: JSON.stringify({ email_date: '2026-04-20T20:24:31.000Z' }) }] }
+    }
+  };
+  const matching = {
+    id: 'matching',
+    created_time: '2026-10-11T08:00:01.000Z',
+    properties: {
+      'API Payload': { rich_text: [{ plain_text: JSON.stringify({ email_date: '2026-04-21T20:46:14.000Z' }) }] }
+    }
+  };
+  assert.equal(pageEmailEventTimestamp(matching), Date.parse('2026-04-21T20:46:14.000Z'));
+  const selected = selectEmailFundingLeadMatch([oldPage, matching], {
+    email: 'clar80837@gmail.com',
+    email_date: '2026-04-21T20:46:00.000Z'
+  });
+  assert.equal(selected.id, 'matching');
+  assert.equal(shouldApplyEmailLifecycle(matching, { email_date: '2026-04-21T21:00:00.000Z' }), true);
 });
