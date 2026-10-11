@@ -11,7 +11,8 @@ const HUBSPOT_CONTACT = '66735563661';
 const NOTION_PAGES = [
   '3f64bc1b-d63c-817b-b606-e4b7b3a441c9',
   '3f64bc1b-d63c-81eb-8f48-e2266e6424b2',
-  '3f64bc1b-d63c-81ca-b5fd-e53bebe80e75'
+  '3f64bc1b-d63c-81ca-b5fd-e53bebe80e75',
+  '3f64bc1b-d63c-8149-8902-e9268d71f42a'
 ];
 const BAD_ASSOCIATIONS = [
   { deal_id: '65879331230', contact_id: '217027135619' }

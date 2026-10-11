@@ -203,5 +203,21 @@ const intake = require('../lib/email-intake');
   assert.strictEqual(exactForwardedGiggle.email, '');
   assert.strictEqual(exactForwardedGiggle.status, 'Submitted');
 
+  const wrappedForwardedGiggle = intake.parseApplicant({
+    subject: 'Fwd: Giggle Finance - Funding Request Created',
+    text: [
+      'From: Giggle Finance <info@gigglefinance.com>',
+      'To: jasonfeimster@gmail.com',
+      'Dear Jason Feimster,',
+      'New Funding Request from',
+      'Nikita Chelsey',
+      'has been received,',
+      'info@gigglefinance.com'
+    ].join('\n')
+  });
+  assert.strictEqual(wrappedForwardedGiggle.name, 'Nikita Chelsey');
+  assert.strictEqual(wrappedForwardedGiggle.email, '');
+  assert.strictEqual(intake.isSystemEmail('jasonfeimster@gmail.com'), true);
+
   console.log('email-intake tests passed');
 })();
