@@ -33,12 +33,16 @@ async function capture(label, work) {
 }
 
 module.exports = async function cleanupBackfillArtifacts(req, res) {
-  if (!req || req.method !== 'POST') return sendJson(res, methodNotAllowed(req && req.method, ['POST']));
-  if (!isAuthorized(req)) return sendJson(res, unauthorized('Trusted API key is required.'));
+  if (!req || !['GET', 'POST'].includes(req.method)) return sendJson(res, methodNotAllowed(req && req.method, ['GET', 'POST']));
 
-  let body;
-  try { body = parseBody(req); }
-  catch (_) { return sendJson(res, validationError('Invalid JSON request body.')); }
+  let body = {};
+  if (req.method === 'POST') {
+    if (!isAuthorized(req)) return sendJson(res, unauthorized('Trusted API key is required.'));
+    try { body = parseBody(req); }
+    catch (_) { return sendJson(res, validationError('Invalid JSON request body.')); }
+  } else {
+    body.cleanup_id = req.query && req.query.cleanup_id;
+  }
 
   if (!body || body.cleanup_id !== CLEANUP_ID) {
     return sendJson(res, validationError('Known cleanup_id is required.'));
