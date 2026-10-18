@@ -21,5 +21,7 @@ jobs:
           node-version: '22'
       - name: Run synthetic read-only dashboard tests
         run: node --test tests/crm-dashboard-v2.test.js
+      - name: Install email-worker runtime dependency for existing tests
+        run: npm ci --prefix workers/email-intake --omit=dev --ignore-scripts
       - name: Run existing repository tests
         run: node --test tests/*.test.js tests/*.test.mjs
