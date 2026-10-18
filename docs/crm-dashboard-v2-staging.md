@@ -1,12 +1,29 @@
 # Master Applicants CRM — Dashboard V2 staging specification
 
-**Status:** review only; no Google Sheets writes, deployment, CRM updates, or message sends.  
+**Status:** implementation verified in Google Sheets on October 18, 2026. This document retains the original design and rollback notes; exact live formulas are authoritative in the linked workbook. No applicant-data, message-send, or integration-schema changes.  
 **Source of truth:** [Master Applicants CRM](https://docs.google.com/spreadsheets/d/1Bc8Im3uD1_5qAvS-VYBoXdWjFAX5wWecTKP3Hw44PJo/edit), `Master Applicants!A:AT` (46 positional fields).  
 **Repository integration:** [`lib/google-sheets-sync.js`](../lib/google-sheets-sync.js).  
 **Notion tasks:** CRM-06, CRM-07, CRM-08, CRM-09, CRM-10, CRM-14, CRM-16, CRM-17.  
 **Baseline date:** 2026-10-18 (snapshot, *not* a claim of live ongoing counts).  
 **Workbook locale:** `en_US`; **timezone:** `Etc/GMT` (operator business dates are Eastern Time).  
 **Sheet IDs:** do not change the IDs or names of any existing tabs.
+
+## October 18, 2026 — production cutover / CRM-06
+
+**Implemented in the canonical workbook**, not just proposed:
+
+- Original `Dashboard!A2:C7` labels/formulas/notes and `Dashboard!D1:H6` summary repaired. Six current KPI values: **47 recorded nonterminal / 19 dated follow-ups past due / 14 bank pending / 14 documents missing/requested / 0 won-funding statuses recorded / 140 Closed Lost**. The source/route summary totals are **47 nonterminal + 0 won/funded status + 140 Closed Lost + 33 blank statuses = 220 source case records**.
+- `Dashboard Data (Staging)` sheet ID **1291273850**; `Dashboard V2 (Staging)` ID **1217712231**. Both are live, formula-driven worksheets added after the original 11 worksheets. The original `Master Applicants!A:AT` layout and first 11 tab IDs were preserved.
+- `Dashboard Data (Staging)!A1050:H1056` stores the previous `Dashboard!A1:H7` labels/formulas as literal text, for rollback.
+- Staging supports source/route, product, source channel, lifecycle, owner, **stage** (`B5`), and created-date filters. Empty-match case count was fixed to `=SUMPRODUCT(N(LEN('Dashboard Data (Staging)'!Q2:Q1001)>0))`, which correctly returns zero instead of counting a blank formula cell. Operational review queues have no outbound-send actions.
+- `Dashboard V2 (Staging)!M5` now calculates the Eastern business date from `Etc/GMT` `NOW()`, accounting for U.S. DST start/end boundaries at 07:00 and 06:00 UTC respectively. This is a **calendar-date display/cutoff**, not a message scheduling engine.
+- Filter checks: source DAC **172**, product BankBreezy **101**, missing status **33**, stage Submission Started **104**, no-match **0**. Restored `All` baseline: **220 / 47 / 33 / 140 / 19 / 14 / 14**. Both lifecycle and source-route groupings reconcile to **220**.
+- Staging displays a capacity warning in `O5` when source IDs appear beyond row 1001, so fixed-array formulas are not silently treated as unlimited.
+- The original Dashboard provider totals based on Gmail labels were replaced by **Source / Route** breakdowns. These are **not** lender submissions, real funding awards, or revenue totals.
+- Notion state: CRM-06 marked **Done**; CRM-16 and CRM-17 marked **In Progress** pending missing independent submission/funding and last-progress data.
+- **Security still open (CRM-01):** Google Drive permission metadata shows `anyone: writer` with link discovery disabled. The currently connected Drive tool grants shares but cannot revoke or downgrade existing public grants. Restrict access through Google Drive's sharing control and re-check metadata. Do not mark CRM-01 Done until verified.
+
+**Read this cutover record before using the historical instructions below.** Sections describing hypothetical staging creation, manually maintained M5, old B8 `COUNTIF("<>")`, or unauthorised production replacements are the **original plan**, not instructions to rerun. No new live changes should be derived by blindly replaying them.
 
 ## 1. Existing-state findings and metric definitions
 
