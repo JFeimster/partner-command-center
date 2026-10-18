@@ -494,4 +494,4 @@ module.exports = async function router(req, res) {
     return sendJson(res, serverError('Router action failed.', { message: error && error.message ? error.message : 'Unknown error' }));
   }
 };
-module.exports._private = { ROUTER_ACTIONS, PUBLIC_ACTIONS, TALLY_FIELD_MAP, parseBody, stableStringify, rawBodyForHmac, hmacForBody, isValidTallySecret, isValidApiKey, extractTallyFields, normalizePartnerFromSignup, validateSignupConsent, generatePartnerId, classifyPartner, assignOnboardingPathForPartner, recommendResourcesForPartner, recommendCampaignsForPartner, extractActivationProfile, publicActivationProfile };
+module.exports._private = { ROUTER_ACTIONS, PUBLIC_ACTIONS, TALLY_FIELD_MAP, parseBody, stableStringify, rawBodyForHmac, hmacForBody, isValidTallySecret, isValidApiKey, extractTallyFields, normalizePartnerFromSignup, validateSignupConsent, isHistoricalTallyReplayWithoutConsent, generatePartnerId, classifyPartner, assignOnboardingPathForPartner, recommendResourcesForPartner, recommendCampaignsForPartner, extractActivationProfile, publicActivationProfile };
