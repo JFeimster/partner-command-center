@@ -1,0 +1,27 @@
+name: CRM Dashboard V2 (read-only tests)
+on:
+  pull_request:
+    paths:
+      - 'lib/crm-dashboard-v2.js'
+      - 'scripts/crm-dashboard-v2-report.js'
+      - 'tests/crm-dashboard-v2.test.js'
+      - 'tests/fixtures/crm-dashboard-v2.synthetic.json'
+      - 'docs/crm-dashboard-v2-staging.md'
+      - '.github/workflows/crm-dashboard-v2.yml'
+  workflow_dispatch:
+jobs:
+  test-dashboard-projections:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run synthetic read-only dashboard tests
+        run: node --test tests/crm-dashboard-v2.test.js
+      - name: Install email-worker runtime dependency for existing tests
+        run: npm ci --prefix workers/email-intake --omit=dev --ignore-scripts
+      - name: Run existing repository tests
+        run: node --test tests/*.test.js tests/*.test.mjs

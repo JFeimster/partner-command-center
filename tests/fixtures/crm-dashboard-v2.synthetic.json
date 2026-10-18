@@ -1,0 +1,17 @@
+{
+  "description":"Entirely synthetic, no customer names/emails/phone numbers. All dates use workbook source calendar date.",
+  "rows":[
+    {"record_id":"SYN-01","created_at":46300,"source_provider":"DAC","funding_product":"Giggle","status":"Closed Lost","stage":"Submission Started","next_follow_up_at":"2026-10-01T09:00:00-04:00","follow_up_status":"Needs Follow-Up"},
+    {"record_id":"SYN-02","created_at":"2026-10-10T17:30:00Z","source_provider":"BankBreezy","funding_product":"BankBreezy","status":"Submission Started","stage":"Submission Started","next_follow_up_at":"2026-10-17T09:00:00-04:00","bank_connection_status":"Pending","documents_status":"Requested"},
+    {"record_id":"SYN-03","created_at":"2026-10-01 12:30:00","source_provider":"DAC","funding_product":"BankBreezy","status":"","stage":"Received","next_follow_up_at":"2026-10-16T09:00:00-04:00"},
+    {"record_id":"SYN-04","created_at":"2026-10-15","source_provider":"Giggle","funding_product":"Giggle","status":"Closed Won","stage":"Closed Won"},
+    {"record_id":"SYN-05","created_at":"2026-10-15","source_provider":"GoKapital Test","funding_product":"Equipment Finance","status":"Unknown","stage":"New","documents_status":"Missing"},
+    {"record_id":"SYN-06","created_at":"2026-10-15","source_provider":"Wix","status":"Under Review","next_follow_up_at":"2026-10-18T11:00:00-04:00"},
+    {"record_id":"SYN-07","created_at":"2026-10-14","source_provider":"Tally Funding Intake","status":"Incomplete","next_follow_up_at":"2026-10-19T09:00:00-04:00"},
+    {"record_id":"SYN-08","created_at":"2026-10-14","source_provider":"Email Intake","status":"Closed Lost","stage":"Closed Lost"},
+    {"record_id":"SYN-09","created_at":"2026-10-14","source_provider":"DAC Applet","status":"New","next_follow_up_at":"NOT-A-DATE"},
+    {"record_id":"SYN-09","created_at":"2026-10-14","source_provider":"HubSpot","status":"Needs Review"},
+    {"record_id":"SYN-11","created_at":"2026-02-30","source_provider":"BankBreezy","status":"Offer Received","next_follow_up_at":46200},
+    {"record_id":"SYN-12","created_at":"2026-10-14","source_provider":"DAC","status":"Funded"}
+  ]
+}
