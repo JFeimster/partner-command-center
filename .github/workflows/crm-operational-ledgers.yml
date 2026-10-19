@@ -1,0 +1,25 @@
+name: CRM Operational Ledgers (offline)
+on:
+  pull_request:
+    paths:
+      - 'lib/crm-operational-ledgers.js'
+      - 'scripts/check-crm-ledger-contracts.js'
+      - 'docs/crm-operational-ledgers-v1.md'
+      - '.github/workflows/crm-operational-ledgers.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ledger-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate pure ledger projections
+        run: node scripts/check-crm-ledger-contracts.js
+      - name: Install existing email worker dependency for repository regression
+        run: npm ci --prefix workers/email-intake --omit=dev --ignore-scripts
+      - name: Run existing repository test suite
+        run: node --test tests/*.test.js tests/*.test.mjs
