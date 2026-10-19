@@ -22,6 +22,8 @@ test('unknown columns and personal data cannot enter the event store', () => {
     assert.throws(() => engine.normalize(kind, { ...event, applicant_email: 'private@example.com' }), /INVALID_EVENT/);
     assert.throws(() => engine.normalize(kind, { ...event, message_body: 'private' }), /INVALID_EVENT/);
   }
+  assert.throws(() => engine.normalize('submission', { ...fixtures.submissionEvents[0], internal_reference: 'applicant private note' }), /INVALID_EVENT/);
+  assert.throws(() => engine.normalize('communication', { ...fixtures.communicationEvents[8], suppression_reason: 'applicant private note' }), /INVALID_EVENT/);
 });
 test('offer and funding require source evidence identifiers', () => {
   assert.throws(() => engine.normalize('submission', { ...fixtures.submissionEvents[3], source_event_id: '' }), /INVALID_EVENT/);

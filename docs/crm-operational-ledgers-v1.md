@@ -68,7 +68,8 @@ real external submission ID; no provider call is made by this engine.
 
 The Node adapter normalizes to the exact 20/17 staging columns and rejects
 additional keys, including addresses, phone numbers, message bodies, names,
-and bank/credit data. `reportingRows(pool, kind, recordId)` returns ordered
+and bank/credit data. Optional references and suppression reasons must be
+short machine-readable codes; free-text notes are rejected. `reportingRows(pool, kind, recordId)` returns ordered
 arrays with the existing Sheets header order for a separately authorized,
 read-only export. `reportingPage` also returns the exact headers and up to
 1,000 rows with a sequence cursor for bounded exports. Neither function

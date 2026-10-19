@@ -89,7 +89,7 @@ test('PostgreSQL event store integration and concurrency', { skip: !connectionSt
     });
     await t.test('case-wide suppression blocks another workflow and reporter cannot write', async () => {
       await engine.ingest(pool, 'communication', communication('other-workflow','queued',14,{record_id:'CASE-2',workflow_id:'different',consent_basis:'documented-opt-in'}), { enabled: true });
-      await engine.ingest(pool, 'communication', communication('global-opt-out','suppressed',15,{record_id:'CASE-2',workflow_id:'',suppression_reason:'case-wide opt-out'}), { enabled: true });
+      await engine.ingest(pool, 'communication', communication('global-opt-out','suppressed',15,{record_id:'CASE-2',workflow_id:'',suppression_reason:'case_opt_out'}), { enabled: true });
       const state = (await engine.communicationState(pool, 'CASE-2')).find(s => s.workflow_id === 'different');
       assert.equal(state.suppressed, true);
       assert.equal(state.eligible_send, false);
