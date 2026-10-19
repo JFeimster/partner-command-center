@@ -1,8 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "framework": null,
-  "installCommand": "",
+  "framework": "nextjs",
   "git": {
     "deploymentEnabled": true
   },
@@ -55,10 +54,6 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/dashboard",
-      "destination": "/dashboard.html"
-    },
     {
       "source": "/partner-access",
       "destination": "/partner-access.html"

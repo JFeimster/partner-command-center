@@ -13,8 +13,8 @@ The first live workflow is **not lead routing**. Lead Submission + Funding Route
 | `partner-command-center` | Live product shell | Public partner acquisition, partner access, welcome, dashboard, resources, tracking links, future live API router, and Notion-backed activation surfaces. |
 | `partner-intake-os` | Intake/reference library | Partner intake workflow, schemas, classification logic, onboarding logic, GPT/action docs, Tally intake references, and dashboard data-contract guidance. |
 | Tally | Signup form source | Captures partner signup intent and sends the raw signup payload. |
-| `/api/router.js` | Future unified API gateway | Receives partner signup events, validates/normalizes payloads, calls Notion server-side, and returns JSON responses. This sprint reserves the contract only; it does not add live API code. |
-| Notion | First live CRM/database | Stores Partner records, Partner Events, Partner Resources, and Tracking Links after Sprint 01+. |
+| `/api/router.js` | Implemented Vercel partner-action router | Routes the current partner signup, activation, lifecycle, classification, assignment, and event actions to existing server-side Notion helpers. Other Vercel APIs remain distinct where they own separate workflows. |
+| Notion | Existing partner and funding workflow records | Stores the partner and funding records currently assigned to it; it is not replaced by a new CRM. |
 
 ## Live workflow order
 
@@ -69,3 +69,11 @@ Sprint 00 does not create:
 - Partner dashboard live mode.
 
 Those belong to later sprints.
+
+## Current implementation reconciliation — 2026-10-19
+
+The sprint descriptions above retain the original sequencing decision; their statements that the router and live dashboard are future work are historical. Current `main` includes Vercel partner signup, partner lifecycle/event, dashboard bootstrap/profile/distribution, link/task/resource, lead, and applicant intake/reconciliation handlers. `/api/router` exists and serves the documented partner actions. The current route and method inventory is maintained in [`live-api-endpoint-map.md`](live-api-endpoint-map.md).
+
+The canonical data owners remain unchanged: Cloudflare owns inbound email receipt/queue/retry; Vercel APIs orchestrate authenticated partner and applicant workflows; Notion owns the assigned partner/funding workflow records; HubSpot owns its existing CRM records; and the existing Master Applicants workbook remains the applicant spreadsheet. The frontend migration adds no data store and does not move any API or Worker handler in its first batch.
+
+The frontend is currently static HTML/CSS/JavaScript with live Vercel API functions and an independent Cloudflare Worker. The measured Next.js migration begins with `/` and `/dashboard`; remaining legacy routes and public assets must continue to resolve from their current source files while each route batch is migrated.

@@ -1,3 +1,5 @@
 .vercel
+/public/
+/.next/
 .env*
 node_modules/
