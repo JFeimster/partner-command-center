@@ -1,8 +1,20 @@
 'use strict';
 const a=require('node:assert/strict');
 const x=require('../lib/crm-operational-ledgers');
-a.equal(x.SUBMISSION_HEADERS.length,20);
-a.equal(x.OUTREACH_HEADERS.length,17);
-a.equal(x.submissions([]).submission_count,0);
-a.equal(x.outreach([]).event_count,0);
-process.stdout.write('CRM ledger checks passed\n');
+const ev=(n,sub,provider,status,time=0,other={})=>({event_id:n,submission_id:sub,record_id:'CASE-1',provider_id:provider,product_id:'PROD-1',event_type:status,status,occurred_at:'2026-10-19T15:'+String(time).padStart(2,'0')+':00Z',idempotency_key:'key-'+n,...other});
+const msg=(n,status='queued',other={})=>({event_id:n,record_id:'CASE-1',channel:'email',direction:'outbound',status,idempotency_key:'msg-'+n,...other});
+const checks=[];
+function check(name,fn){fn();checks.push(name)}
+check('fixed schemas',()=>{a.equal(x.SUBMISSION_HEADERS.length,20);a.equal(x.OUTREACH_HEADERS.length,17);x.headerCheck(x.SUBMISSION_HEADERS,x.SUBMISSION_HEADERS);a.throws(()=>x.headerCheck([...x.SUBMISSION_HEADERS].reverse(),x.SUBMISSION_HEADERS),/HEADER_MISMATCH/)});
+check('no invented outcomes',()=>{a.equal(x.submissions([]).funded_count,0);a.equal(x.outreach([]).event_count,0)});
+check('one case two independent providers',()=>{const v=x.submissions([ev('e1','s1','p1','submitted'),ev('e2','s2','p2','submitted')]);a.equal(v.submission_count,2);a.equal(v.case_count,1)});
+check('submitted plus offered funded',()=>{const v=x.submissions([ev('e1','s1','p1','submitted'),ev('e2','s2','p2','submitted'),ev('e3','s1','p1','offered',1,{offer_amount:'1200'}),ev('e4','s1','p1','funded',2,{funded_amount:'1100',source_event_id:'proof-1'})]);a.equal(v.submission_count,2);a.equal(v.offer_count,1);a.equal(v.funded_count,1)});
+check('idempotent replay',()=>{const v=ev('e1','s1','p1','submitted');a.equal(x.submissions([v,v,{...v,event_id:'e1again'}]).event_count,1)});
+check('idempotency conflict',()=>{const v=ev('e1','s1','p1','submitted');a.throws(()=>x.submissions([v,{...v,event_id:'e2',provider_id:'p2'}]),/IDEMPOTENCY_CONFLICT/)});
+check('identity invariant',()=>{a.throws(()=>x.submissions([ev('e1','s1','p1','submitted'),ev('e2','s1','p2','offered',1,{offer_amount:'99'})]),/SUBMISSION_IDENTITY_CONFLICT/)});
+check('no terminal regression',()=>{a.throws(()=>x.submissions([ev('e1','s1','p1','declined'),ev('e2','s1','p1','submitted',1)]),/INVALID_TRANSITION/)});
+check('funding evidence required',()=>{a.throws(()=>x.submissions([ev('e1','s1','p1','funded',0,{funded_amount:'100'})]),/FUNDING_EVIDENCE_REQUIRED/)});
+check('outreach observed events',()=>{const v=x.outreach([msg('e1'),msg('e2','sent',{external_message_id:'m-1',occurred_at:'2026-10-19T15:00:00Z'}),msg('e3','replied',{direction:'inbound',external_message_id:'r-1',occurred_at:'2026-10-19T15:02:00Z'})]);a.equal(v.event_count,3);a.equal(v.status_counts.replied,1)});
+check('outreach guards',()=>{a.throws(()=>x.outreach([msg('e1','sent')]),/DELIVERY_EVIDENCE_REQUIRED/);a.throws(()=>x.outreach([msg('e2','suppressed')]),/SUPPRESSION_REASON_REQUIRED/)});
+check('no extraneous source columns',()=>{a.throws(()=>x.outreach([msg('e1','queued',{raw_message_body:'x'})]),/INVALID_COLUMNS/)});
+process.stdout.write('CRM offline contract checks: '+checks.length+' passed\n');
