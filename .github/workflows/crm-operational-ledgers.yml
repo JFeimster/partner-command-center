@@ -1,10 +1,16 @@
-name: CRM Operational Ledgers (offline)
+name: CRM Durable Event Engine
 on:
   pull_request:
     paths:
       - 'lib/crm-operational-ledgers.js'
+      - 'lib/crm-event-engine.js'
       - 'scripts/check-crm-ledger-contracts.js'
       - 'docs/crm-operational-ledgers-v1.md'
+      - 'db/migrations/**'
+      - 'tests/crm-event-engine*'
+      - 'tests/fixtures/crm-events.synthetic.js'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/crm-operational-ledgers.yml'
   workflow_dispatch:
 permissions:
@@ -12,14 +18,30 @@ permissions:
 jobs:
   ledger-contracts:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: crm_event_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d crm_event_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CRM_EVENT_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/crm_event_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate pure ledger projections
-        run: node scripts/check-crm-ledger-contracts.js
+      - name: Install event engine dependency
+        run: npm ci --ignore-scripts
       - name: Install existing email worker dependency for repository regression
         run: npm ci --prefix workers/email-intake --omit=dev --ignore-scripts
-      - name: Run existing repository test suite
-        run: node --test tests/*.test.js tests/*.test.mjs
+      - name: Run full repository suite with database integration and concurrency tests
+        run: npm test

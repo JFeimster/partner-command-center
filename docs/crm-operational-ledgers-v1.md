@@ -43,3 +43,92 @@ Provider Submissions (Staging) sheetId 1243516518, 20 headers A:T. Outreach Even
 5. Before activating inbound/outbound integrations, enforce least privilege and suppression and review actual provider submissions/verification proofs.
 
 Related tasks: CRM-19, CRM-20, CRM-21, CRM-23, CRM-24, CRM-27. CRM-01 security remediation was verified complete on 2026-10-19.
+
+## Durable event engine v1 (code ready, inactive)
+
+The server-only implementation is `lib/crm-event-engine.js`, backed by
+`db/migrations/202610190001_crm_event_engine.sql`. It has no HTTP ingestion
+route, no automated provider adapter, no Sheets writer, and no message sender.
+The ingest function requires `CRM_EVENT_INGEST_ENABLED=true` explicitly; the
+default is disabled. `CRM_EVENT_DATABASE_URL` is a private PostgreSQL connection
+string for a dedicated server identity. Neither setting belongs in browser code.
+No existing Notion, Master Applicants, or Google Sheets API write path was changed.
+
+The private `crm_event_engine` schema contains verified case, provider, product,
+and evidence reference tables; one immutable `events` table with global unique
+event IDs and idempotency keys; an `integration_errors` dead-letter table; and
+read-only `current_submissions` and `applicant_communication_state` views.
+Reference rows are operator verified snapshots of the established Master
+Applicants and Notion registries. A product is keyed with its actual provider.
+They are not created automatically from applicant names, source_provider, or
+staging status. Offer and funding events require a matching, separately
+verified evidence row before ingestion. The evidence row records an external
+reference, not an applicant name or document. A submission begins only with a
+real external submission ID; no provider call is made by this engine.
+
+The Node adapter normalizes to the exact 20/17 staging columns and rejects
+additional keys, including addresses, phone numbers, message bodies, names,
+and bank/credit data. Optional references and suppression reasons must be
+short machine-readable codes; free-text notes are rejected. `reportingRows(pool, kind, recordId)` returns ordered
+arrays with the existing Sheets header order for a separately authorized,
+read-only export. `reportingPage` also returns the exact headers and up to
+1,000 rows with a sequence cursor for bounded exports. Neither function
+writes the staging tabs. Rows retain every accepted
+event, while views derive latest state. A suppression or inbound reply makes
+the relevant workflow ineligible for send; the projection is information only
+and cannot authorize an outbound message by itself.
+
+Each ingestion begins a PostgreSQL transaction and takes a transaction-scoped
+advisory lock on its aggregate. Unique indexes protect event IDs and keys even
+across aggregates. Exact replay returns `replayed`; reused IDs or keys with a
+different payload fail closed. Serialization, deadlock, and lock timeout errors
+retry at most three times. Only safe event IDs and error codes go to the
+dead-letter table; raw payloads and applicant PII are never logged. Pending
+retry records require operator review before any manual replay. A database
+outage can prevent writing the dead-letter entry, so infrastructure monitoring
+must also alert on ingestion failures.
+
+### Deployment and access control
+
+1. Review the SQL and create a dedicated PostgreSQL instance or private schema
+   reachable only from trusted server code. The repository had no active
+   PostgreSQL client or migration runner before this change. Do not apply the
+   migration as part of a Vercel build. Apply it manually after backup and
+   database-owner approval; record its migration checksum and schema version.
+2. The migration creates `crm_event_ingest` and `crm_event_report` NOLOGIN
+   roles. Provision separate login identities, grant each the appropriate role,
+   and use separate database URLs for ingestion and reporting. Keep the schema
+   outside Supabase Data API exposed schemas. Tables have RLS and role-scoped
+   policies; `anon` and `authenticated` receive no grants. Reference and
+   evidence writes remain with a separate trusted operator role, never the
+   ingestion login. Audit grants and run Supabase database security advisors
+   if the chosen PostgreSQL instance is Supabase hosted.
+3. Reconcile and load unique Master Applicants record IDs and exact Notion
+   provider/product page IDs. Check for duplicate case identities, stale
+   products, and provider/product mismatches before loading. Verify real offer
+   and funding evidence manually. Never backfill synthetic outcomes from a
+   generic stage. Maintain a documented mapping and a reversible backup.
+4. Keep `CRM_EVENT_INGEST_ENABLED` unset during migration and reference
+   reconciliation. In an isolated environment, run `npm test` with
+   `CRM_EVENT_TEST_DATABASE_URL` pointing to a disposable PostgreSQL database;
+   CI runs PostgreSQL 16 integration and concurrency tests. Verify row-level
+   permissions using the intended login roles and verify the staging tab
+   headers remain A:T and A:Q before any reporting export.
+5. For activation, explicitly authorize a trusted inbound source, its
+   authentication, verified identity mapping, and an operator runbook for
+   exceptions and retry. A separate review is required for any live provider
+   submission, outbound email/SMS, or applicant mutation. None is enabled by
+   this change. Keep `vercel.json` `git.deploymentEnabled=false`.
+   The current Vercel configuration has an empty install command, so the
+   PostgreSQL client is not installed in that deployment path; install and
+   review runtime dependencies as a separate activation gate.
+
+### Rollback
+
+Set `CRM_EVENT_INGEST_ENABLED=false` first and stop trusted inbound callers.
+Preserve the immutable event and error rows for audit and export. Revoke the
+ingestion role membership/credentials if needed. Roll back application code
+without dropping the schema; only the database owner may later archive and
+remove the schema after retention and reconciliation review. Reports can be
+recomputed from preserved events. There is no automatic migration rollback or
+production activation in this PR.
