@@ -1,0 +1,154 @@
+{
+  "name": "Partner Command Center Module Registry",
+  "version": "0.1.0",
+  "architecture": "Workflow Spec Pack → Custom GPT → OpenAPI Action Pack → Dashboard Module",
+  "source_sites": [
+    {
+      "id": "funding-partners-os",
+      "name": "Funding Partners OS",
+      "url": "https://funding-partners-os.vercel.app/index.html",
+      "role": "primary_partner_acquisition",
+      "priority": 1,
+      "target_modules": ["partner-intake", "campaign-builder", "link-builder"],
+      "primary_cta_target": "https://tally.so/r/mOe658",
+      "notes": "Keep strong partner sales copy when accurate; route partner signup into Tally and Partner Command Center."
+    },
+    {
+      "id": "fpos",
+      "name": "FPOS",
+      "url": "https://fpos-blond.vercel.app/",
+      "role": "dashboard_shell_reference",
+      "priority": 2,
+      "target_modules": ["overview", "lead-router", "link-builder", "campaign-builder", "resource-router", "follow-up"],
+      "notes": "Preferred dashboard v2 shell because it has sidebar, pipeline, marketing kits, localStorage, and widget tooling."
+    },
+    {
+      "id": "am-i-fundable",
+      "name": "Am I Fundable",
+      "url": "https://am-i-fundable.vercel.app/",
+      "role": "borrower_readiness_lead_magnet",
+      "priority": 3,
+      "target_modules": ["lead-router", "funding-readiness"],
+      "notes": "Best feeder for borrower readiness and partner-attributed lead routing."
+    },
+    {
+      "id": "fundstack-ai",
+      "name": "FundStack AI",
+      "url": "https://fund-stack-ai.vercel.app/",
+      "role": "ecosystem_hub",
+      "priority": 4,
+      "target_modules": ["resource-router", "funding-readiness", "partner-intake"],
+      "notes": "Public ecosystem hub for tools, funding education, vertical pages, and partner resources."
+    },
+    {
+      "id": "brokerflow-ai",
+      "name": "BrokerFlow AI",
+      "url": "https://brokerflow-ai.vercel.app/",
+      "role": "broker_follow_up_module_surface",
+      "priority": 5,
+      "target_modules": ["follow-up", "lead-router"],
+      "notes": "Use for broker automation, follow-up, document checklist, and human-review workflow positioning."
+    },
+    {
+      "id": "partnerlaunch",
+      "name": "PartnerLaunch",
+      "url": "https://partner-launch.vercel.app/",
+      "role": "widget_suite_later",
+      "priority": 6,
+      "target_modules": ["link-builder", "campaign-builder"],
+      "notes": "Later phase for widgets, partner launch assets, and co-branded embeds."
+    }
+  ],
+  "modules": [
+    {
+      "id": "partner-intake",
+      "name": "Partner Intake + Activation",
+      "priority": 1,
+      "workflow_stage": "active",
+      "primary_surface": "Funding Partners OS",
+      "dashboard_surface": "FPOS shell",
+      "data_targets": ["Notion Partners", "Partner Events", "Google Sheets mirror later"],
+      "entry_points": ["Tally mOe658", "FundStack AI partner intake", "Funding Partners OS CTA"]
+    },
+    {
+      "id": "lead-router",
+      "name": "Lead Submission + Funding Router",
+      "priority": 2,
+      "workflow_stage": "next",
+      "primary_surface": "Am I Fundable",
+      "dashboard_surface": "FPOS pipeline / admin review queue",
+      "data_targets": ["Lead records", "Partner attribution", "Notion/CRM later"],
+      "entry_points": ["Borrower scorecard", "Partner lead submission", "BrokerFlow intake"]
+    },
+    {
+      "id": "link-builder",
+      "name": "Partner Tracking Link Builder",
+      "priority": 3,
+      "workflow_stage": "planned",
+      "primary_surface": "PartnerLaunch later / FPOS marketing kits",
+      "dashboard_surface": "Partner Links module",
+      "data_targets": ["Tracking Links", "Campaign records"],
+      "entry_points": ["Partner dashboard", "Campaign kit builder"]
+    },
+    {
+      "id": "resource-router",
+      "name": "Resource Router",
+      "priority": 4,
+      "workflow_stage": "planned",
+      "primary_surface": "FundStack AI",
+      "dashboard_surface": "Resource Hub module",
+      "data_targets": ["Partner Resources", "Resource events"],
+      "entry_points": ["FundStack tools", "Partner dashboard resources"]
+    },
+    {
+      "id": "follow-up",
+      "name": "Broker Follow-Up Queue",
+      "priority": 5,
+      "workflow_stage": "planned",
+      "primary_surface": "BrokerFlow AI",
+      "dashboard_surface": "Follow-Up Queue module",
+      "data_targets": ["Follow-up items", "CRM notes", "Draft messages"],
+      "entry_points": ["BrokerFlow AI", "Lead detail view"]
+    },
+    {
+      "id": "coi-prospecting",
+      "name": "COI / Referral Partner Prospecting",
+      "priority": 6,
+      "workflow_stage": "planned",
+      "primary_surface": "Partner Command Center dashboard",
+      "dashboard_surface": "COI Pipeline module",
+      "data_targets": ["Prospects", "Touchpoints", "Partner events"],
+      "entry_points": ["Operator queue", "Campaign builder"]
+    },
+    {
+      "id": "affiliate-offers",
+      "name": "Affiliate Offer Review",
+      "priority": 7,
+      "workflow_stage": "planned",
+      "primary_surface": "Partner Command Center dashboard",
+      "dashboard_surface": "Offer Marketplace module",
+      "data_targets": ["Offer registry", "Campaign assets"],
+      "entry_points": ["Offer marketplace", "Operator queue"]
+    },
+    {
+      "id": "funding-readiness",
+      "name": "Funding Readiness / Product Router",
+      "priority": 8,
+      "workflow_stage": "planned",
+      "primary_surface": "Am I Fundable / FundStack AI",
+      "dashboard_surface": "Readiness Checklist module",
+      "data_targets": ["Readiness records", "Lead router records"],
+      "entry_points": ["Scorecard", "Funding education pages"]
+    },
+    {
+      "id": "operator-queue",
+      "name": "Operator / Asset / Build Queue",
+      "priority": 9,
+      "workflow_stage": "internal",
+      "primary_surface": "Partner Command Center dashboard",
+      "dashboard_surface": "Operator Queue module",
+      "data_targets": ["Tasks", "Issues", "Assets", "Repos"],
+      "entry_points": ["Dashboard", "GitHub issues", "project docs"]
+    }
+  ]
+}
