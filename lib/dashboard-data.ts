@@ -83,6 +83,40 @@ export async function getPartnerLinks() {
   };
 }
 
+const PARTNER_ACTIVITY_ACTIONS = [
+  "partner_portal.access_claimed",
+  "partner_referral.submitted",
+  "partner_tracking_link.created"
+];
+
+export async function getPartnerActivity() {
+  const { session, supabase, partnerId } = await getLinkedPartnerId();
+  if (!partnerId) return { items: [] as { id: string; action: string; entityType: string; occurredAt: string }[] };
+  const { data, error } = await supabase
+    .from("activity_logs")
+    .select("id,action,entity_type,occurred_at")
+    .eq("organization_id", session.organizationId)
+    .in("action", PARTNER_ACTIVITY_ACTIONS)
+    .order("occurred_at", { ascending: false })
+    .limit(100);
+  if (error) throw new Error("Could not load partner activity");
+  return { items: (data ?? []).map((row) => ({ id: row.id, action: row.action, entityType: row.entity_type, occurredAt: row.occurred_at })) };
+}
+
+export async function getOperatorActivity() {
+  const session = await requireOperatorSession();
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("activity_logs")
+    .select("id,action,entity_type,occurred_at")
+    .eq("organization_id", session.organizationId)
+    .like("action", "partner_%")
+    .order("occurred_at", { ascending: false })
+    .limit(100);
+  if (error) throw new Error("Could not load operator activity");
+  return { items: (data ?? []).map((row) => ({ id: row.id, action: row.action, entityType: row.entity_type, occurredAt: row.occurred_at })) };
+}
+
 export async function getPartnerDashboard(): Promise<Dashboard> {
   const { session, partnerId } = await getLinkedPartnerId();
   const [{ items: referrals }, { items: links }] = await Promise.all([
