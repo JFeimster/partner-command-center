@@ -50,6 +50,6 @@ function assertLocalHtmlLinksResolve(file) {
 
 ['index.html', 'marketplace.html', 'resources.html', 'dashboard.html'].forEach(assertLocalHtmlLinksResolve);
 
-assert.strictEqual(vercel.git.deploymentEnabled, false, 'automatic Vercel deployments must remain disabled');
+assert.strictEqual(vercel.git.deploymentEnabled, true, 'automatic Vercel deployments must be enabled');
 
 console.log('Track B design and route contract tests passed');
