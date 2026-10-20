@@ -10,6 +10,7 @@ const partnerNav = [
   { label: "Overview", href: "/dashboard", icon: Home },
   { label: "Referrals", href: "/dashboard/referrals", icon: ClipboardList },
   { label: "Tracking links", href: "/dashboard/links", icon: Link2 },
+  { label: "Activity", href: "/dashboard/activity", icon: Activity },
   { label: "Resources", href: "/resources", icon: LayoutGrid },
   { label: "Settings", href: "/dashboard/settings", icon: Settings2 },
 ];
@@ -18,6 +19,7 @@ const operatorNav = [
   { label: "Applications", href: "/operator/applications", icon: ClipboardList },
   { label: "Partners", href: "/operator/partners", icon: Users },
   { label: "Follow-up tasks", href: "/operator/tasks", icon: Activity },
+  { label: "Activity history", href: "/operator/activity", icon: Activity },
 ];
 
 export function WorkspaceShell({
