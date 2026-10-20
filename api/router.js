@@ -5,6 +5,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const { relayPartnerApplication } = require('../lib/partner-crm-relay');
 const {
   upsertPartner,
   findPartnerByPartnerId,
@@ -237,6 +238,9 @@ function getTallySubmissionId(body) {
   const data = getTallyData(body);
   return cleanString(body.submissionId || body.submission_id || body.responseId || body.response_id || data.submissionId || data.submission_id || data.responseId || data.response_id || data.id || '');
 }
+function isCanonicalPartnerJoin(body) {
+  return cleanString(getTallyData(body).formId || body.formId) === 'mOe658';
+}
 function buildName(fields) { const name = cleanString(fields.name || fields.full_name); return name || [fields.first_name, fields.last_name].map(cleanString).filter(Boolean).join(' '); }
 function generatePartnerId(seedInput) {
   const seed = stableStringify(seedInput || {}) + ':' + Date.now();
@@ -402,6 +406,14 @@ async function handleReceivePartnerSignup(body) {
   if (normalized.sensitive_matches.length > 0) return validationError('Sensitive data detected in partner signup payload.', normalized.sensitive_matches);
   const validation = validatePartnerForNotion(normalized.partner);
   if (!validation.valid) return validationError('Partner signup payload failed validation.', validation.errors);
+  if (isCanonicalPartnerJoin(body)) await relayPartnerApplication({
+    submission_id: normalized.partner.tally_submission_id,
+    email: normalized.partner.email,
+    name: normalized.partner.name,
+    agency_name: normalized.partner.company,
+    form_id: 'mOe658',
+    answers: normalized.raw_fields
+  });
   const result = await upsertPartner(normalized.partner);
   await createPartnerEvent({ partner_id: normalized.partner.partner_id, event_type: result.action === 'created' ? 'partner_created' : 'partner_updated', source: 'tally', status: normalized.partner.status, summary: 'Partner signup received, normalized, classified, and stored in Notion.', metadata: { tally_submission_id: normalized.partner.tally_submission_id, partner_type: normalized.partner.partner_type, tier: normalized.partner.tier, onboarding_path: normalized.partner.onboarding_path, match_strategy: result.match_strategy, legacy_without_consent: normalized.legacy_without_consent }, created_at: new Date().toISOString() });
   return created({ action: 'receivePartnerSignup', result: result.action, partner_id: normalized.partner.partner_id, partner: normalized.partner, notion_page: safePageSummary(result.page) });
@@ -494,4 +506,4 @@ module.exports = async function router(req, res) {
     return sendJson(res, serverError('Router action failed.', { message: error && error.message ? error.message : 'Unknown error' }));
   }
 };
-module.exports._private = { ROUTER_ACTIONS, PUBLIC_ACTIONS, TALLY_FIELD_MAP, parseBody, stableStringify, rawBodyForHmac, hmacForBody, isValidTallySecret, isValidApiKey, extractTallyFields, normalizePartnerFromSignup, validateSignupConsent, isHistoricalTallyReplayWithoutConsent, generatePartnerId, classifyPartner, assignOnboardingPathForPartner, recommendResourcesForPartner, recommendCampaignsForPartner, extractActivationProfile, publicActivationProfile };
+module.exports._private = { ROUTER_ACTIONS, PUBLIC_ACTIONS, TALLY_FIELD_MAP, parseBody, stableStringify, rawBodyForHmac, hmacForBody, isValidTallySecret, isValidApiKey, extractTallyFields, normalizePartnerFromSignup, validateSignupConsent, isHistoricalTallyReplayWithoutConsent, isCanonicalPartnerJoin, generatePartnerId, classifyPartner, assignOnboardingPathForPartner, recommendResourcesForPartner, recommendCampaignsForPartner, extractActivationProfile, publicActivationProfile };

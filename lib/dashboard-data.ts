@@ -1,6 +1,7 @@
 import "server-only";
 import { requireOperatorSession, requirePartnerSession } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { buildOnboardingSteps, onboardingProgress } from "@/lib/partner-onboarding";
 
 type ListItem = { id: string; title: string; detail: string; href: string; status: string };
 type ActivityItem = { id: string; title: string; detail: string; at: string };
@@ -10,7 +11,23 @@ type Dashboard = {
   metrics: { label: string; value: string; detail: string }[];
   priorityItems: ListItem[];
   recentActivity: ActivityItem[];
+  onboarding?: { completed: number; total: number; nextHref: string; nextTitle: string };
+  sourceBreakdown?: { label: string; count: number }[];
 };
+
+const ACTION_LABELS: Record<string, string> = {
+  "partner_portal.access_claimed": "Portal access linked",
+  "partner_profile.updated": "Business profile updated",
+  "partner_referral.submitted": "Referral submitted",
+  "partner_tracking_link.created": "Tracking link created",
+  "partner_task.completed": "Follow-up task completed"
+};
+const activitySummary = (item: { id: string; action: string; entityType: string; occurredAt: string }) => ({
+  id: item.id,
+  title: ACTION_LABELS[item.action] || item.action.replaceAll("_", " ").replaceAll(".", " "),
+  detail: item.entityType.replaceAll("_", " "),
+  at: item.occurredAt
+});
 
 async function getLinkedPartnerId() {
   const session = await requirePartnerSession();
@@ -24,6 +41,69 @@ async function getLinkedPartnerId() {
     .maybeSingle();
   if (error) throw new Error("Could not load the linked partner account");
   return { session, supabase, partnerId: data?.partner_id ?? null };
+}
+
+function portalProfileFromMetadata(value: unknown) {
+  const metadata = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  const candidate = metadata.portal_profile;
+  const profile = candidate && typeof candidate === "object" && !Array.isArray(candidate) ? candidate as Record<string, unknown> : {};
+  const field = (key: string) => typeof profile[key] === "string" ? profile[key] as string : "";
+  return { websiteUrl: field("website_url"), serviceArea: field("service_area"), businessSummary: field("business_summary") };
+}
+
+export async function getPartnerProfile() {
+  const { session, supabase, partnerId } = await getLinkedPartnerId();
+  if (!partnerId) return { session, profile: null };
+  const { data: partner, error: partnerError } = await supabase
+    .from("partners")
+    .select("id,name,partner_code,contact_email,contact_phone,status,metadata,created_at")
+    .eq("organization_id", session.organizationId)
+    .eq("id", partnerId)
+    .maybeSingle();
+  if (partnerError || !partner) throw new Error("Could not load partner profile");
+
+  const [linksResult, referralsResult, linkedApplication] = await Promise.all([
+    supabase.from("tracking_links").select("id", { count: "exact", head: true })
+      .eq("organization_id", session.organizationId).eq("partner_id", partnerId).eq("is_active", true),
+    supabase.from("referrals").select("id", { count: "exact", head: true })
+      .eq("organization_id", session.organizationId).eq("partner_id", partnerId),
+    supabase.from("partner_applications").select("id,status,received_at,agency_name")
+      .eq("organization_id", session.organizationId).eq("partner_id", partnerId)
+      .order("received_at", { ascending: false }).limit(1)
+  ]);
+  if (linksResult.error || referralsResult.error || linkedApplication.error) {
+    throw new Error("Could not load onboarding progress");
+  }
+  let application = linkedApplication.data?.[0] ?? null;
+  if (!application && partner.contact_email) {
+    const { data, error } = await supabase.from("partner_applications")
+      .select("id,status,received_at,agency_name")
+      .eq("organization_id", session.organizationId).ilike("email", partner.contact_email)
+      .order("received_at", { ascending: false }).limit(1);
+    if (error) throw new Error("Could not load application status");
+    application = data?.[0] ?? null;
+  }
+  return {
+    session,
+    profile: {
+      id: partner.id,
+      name: partner.name,
+      partnerCode: partner.partner_code,
+      email: partner.contact_email || session.email,
+      phone: partner.contact_phone || "",
+      status: partner.status,
+      joinedAt: partner.created_at,
+      ...portalProfileFromMetadata(partner.metadata),
+      linkCount: linksResult.count ?? 0,
+      referralCount: referralsResult.count ?? 0,
+      application: application ? {
+        id: application.id,
+        status: application.status,
+        receivedAt: application.received_at,
+        agencyName: application.agency_name
+      } : null
+    }
+  };
 }
 
 export async function getPartnerReferrals() {
@@ -85,6 +165,7 @@ export async function getPartnerLinks() {
 
 const PARTNER_ACTIVITY_ACTIONS = [
   "partner_portal.access_claimed",
+  "partner_profile.updated",
   "partner_referral.submitted",
   "partner_tracking_link.created"
 ];
@@ -118,26 +199,35 @@ export async function getOperatorActivity() {
 }
 
 export async function getPartnerDashboard(): Promise<Dashboard> {
-  const { session, partnerId } = await getLinkedPartnerId();
-  const [{ items: referrals }, { items: links }] = await Promise.all([
-    getPartnerReferrals(), getPartnerLinks()
+  const [{ session, profile }, { items: referrals }, { items: links }, { items: activity }] = await Promise.all([
+    getPartnerProfile(), getPartnerReferrals(), getPartnerLinks(), getPartnerActivity()
   ]);
-  const pending = referrals.filter((item) => item.status === "submitted").length;
+  const supabase = await createServerSupabaseClient();
+  const pendingResult = profile ? await supabase.from("referrals")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", session.organizationId).eq("partner_id", profile.id).eq("status", "submitted") : null;
+  if (pendingResult?.error) throw new Error("Could not load pending referrals");
+  const pending = pendingResult?.count ?? 0;
+  const steps = buildOnboardingSteps({ linked: Boolean(profile), phone: profile?.phone || "", websiteUrl: profile?.websiteUrl || "", serviceArea: profile?.serviceArea || "", linkCount: profile?.linkCount || 0, referralCount: profile?.referralCount || 0 });
+  const progress = onboardingProgress(steps);
+  const next = steps.find((step) => !step.complete);
   const priorityItems: ListItem[] = [];
-  if (!partnerId) priorityItems.push({ id: "account", title: "Partner access pending", detail: "An operator needs to link your account to an approved partner record.", href: "/dashboard/settings", status: "Review needed" });
-  if (partnerId && !links.length) priorityItems.push({ id: "links", title: "Create a tracking link", detail: "Share an approved destination with attribution.", href: "/dashboard/links", status: "Available" });
-  if (partnerId && !referrals.length) priorityItems.push({ id: "referrals", title: "Submit a referral", detail: "Record a client introduction with consent.", href: "/dashboard/referrals", status: "Available" });
+  if (!profile) priorityItems.push({ id: "account", title: "Partner access pending", detail: "Claim your account with the verified email on your active partner record.", href: "/auth/no-access", status: "Review needed" });
+  if (profile && next) priorityItems.push({ id: "setup", title: next.title, detail: next.detail, href: next.href, status: "Next step" });
+  if (profile && !links.length) priorityItems.push({ id: "links", title: "Create a tracking link", detail: "Share an approved destination with attribution.", href: "/dashboard/links", status: "Available" });
+  if (profile && !referrals.length) priorityItems.push({ id: "referrals", title: "Submit a referral", detail: "Record a client introduction with consent.", href: "/dashboard/referrals", status: "Available" });
   if (pending) priorityItems.push({ id: "pending", title: `${pending} referral${pending === 1 ? "s" : ""} awaiting review`, detail: "Check the latest status in referrals.", href: "/dashboard/referrals", status: "In review" });
   return {
-    displayName: session.email.split("@")[0] || "Partner",
+    displayName: profile?.name || session.email.split("@")[0] || "Partner",
     organizationName: session.organizationName,
     metrics: [
-      { label: "Referrals", value: String(referrals.length), detail: "Most recent 50" },
+      { label: "Referrals", value: String(profile?.referralCount ?? 0), detail: "All recorded referrals" },
       { label: "Awaiting review", value: String(pending), detail: "Submitted referrals" },
-      { label: "Active links", value: String(links.length), detail: "Most recent 50" }
+      { label: "Active links", value: String(profile?.linkCount ?? 0), detail: "Attributed links" }
     ],
     priorityItems,
-    recentActivity: referrals.slice(0, 5).map((item) => ({ id: item.id, title: item.businessName, detail: `Referral ${item.status}`, at: item.submittedAt }))
+    recentActivity: activity.slice(0, 5).map(activitySummary),
+    onboarding: { ...progress, nextHref: next?.href || "/dashboard/onboarding", nextTitle: next?.title || "Setup complete" }
   };
 }
 
@@ -146,7 +236,7 @@ export async function getOperatorApplications() {
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("partner_applications")
-    .select("id,applicant_name,agency_name,email,status,received_at")
+    .select("id,applicant_name,agency_name,email,status,source,received_at")
     .eq("organization_id", session.organizationId)
     .order("received_at", { ascending: false })
     .limit(100);
@@ -157,9 +247,32 @@ export async function getOperatorApplications() {
     organizationName: row.agency_name || undefined,
     email: row.email || undefined,
     status: row.status,
+    source: row.source,
     submittedAt: row.received_at,
     nextAction: row.status === "received" ? "Review application" : undefined
   })) };
+}
+
+export async function getOperatorApplicationDetail(id: string) {
+  const session = await requireOperatorSession();
+  const supabase = await createServerSupabaseClient();
+  const { data: application, error } = await supabase.from("partner_applications")
+    .select("id,partner_id,applicant_name,agency_name,email,applicant_type,status,source,received_at,updated_at")
+    .eq("organization_id", session.organizationId).eq("id", id).maybeSingle();
+  if (error) throw new Error("Could not load application");
+  if (!application) return null;
+  const [events, tasks] = await Promise.all([
+    supabase.from("partner_intake_events")
+      .select("id,event_type,summary,source,created_at")
+      .eq("organization_id", session.organizationId).eq("application_id", id)
+      .order("created_at", { ascending: false }).limit(30),
+    supabase.from("partner_follow_up_tasks")
+      .select("id,title,status,due_at,notes")
+      .eq("organization_id", session.organizationId).eq("application_id", id)
+      .order("created_at", { ascending: false }).limit(30)
+  ]);
+  if (events.error || tasks.error) throw new Error("Could not load application history");
+  return { application, events: events.data ?? [], tasks: tasks.data ?? [] };
 }
 
 export async function getOperatorTasks() {
@@ -208,26 +321,65 @@ export async function getOperatorPartners() {
   })) };
 }
 
+export async function getOperatorPartnerDetail(id: string) {
+  const session = await requireOperatorSession();
+  const supabase = await createServerSupabaseClient();
+  const { data: partner, error } = await supabase.from("partners")
+    .select("id,name,partner_code,contact_email,contact_phone,status,created_at")
+    .eq("organization_id", session.organizationId).eq("id", id).maybeSingle();
+  if (error) throw new Error("Could not load partner");
+  if (!partner) return null;
+  const [referrals, links, portalAccounts, tasks] = await Promise.all([
+    supabase.from("referrals").select("id", { count: "exact", head: true })
+      .eq("organization_id", session.organizationId).eq("partner_id", id),
+    supabase.from("tracking_links").select("id", { count: "exact", head: true })
+      .eq("organization_id", session.organizationId).eq("partner_id", id).eq("is_active", true),
+    supabase.from("partner_portal_accounts").select("user_id", { count: "exact", head: true })
+      .eq("organization_id", session.organizationId).eq("partner_id", id).eq("status", "active"),
+    supabase.from("partner_follow_up_tasks").select("id,title,status,due_at")
+      .eq("organization_id", session.organizationId).eq("partner_id", id)
+      .order("created_at", { ascending: false }).limit(20)
+  ]);
+  if (referrals.error || links.error || portalAccounts.error || tasks.error) throw new Error("Could not load partner operations");
+  return { partner, referrals: referrals.count ?? 0, links: links.count ?? 0, portalAccounts: portalAccounts.count ?? 0, tasks: tasks.data ?? [] };
+}
+
 export async function getOperatorDashboard(): Promise<Dashboard> {
   const session = await requireOperatorSession();
-  const [{ items: applications }, { items: tasks }, { items: partners }] = await Promise.all([
-    getOperatorApplications(), getOperatorTasks(), getOperatorPartners()
+  const supabase = await createServerSupabaseClient();
+  const [{ items: applications }, { items: activity }, applicationsCount, newApplicationsCount, openTasksCount, activePartnersCount, linkedAccountsCount] = await Promise.all([
+    getOperatorApplications(), getOperatorActivity(),
+    supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId),
+    supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).in("status", ["new", "needs_review"]),
+    supabase.from("partner_follow_up_tasks").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "open"),
+    supabase.from("partners").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "active"),
+    supabase.from("partner_portal_accounts").select("user_id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "active")
   ]);
-  const newApplications = applications.filter((item) => ["received", "new", "pending"].includes(item.status)).length;
-  const openTasks = tasks.filter((item) => !["completed", "cancelled"].includes(item.status)).length;
+  if ([applicationsCount, newApplicationsCount, openTasksCount, activePartnersCount, linkedAccountsCount].some((result) => result.error)) {
+    throw new Error("Could not load operator metrics");
+  }
+  const newApplications = newApplicationsCount.count ?? 0;
+  const openTasks = openTasksCount.count ?? 0;
+  const activePartners = activePartnersCount.count ?? 0;
+  const linkedAccounts = linkedAccountsCount.count ?? 0;
+  const sources = new Map<string, number>();
+  for (const item of applications) sources.set(item.source, (sources.get(item.source) || 0) + 1);
+  const sourceBreakdown = [...sources].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count).slice(0, 5);
   const priorityItems: ListItem[] = [
     ...(newApplications ? [{ id: "applications", title: `${newApplications} applications to review`, detail: "Open the partner intake queue.", href: "/operator/applications", status: "Review needed" }] : []),
-    ...(openTasks ? [{ id: "tasks", title: `${openTasks} open follow-up tasks`, detail: "Review owners and due dates.", href: "/operator/tasks", status: "Open" }] : [])
+    ...(openTasks ? [{ id: "tasks", title: `${openTasks} open follow-up tasks`, detail: "Review owners and due dates.", href: "/operator/tasks", status: "Open" }] : []),
+    ...(activePartners > 0 && linkedAccounts === 0 ? [{ id: "activation", title: "Partner portal activation", detail: "Active partners have not yet claimed portal access.", href: "/operator/partners", status: "Ready" }] : [])
   ];
   return {
     displayName: session.email.split("@")[0] || "Operator",
     organizationName: session.organizationName,
     metrics: [
-      { label: "Applications", value: String(applications.length), detail: "Most recent 100" },
-      { label: "Open tasks", value: String(openTasks), detail: "Most recent 100" },
-      { label: "Partners", value: String(partners.length), detail: "Most recent 100" }
+      { label: "Applications", value: String(applicationsCount.count ?? 0), detail: "All partner applications" },
+      { label: "Active partners", value: String(activePartners), detail: "Canonical partner records" },
+      { label: "Portal accounts", value: String(linkedAccounts), detail: `${openTasks} open follow-up tasks` }
     ],
     priorityItems,
-    recentActivity: applications.slice(0, 5).map((item) => ({ id: item.id, title: item.applicantName, detail: `Application ${item.status}`, at: item.submittedAt }))
+    recentActivity: activity.slice(0, 5).map(activitySummary),
+    sourceBreakdown
   };
 }

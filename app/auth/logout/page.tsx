@@ -1,14 +1,10 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { AuthShell } from "@/components/auth-shell";
 import { signOut } from "./actions";
 
+export const metadata: Metadata = { title: "Sign out", robots: { index: false, follow: false } };
+
 export default function LogoutPage() {
-  return (
-    <main className="grid min-h-screen place-items-center bg-[#0a1420] px-6 text-white">
-      <div className="max-w-md text-center">
-        <h1 className="text-3xl font-semibold">Sign out of Partner Command?</h1>
-        <form action={signOut} className="mt-8">
-          <button type="submit" className="rounded-lg bg-[#9fe0d3] px-6 py-3 font-semibold text-[#0a1420]">Sign out</button>
-        </form>
-      </div>
-    </main>
-  );
+  return <AuthShell eyebrow="ACCOUNT SESSION" title="Sign out?"><p className="auth-shell__intro">End your current Partner Command session on this device.</p><form action={signOut} className="auth-form"><button type="submit">Sign out <span aria-hidden="true">↗</span></button></form><Link className="auth-shell__secondary" href="/dashboard">Return to workspace</Link></AuthShell>;
 }
