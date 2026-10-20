@@ -1,6 +1,6 @@
 # Partner Command Center
 
-Moonshine Partner Command Center is a Funding Partners OS for partner acquisition, referrals, attribution, onboarding, and operator follow-up. The application is moving to Next.js App Router, TypeScript, React, and Tailwind CSS while retaining the working Vercel API functions and legacy HTML routes during migration.
+Moonshine Partner Command Center is a Funding Partners OS for partner acquisition, referrals, attribution, onboarding, and operator follow-up. The deployed application uses Next.js App Router, TypeScript, React, and Tailwind CSS while retaining the working Vercel API functions and legacy HTML routes during migration.
 
 Funding information is advisory and subject to human review. The product does not make credit decisions, guarantee funding, or calculate payable commissions from sample data.
 
@@ -37,6 +37,8 @@ npm run build
 
 Prefer the existing `platform-core` Supabase project (`loaowmappekunngjknnx`) and its organization, membership, partner, referral, link, and activity contracts. Check the current schema and policies before adding migrations. Authenticated partner or operator actions must use organization-scoped permissions. Privileged credentials and integration tokens remain server-side; only public Supabase connection values may enter browser code.
 
+Partner access uses a verified email sign-in and an active partner record in the same organization. A partner claims the matching record, completes `/dashboard/onboarding`, and can update business context in `/dashboard/profile`. Operators use `/operator/applications`, `/operator/tasks`, and `/operator/partners` to review canonical records. `tests/supabase-activation-smoke.sql` exercises partner isolation and operator actions with synthetic identities inside a rolled-back transaction.
+
 ## Routes and compatibility
 
 The App Router is the target for public pages, partner workspace, and operator workspace. Keep existing deep links, Vercel API consumers, webhooks, and embeddable widgets working while their implementation moves. Do not import sample partner records, leads, or earnings into production tables. Browser storage is for display preferences, temporary state, and clearly labeled demos; durable business actions belong in authenticated server APIs and canonical database tables.
@@ -46,6 +48,8 @@ The App Router is the target for public pages, partner workspace, and operator w
 The existing Vercel project deploys through its GitHub integration. `vercel.json` keeps `git.deploymentEnabled: true`. CI runs on pull requests and `main` pushes with Node.js 24, `npm ci`, typecheck, lint, test, and build. A successful local build or CI run is separate from production verification; confirm the deployment and relevant authenticated and API flows after merge.
 
 Configure environment variables in the existing Vercel project for the environment that needs them. Do not commit `.env` files or print tokens in logs. Existing Tally, Notion, HubSpot, Google Sheets, Cloudflare Worker, and BrokerFlow pathways should continue using their established server-side credentials and endpoint contracts.
+
+The existing verified Tally join webhook forwards form `mOe658` to the canonical `partner-crm-ingest` Edge Function when **both** server-only `PARTNER_CRM_INGEST_URL` and `PARTNER_CRM_INGEST_TOKEN` are configured. The URL must be `https://loaowmappekunngjknnx.supabase.co/functions/v1/partner-crm-ingest`. Set the matching token and `PARTNER_CRM_ORG_ID` in Supabase Edge Function secrets. Without these settings the legacy Notion intake path remains active. A configured relay fails closed on an upstream error so Tally can retry the same submission id; the Edge Function deduplicates it. Funding applicant forms are excluded.
 
 ## Contributing
 

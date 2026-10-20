@@ -2076,6 +2076,15 @@ export type Database = {
         Args: { p_application_id: string; p_status: string }
         Returns: string
       }
+      update_partner_portal_profile: {
+        Args: {
+          p_phone: string
+          p_website_url: string
+          p_service_area: string
+          p_business_summary: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

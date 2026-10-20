@@ -83,7 +83,7 @@ export async function createPartnerTrackingLink(formData: FormData) {
 const applicationIdSchema = z.uuid();
 const allowedTriageStatuses = ["needs_review", "qualified", "onboarding", "nurture"] as const;
 
-export async function reviewPartnerApplication(applicationId: string, status: string, _formData?: FormData) {
+export async function reviewPartnerApplication(applicationId: string, status: string) {
   const parsedId = applicationIdSchema.safeParse(applicationId);
   if (!parsedId.success || !allowedTriageStatuses.includes(status as typeof allowedTriageStatuses[number])) {
     throw new Error("Invalid application triage request");
@@ -96,10 +96,11 @@ export async function reviewPartnerApplication(applicationId: string, status: st
   });
   if (error) throw new Error("The application could not be updated");
   revalidatePath("/operator/applications");
+  revalidatePath(`/operator/applications/${parsedId.data}`);
   revalidatePath("/operator");
 }
 
-export async function completePartnerTask(taskId: string, _formData?: FormData) {
+export async function completePartnerTask(taskId: string) {
   const parsedId = applicationIdSchema.safeParse(taskId);
   if (!parsedId.success) throw new Error("Invalid task request");
   await requireOperatorSession();
@@ -107,6 +108,8 @@ export async function completePartnerTask(taskId: string, _formData?: FormData) 
   const { error } = await supabase.rpc("complete_partner_follow_up", { p_task_id: parsedId.data });
   if (error) throw new Error("The task could not be completed");
   revalidatePath("/operator/tasks");
+  revalidatePath("/operator/applications");
+  revalidatePath("/operator/partners");
   revalidatePath("/operator");
 }
 
@@ -116,5 +119,34 @@ export async function claimPartnerPortalAccess() {
   if (authError || !auth.user) redirect("/auth/login");
   const { error } = await supabase.rpc("claim_partner_portal_access");
   if (error) redirect("/auth/no-access?claim=unavailable");
-  redirect("/dashboard");
+  redirect("/dashboard/onboarding");
+}
+
+const profileSchema = z.object({
+  phone: z.string().trim().max(40),
+  website_url: z.union([z.literal(""), z.url().max(256)]),
+  service_area: z.string().trim().max(120),
+  business_summary: z.string().trim().max(500)
+});
+
+export async function updatePartnerProfile(formData: FormData) {
+  const parsed = profileSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) redirect("/dashboard/profile?error=details");
+  if (parsed.data.website_url && new URL(parsed.data.website_url).protocol !== "https:") {
+    redirect("/dashboard/profile?error=website");
+  }
+  await requirePartnerSession();
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("update_partner_portal_profile", {
+    p_phone: parsed.data.phone,
+    p_website_url: parsed.data.website_url,
+    p_service_area: parsed.data.service_area,
+    p_business_summary: parsed.data.business_summary
+  });
+  if (error) redirect("/dashboard/profile?error=save");
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/onboarding");
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/dashboard/activity");
+  redirect("/dashboard/profile?saved=1");
 }

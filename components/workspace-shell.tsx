@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Activity, ArrowUpRight, ClipboardList, Home, LayoutGrid, Link2, Menu, PanelLeftClose, PanelLeftOpen, Settings2, Users, X } from "lucide-react";
+import { Activity, ArrowUpRight, CircleCheck, ClipboardList, Home, LayoutGrid, Link2, Menu, PanelLeftClose, PanelLeftOpen, Settings2, UserRound, Users, X } from "lucide-react";
 import { Brand } from "./brand";
 
 const partnerNav = [
   { label: "Overview", href: "/dashboard", icon: Home },
+  { label: "Onboarding", href: "/dashboard/onboarding", icon: CircleCheck },
+  { label: "Business profile", href: "/dashboard/profile", icon: UserRound },
   { label: "Referrals", href: "/dashboard/referrals", icon: ClipboardList },
   { label: "Tracking links", href: "/dashboard/links", icon: Link2 },
   { label: "Activity", href: "/dashboard/activity", icon: Activity },

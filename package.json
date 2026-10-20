@@ -12,7 +12,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint app components lib/supabase lib/auth.ts lib/dashboard-data.ts",
+    "lint": "eslint app components lib/actions.ts lib/auth.ts lib/dashboard-data.ts lib/partner-onboarding.ts lib/supabase",
     "test": "node scripts/check-crm-ledger-contracts.js && node --test tests/*.test.js tests/*.test.mjs"
   },
   "dependencies": {

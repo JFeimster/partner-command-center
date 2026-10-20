@@ -2,6 +2,7 @@ type ActivityItem = { id: string; action: string; entityType: string; occurredAt
 
 const LABELS: Record<string, string> = {
   "partner_portal.access_claimed": "Portal access linked",
+  "partner_profile.updated": "Business profile updated",
   "partner_referral.submitted": "Referral submitted",
   "partner_tracking_link.created": "Tracking link created",
   "partner_task.completed": "Follow-up task completed"
