@@ -1,8 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "framework": null,
-  "installCommand": "",
+  "framework": "nextjs",
   "git": {
     "deploymentEnabled": true
   },
@@ -52,48 +51,6 @@
           "value": "public, max-age=604800"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/dashboard",
-      "destination": "/dashboard.html"
-    },
-    {
-      "source": "/partner-access",
-      "destination": "/partner-access.html"
-    },
-    {
-      "source": "/marketplace",
-      "destination": "/marketplace.html"
-    },
-    {
-      "source": "/resources",
-      "destination": "/resources.html"
-    },
-    {
-      "source": "/pricing",
-      "destination": "/pricing.html"
-    },
-    {
-      "source": "/about",
-      "destination": "/about.html"
-    },
-    {
-      "source": "/compliance",
-      "destination": "/compliance.html"
-    },
-    {
-      "source": "/affiliate-disclosure",
-      "destination": "/affiliate-disclosure.html"
-    },
-    {
-      "source": "/privacy",
-      "destination": "/privacy.html"
-    },
-    {
-      "source": "/terms",
-      "destination": "/terms.html"
     }
   ],
   "functions": {
