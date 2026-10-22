@@ -50,7 +50,7 @@ Wix Contacts extended-field definitions currently support text, number, date and
 - Last Partner Referral Date is the latest eligible real referral date. No date is populated when no qualifying referral exists.
 - Source-event triggers enqueue real partner creation, portal status changes, and referral submission/status changes without putting personal or bank data in the outbox.
 - A once-per-UTC-day deterministic refresh event is enqueued only for real partners who have **previously synchronized successfully with a Wix contact**. The hourly worker invokes that refresher before claiming the outbox; credentials and real E2E execution remain a production gate.
-- Never run broad QA backfills. An `activation_test` application event was ignored and a Tally application without an exact Wix contact is in `needs_mapping`.
+- Never run broad QA backfills. Both the `activation_test` event and the Tally fixture use reserved `example.invalid` identities; they were marked `fictional=true`, and both events are now `ignored`. An earlier `needs_mapping` classification for the Tally fixture was corrected; do not create a Wix contact for a synthetic submission. New reserved-domain submissions are excluded by an upstream SQL trigger and an independent worker guard.
 - Three existing Wix label-added task automations are live for future events (Needs Qualification, Affiliate Prospect, Wix Smart Chat); they do not enroll historical contacts or send customer messages.
 - Native Wix saved segment creation remains UI-only in this integration; `docs/WIX_LABEL_SEGMENT_PREVIEW_20261022.json` contains verified count/key definitions for 17 cohorts.
 

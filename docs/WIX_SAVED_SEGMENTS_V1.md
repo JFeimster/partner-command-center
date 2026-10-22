@@ -16,7 +16,7 @@
 | Partner Referrals (90d) | `custom.partner-referrals-90d-jnpjdyzjdwjxn` | NUMBER | Verified `referrals` received within 90 days, excluding rejected / fictional rows |
 | Last Partner Referral Date | `custom.last-partner-referral-date-xxitadje` | DATE | Last accepted/submitted/qualified/converted referral date |
 
-**Deployed Supabase:** source-backed partner-created, portal-state and referral-state outbox events; a service-role-only metrics RPC; an idempotent once-per-UTC-day referral-window refresher for previously synchronized real partners; exclusion of `activation_test`, `synthetic` and `qa` application sources. Existing unmatched Tally intake is in `needs_mapping`; a synthetic activation event is `ignored`. Neither was converted into an invented Wix contact.
+**Deployed Supabase:** source-backed partner-created, portal-state and referral-state outbox events; a service-role-only metrics RPC; an idempotent once-per-UTC-day referral-window refresher for previously synchronized real partners; exclusion of `activation_test`, `synthetic` and `qa` application sources. Both imported test submissions (one Tally, one `activation_test`) use reserved `example.invalid` email domains and test-designated names. They are now explicitly flagged `fictional=true` and both outbox events are `ignored`; no genuine partner application has yet been verified for Wix delivery. The database now rejects reserved-domain identities before outbox creation, and the worker independently rejects them.
 
 **Deployed Wix internal automations** (ACTIVE; no outbound communications):
 

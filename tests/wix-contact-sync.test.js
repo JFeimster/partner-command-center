@@ -3,46 +3,46 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  FIELDS, projection, mergeWixFields, normalizedEmail, patchExactContact, runWixSync
+  FIELDS, projection, mergeWixFields, normalizedEmail, patchExactContact, runWixSync, isNonproductionEmail
 } = require('../lib/wix-contact-sync-worker');
 
 test('rejects malformed emails and synthetic partners', () => {
   assert.equal(normalizedEmail(' INVALID '), null);
   assert.equal(normalizedEmail(' A@B.COM '), 'a@b.com');
   assert.equal(projection('partner', {
-    contact_email: 'test@example.com', status: 'active', partner_type: 'funding_broker',
+    contact_email: 'test@fixture.local', status: 'active', partner_type: 'funding_broker',
     metadata: { fictional: true }
   }), null);
 });
 
 test('partner operational status is separate from applicant and deal status', () => {
   const partner = projection('partner', {
-    contact_email: 'person@example.com', status: 'active',
+    contact_email: 'person@fixture.local', status: 'active',
     partner_type: 'referral_partner', metadata: {}
   });
   assert.equal(partner.fields[FIELDS.partnerStatus], 'active');
   assert.equal(partner.fields[FIELDS.partnerType], 'referral_partner');
   assert.equal(partner.fields[FIELDS.partnerApplicationStatus], undefined);
   const application = projection('partner_application', {
-    email: 'person@example.com', status: 'needs_review', source: 'wix_form',
+    email: 'person@fixture.local', status: 'needs_review', source: 'wix_form',
     answers: {}
   });
   assert.equal(application.fields[FIELDS.partnerApplicationStatus], 'needs_review');
   assert.equal(application.fields[FIELDS.partnerStatus], undefined);
   const deal = projection('funding_deal',
     { pipeline_stage: 'documents_pending' },
-    { email: 'borrower@example.com', metadata: {} });
+    { email: 'borrower@fixture.local', metadata: {} });
   assert.equal(deal.fields[FIELDS.fundingStage], 'documents_pending');
   assert.equal(deal.fields[FIELDS.partnerStatus], undefined);
 });
 
 test('invalid enum values fail closed', () => {
   assert.throws(() => projection('partner', {
-    contact_email: 'x@example.com', status: 'approved', partner_type: 'funding_broker', metadata: {}
+    contact_email: 'x@fixture.local', status: 'approved', partner_type: 'funding_broker', metadata: {}
   }), /invalid_partnerStatus/);
   assert.throws(() => projection('funding_deal',
     { pipeline_stage: 'funded_and_approved' },
-    { email: 'borrower@example.com', metadata: {} }), /invalid_fundingStage/);
+    { email: 'borrower@fixture.local', metadata: {} }), /invalid_fundingStage/);
 });
 
 test('merges custom fields, keeps existing source and unrelated role', () => {
@@ -80,12 +80,12 @@ test('single-match contact gets revisioned patch then read-back verification', a
     }
     return { ok: true, json: async () => ({ contact: {
       id, revision,
-      info: { emails: { items: [{ email: 'partner@example.com' }] },
+      info: { emails: { items: [{ email: 'partner@fixture.local' }] },
         extendedFields: { items: fields } }
     } }) };
   };
   const contact = await patchExactContact(fetcher, 'fake-key', {},
-    { email: 'partner@example.com', fields: { [FIELDS.partnerStatus]: 'paused' } });
+    { email: 'partner@fixture.local', fields: { [FIELDS.partnerStatus]: 'paused' } });
   assert.equal(contact, id);
   assert.equal(fields[FIELDS.partnerStatus], 'paused');
   assert.equal(calls.filter(x => x.options.method === 'PATCH').length, 1);
@@ -99,7 +99,7 @@ test('ambiguous matches stop without patching', async () => {
     })
   });
   await assert.rejects(patchExactContact(fetcher, 'fake-key', {},
-    { email: 'partner@example.com', fields: {} }), /ambiguous_contact_match/);
+    { email: 'partner@fixture.local', fields: {} }), /ambiguous_contact_match/);
 });
 
 test('worker refuses missing authentication and can return an empty summary', async () => {
@@ -116,7 +116,7 @@ test('worker refuses missing authentication and can return an empty summary', as
 
 test('partner projection uses only verified portal and accepted submitted referral metrics', () => {
   const result = projection('partner', {
-    contact_email: 'broker@example.com', status: 'active',
+    contact_email: 'broker@fixture.local', status: 'active',
     partner_type: 'funding_broker', metadata: {}
   }, {
     portal_status: 'not_provisioned',
@@ -128,7 +128,7 @@ test('partner projection uses only verified portal and accepted submitted referr
   assert.equal(result.fields[FIELDS.lastReferralDate], undefined);
 
   const active = projection('partner', {
-    contact_email: 'broker@example.com', status: 'active',
+    contact_email: 'broker@fixture.local', status: 'active',
     partner_type: 'funding_broker', metadata: {}
   }, {
     portal_status: 'active',
@@ -138,7 +138,7 @@ test('partner projection uses only verified portal and accepted submitted referr
   assert.equal(active.fields[FIELDS.referrals90d], 2);
   assert.equal(active.fields[FIELDS.lastReferralDate], '2026-10-22');
   assert.throws(() => projection('partner', {
-    contact_email: 'broker@example.com', status: 'active',
+    contact_email: 'broker@fixture.local', status: 'active',
     partner_type: 'funding_broker', metadata: {}
   }, {
     portal_status: 'approved', referrals_90d: -1, last_referral_date: null
@@ -147,7 +147,7 @@ test('partner projection uses only verified portal and accepted submitted referr
 
 test('activation-test intake is not mirrored into Wix', () => {
   assert.equal(projection('partner_application', {
-    email: 'test@example.com',
+    email: 'test@fixture.local',
     status: 'new',
     source: 'activation_test',
     answers: {}
@@ -175,4 +175,20 @@ test('scheduled worker refreshes rolling referral windows before claiming events
     'enqueue_wix_daily_partner_metric_refresh',
     'claim_wix_contact_sync_outbox'
   ]);
+});
+
+
+test('synthetic sample domains never produce Wix contact projections', () => {
+  assert.equal(isNonproductionEmail('demo@example.invalid'), true);
+  assert.equal(isNonproductionEmail('name@example.com'), true);
+  assert.equal(isNonproductionEmail('person@some-company.test'), true);
+  assert.equal(isNonproductionEmail('person@real-company.com'), false);
+  assert.equal(projection('partner_application', {
+    email: 'someone@example.invalid', status: 'new', source: 'tally',
+    answers: {}
+  }), null);
+  assert.equal(projection('partner', {
+    contact_email: 'someone@example.invalid', status: 'pending',
+    partner_type: 'unknown', metadata: {}
+  }), null);
 });
