@@ -5,6 +5,34 @@
 > **System:** Moonshine Capital / Distilled Funding · Wix site `cc61a0cb-edcd-43dc-bdda-42c76443dcd6`  
 > **Status:** Design and source-of-truth specification; **not** an assertion that these native saved segments or outbound automations are already live.
 
+
+### Implementation checkpoint — October 22, 2026 (automated phase)
+
+**Deployed to Wix:** three new source-backed extended fields, distinct from the 30 preexisting field definitions:
+
+| Field | Key | Type | Source |
+| --- | --- | --- | --- |
+| Partner Portal Status | `custom.partner-portal-status-azpqngtxfbrds` | TEXT | `partner_portal_accounts.status`; `not_provisioned` only after source lookup |
+| Partner Referrals (90d) | `custom.partner-referrals-90d-jnpjdyzjdwjxn` | NUMBER | Verified `referrals` received within 90 days, excluding rejected / fictional rows |
+| Last Partner Referral Date | `custom.last-partner-referral-date-xxitadje` | DATE | Last accepted/submitted/qualified/converted referral date |
+
+**Deployed Supabase:** source-backed partner-created, portal-state and referral-state outbox events; an authenticated-worker-only metrics RPC; exclusion of `activation_test`, `synthetic` and `qa` application sources. Existing unmatched Tally intake is in `needs_mapping`; a synthetic activation event is `ignored`. Neither was converted into an invented Wix contact.
+
+**Deployed Wix internal automations** (ACTIVE; no outbound communications):
+
+| Internal automation | Trigger for future label additions only | Wix automation ID |
+| --- | --- | --- |
+| MC · Needs Qualification Label Follow-up | `ACTION · Needs Qualification` | `1717c891-6a69-403d-9e38-12e217b49097` |
+| MC · Affiliate Prospect Review | `TYPE · Affiliate Prospect` | `3bfa229a-268d-4932-bfb7-8281ec784d1d` |
+| MC · Wix Chat Source Follow-up | `SOURCE · Wix Smart Chat` | `c2e7021a-6951-4228-8366-21fa57ad468d` |
+
+These automations are validated task-only triggers. They do **not** backfill tasks for historic label assignments; independently verify completed runs before claiming that tasks have actually fired.
+
+**Current audience evidence:** `docs/WIX_LABEL_SEGMENT_PREVIEW_20261022.json` records all 17 legacy-label cohort definitions and unique-contact counts from 4,013 Wix Contacts, keyed to the actual remaining label keys. Three largest: L16 Wix Chat 58, L01 Historical Funding 57, L08 Affiliate Network 20. **That manifest is not native saved Wix segments.** The native Wix Manage Segments dashboard still requires its own save/create interaction; no supported API or installed-app tool was found for native segment creation.
+
+**Unfinished activation gates:** server-side Wix/Vercel credential validation, production E2E real-event delivery, source identity reconciliation, native Wix saved segments, and daily refresh of a rolling 90-day count. A 90-day number currently refreshes on partner/referral/portal source events; **without a periodic refresh it can become stale as old referrals age out**. Do not use it to automatically classify a partner inactive until periodic freshness is operational.
+
+
 ## 1. Executive recommendation
 
 Build **two complementary segmentation layers**, rather than a parallel CRM inside Wix:
