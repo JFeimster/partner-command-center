@@ -1,0 +1,278 @@
+{
+  "siteId": "cc61a0cb-edcd-43dc-bdda-42c76443dcd6",
+  "snapshotDate": "2026-10-22",
+  "type": "WIX_LABEL_COHORT_PREVIEW_NOT_NATIVE_SEGMENTS",
+  "contactsScanned": 4013,
+  "logic": "OR across currently existing label keys; counts reflect assigned labels, not operational states or marketing consent.",
+  "segments": [
+    {
+      "id": "L01",
+      "name": "FND · Historical Funding Prospect Sources",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.funding-lead-Q0ljn",
+        "custom.funding-assessment",
+        "custom.compliance-call-form-submitted",
+        "custom.application"
+      ],
+      "displayNames": [
+        "TYPE · Funding Lead",
+        "SOURCE · Funding Assessment",
+        "SOURCE · Personalized Funding Quote",
+        "SOURCE · Application Form"
+      ],
+      "matchingContacts": 57,
+      "missingLabels": []
+    },
+    {
+      "id": "L02",
+      "name": "FND · Needs Qualification Label Queue",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.needs-qualification-TEGwc"
+      ],
+      "displayNames": [
+        "ACTION · Needs Qualification"
+      ],
+      "matchingContacts": 4,
+      "missingLabels": []
+    },
+    {
+      "id": "L03",
+      "name": "FND · Gig Worker Funding Interest",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.gig-worker-mntFs",
+        "custom.doordash",
+        "custom.get-a-quote"
+      ],
+      "displayNames": [
+        "INTENT · Gig Worker Funding",
+        "SOURCE · DoorDash",
+        "SOURCE · DAC Gig Funding Form"
+      ],
+      "matchingContacts": 2,
+      "missingLabels": []
+    },
+    {
+      "id": "L04",
+      "name": "FND · Ecommerce Funding Interest",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.wix-seller-financing",
+        "groups.saas-ecommerce-funding-group-member"
+      ],
+      "displayNames": [
+        "INTENT · Ecommerce Funding",
+        "SaaS & Ecommerce Funding Group member"
+      ],
+      "matchingContacts": 3,
+      "missingLabels": []
+    },
+    {
+      "id": "L05",
+      "name": "FND · Real Estate Capital Interest",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.sales-lead-4",
+        "groups.real-estate-mastermind-group-member",
+        "groups.real-estate-mavericks-group-member"
+      ],
+      "displayNames": [
+        "SOURCE · Real Estate Approval Form",
+        "Real Estate Mastermind Group member",
+        "Real Estate Mavericks Group member"
+      ],
+      "matchingContacts": 2,
+      "missingLabels": []
+    },
+    {
+      "id": "L06",
+      "name": "FND · Equipment and Invoice Interest",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.sales-lead-2",
+        "custom.invoice-financing"
+      ],
+      "displayNames": [
+        "SOURCE · Equipment Financing Form",
+        "SOURCE · Invoice Financing Form"
+      ],
+      "matchingContacts": 0,
+      "missingLabels": []
+    },
+    {
+      "id": "L07",
+      "name": "AFF · Historical Partner Prospects",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.affiliate-prospect",
+        "custom.job-application-1",
+        "custom.job-application"
+      ],
+      "displayNames": [
+        "TYPE · Affiliate Prospect",
+        "SOURCE · Partner Application",
+        "SOURCE · Partnership Inquiry"
+      ],
+      "matchingContacts": 9,
+      "missingLabels": []
+    },
+    {
+      "id": "L08",
+      "name": "AFF · Affiliate Network Audience",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.affiliate-program",
+        "groups.partner-program-group-member",
+        "groups.dac-affiliate-agency-group-member",
+        "groups.dac-group-member"
+      ],
+      "displayNames": [
+        "PROGRAM · Affiliate Network",
+        "Partner Program Group member",
+        "DAC Affiliate Agency Group member",
+        "DAC  Group member"
+      ],
+      "matchingContacts": 20,
+      "missingLabels": []
+    },
+    {
+      "id": "L09",
+      "name": "AFF · Partner Orientation Interest",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.hq-new-partner-orientation"
+      ],
+      "displayNames": [
+        "PROGRAM · Partner Orientation"
+      ],
+      "matchingContacts": 2,
+      "missingLabels": []
+    },
+    {
+      "id": "L10",
+      "name": "AFF · Broker Training Audience",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.funding-biz-q-a-launch-plan",
+        "groups.funding-coach-group-member"
+      ],
+      "displayNames": [
+        "PROGRAM · Funding Biz Q&A + Launch Plan",
+        "Funding Coach  Group member"
+      ],
+      "matchingContacts": 3,
+      "missingLabels": []
+    },
+    {
+      "id": "L11",
+      "name": "AUD · Business Credit Interest",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "groups.build-your-business-credit-group-member",
+        "groups.credit-repair-training-course-group-member",
+        "custom.50-credit-lines-and-loans-you-can-get-now-on-deman"
+      ],
+      "displayNames": [
+        "Build Your Business Credit Group member",
+        "Credit Repair Training Course Group member",
+        "PROGRAM · 50 Credit Lines On Demand"
+      ],
+      "matchingContacts": 1,
+      "missingLabels": []
+    },
+    {
+      "id": "L12",
+      "name": "AUD · AI and Funding Automation Interest",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "groups.ai-tools-resources-group-member",
+        "groups.ai-prompt-library-group-member",
+        "custom.contact-3",
+        "custom.subscriptions-3"
+      ],
+      "displayNames": [
+        "AI Tools & Resources Group member",
+        "AI Prompt Library Group member",
+        "SOURCE · Funding Automation n8n",
+        "SOURCE · CustomGPT Lead Capture"
+      ],
+      "matchingContacts": 8,
+      "missingLabels": []
+    },
+    {
+      "id": "L13",
+      "name": "AUD · Business Acquisition Interest",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "groups.buy-sell-business-group-member"
+      ],
+      "displayNames": [
+        "Buy/Sell Business Group member"
+      ],
+      "matchingContacts": 1,
+      "missingLabels": []
+    },
+    {
+      "id": "L14",
+      "name": "COM · Confirmed Wix Group Members",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "groups.moonshine-capital-group-member"
+      ],
+      "displayNames": [
+        "Moonshine Capital Group member"
+      ],
+      "matchingContacts": 2,
+      "missingLabels": []
+    },
+    {
+      "id": "L15",
+      "name": "AUD · Funding Education Audience",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.how-to-quickly-secure-up-to-250-000-in-business-cr",
+        "groups.non-dilutive-growth-capital-group-member"
+      ],
+      "displayNames": [
+        "PROGRAM · Free Funding Masterclass",
+        "Non-Dilutive Growth Capital Group member"
+      ],
+      "matchingContacts": 11,
+      "missingLabels": []
+    },
+    {
+      "id": "L16",
+      "name": "ENG · Wix Chat Inquiries",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.wix-smart-chat",
+        "custom.inbound-chat"
+      ],
+      "displayNames": [
+        "SOURCE · Wix Smart Chat",
+        "SOURCE · Inbound Chat"
+      ],
+      "matchingContacts": 58,
+      "missingLabels": []
+    },
+    {
+      "id": "L17",
+      "name": "ENG · Newsletter Acquisition Sources",
+      "filter": "ANY_LABEL",
+      "labelKeys": [
+        "custom.be-the-first-to-know",
+        "custom.subscriptions",
+        "custom.subscriptions-2"
+      ],
+      "displayNames": [
+        "SOURCE · Newsletter Signup",
+        "SOURCE · Legacy Subscription Form",
+        "SOURCE · Legacy Subscription Form 2"
+      ],
+      "matchingContacts": 0,
+      "missingLabels": []
+    }
+  ]
+}

@@ -112,3 +112,67 @@ test('worker refuses missing authentication and can return an empty summary', as
   assert.equal(result.claimed, 0);
   assert.equal(result.synced, 0);
 });
+
+
+test('partner projection uses only verified portal and accepted submitted referral metrics', () => {
+  const result = projection('partner', {
+    contact_email: 'broker@example.com', status: 'active',
+    partner_type: 'funding_broker', metadata: {}
+  }, {
+    portal_status: 'not_provisioned',
+    referrals_90d: 0,
+    last_referral_date: null
+  });
+  assert.equal(result.fields[FIELDS.portalStatus], 'not_provisioned');
+  assert.equal(result.fields[FIELDS.referrals90d], 0);
+  assert.equal(result.fields[FIELDS.lastReferralDate], undefined);
+
+  const active = projection('partner', {
+    contact_email: 'broker@example.com', status: 'active',
+    partner_type: 'funding_broker', metadata: {}
+  }, {
+    portal_status: 'active',
+    referrals_90d: 2,
+    last_referral_date: '2026-10-22'
+  });
+  assert.equal(active.fields[FIELDS.referrals90d], 2);
+  assert.equal(active.fields[FIELDS.lastReferralDate], '2026-10-22');
+  assert.throws(() => projection('partner', {
+    contact_email: 'broker@example.com', status: 'active',
+    partner_type: 'funding_broker', metadata: {}
+  }, {
+    portal_status: 'approved', referrals_90d: -1, last_referral_date: null
+  }), /invalid_portalStatus/);
+});
+
+test('activation-test intake is not mirrored into Wix', () => {
+  assert.equal(projection('partner_application', {
+    email: 'test@example.com',
+    status: 'new',
+    source: 'activation_test',
+    answers: {}
+  }), null);
+});
+
+
+test('scheduled worker refreshes rolling referral windows before claiming events', async () => {
+  const calls = [];
+  const db = {
+    rpc: async (fn) => {
+      calls.push(fn);
+      return fn === 'enqueue_wix_daily_partner_metric_refresh'
+        ? { data: 1, error: null }
+        : { data: [], error: null };
+    }
+  };
+  const result = await runWixSync({
+    env: { SUPABASE_URL: 'https://example.supabase.co',
+      SUPABASE_SERVICE_ROLE_KEY: 'stub', WIX_API_KEY: 'stub' },
+    db
+  });
+  assert.equal(result.dailyRefreshQueued, 1);
+  assert.deepEqual(calls, [
+    'enqueue_wix_daily_partner_metric_refresh',
+    'claim_wix_contact_sync_outbox'
+  ]);
+});

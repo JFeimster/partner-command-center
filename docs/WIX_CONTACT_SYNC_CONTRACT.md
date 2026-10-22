@@ -12,13 +12,18 @@
 | Semantic value | Wix Contacts extended field |
 | --- | --- |
 | Partner Status | `custom.partner-status-aqgsprsuyxigeupsffng` |
+| Partner Type | `custom.partner-type-ofupshmfvqlhfypumeytfe` |
+| Partner Application Status | `custom.partner-application-status-xjcrhapo` |
+| Partner Portal Status | `custom.partner-portal-status-azpqngtxfbrds` |
+| Partner Referrals (90d) | `custom.partner-referrals-90d-jnpjdyzjdwjxn` |
+| Last Partner Referral Date | `custom.last-partner-referral-date-xxitadje` |
 | Lead Status | `custom.lead-status-eyvsodtqmzhliowvkrkwhlu` |
 | Funding Stage | `custom.funding-stage-kevpmtfjtluxpcpnhgtzb` |
 | Contact Type | `custom.contact-type-fthrfdxphfogegdztkapds` |
 | Lead Source | `custom.lead-source-zcrhbqpohwzdpupzmoogcip` |
 | External CRM ID | `custom.external-crm-id-ynriagpsvpziodgatkb` |
 
-Wix Contacts extended-field definitions currently support text, number, date and URL, not native enum. UI selects belong in the authoritative application; **only canonical enum strings** may be mirrored to the corresponding Wix text fields. Do not make duplicate Wix fields to simulate options. `Partner Type` does not yet have a native Wix mirror field; create it only when the actual event delivery pipeline is configured, or use a classification label without asserting source-of-truth state.
+Wix Contacts extended-field definitions currently support text, number, date and URL, not native enum. UI selects belong in the authoritative application; **only canonical enum strings** may be mirrored to the corresponding Wix text fields. Do not make duplicate Wix fields to simulate options. Partner Type, Portal Status, 90-day verified referral count, and Last Partner Referral Date now have Wix mirror fields. These do **not** indicate that live delivery succeeded; projection requires authenticated Vercel credentials and a verified matching contact.
 
 ## Controlled partner values
 
@@ -37,6 +42,17 @@ Wix Contacts extended-field definitions currently support text, number, date and
 6. Record `source = partner_command`, `source_record_id`, `event_id`, `occurred_at`, `previous_status` and `status`. No invented approval, enrollment or opt-in events.
 7. Independently mirror BrokerFlow's **verified** deal-stage events only into Funding Stage, using the original borrower-contact association; never apply deal stage to the referrer.
 8. Wix dynamic saved segments depend on the Wix builder; no supported native segment creation API was established. Suggested segments: Partner Applicants Pending, Approved Not Activated, Active Partners, Paused Partners, Broker Prospects, Referral Partners, Funding Intake, Funding In Review, Funding Documents Pending, and opted-in Partner Nurture. Apply the Wix subscription and deliverability conditions before using any segment for marketing.
+
+## Current platform metrics projection (2026-10-22)
+
+- Source-backed portal status values: `not_provisioned` (verified absence of portal account), `active`, `suspended`. These are **not** Partner Status.
+- Partner Referrals (90d) counts real, non-fictional referral rows with source status submitted/accepted/qualified/converted and `referred_at` within the past 90 days; it excludes rejected and fictional entries.
+- Last Partner Referral Date is the latest eligible real referral date. No date is populated when no qualifying referral exists.
+- Source-event triggers enqueue real partner creation, portal status changes, and referral submission/status changes without putting personal or bank data in the outbox.
+- A once-per-UTC-day deterministic refresh event is enqueued only for real partners who have **previously synchronized successfully with a Wix contact**. The hourly worker invokes that refresher before claiming the outbox; credentials and real E2E execution remain a production gate.
+- Never run broad QA backfills. An `activation_test` application event was ignored and a Tally application without an exact Wix contact is in `needs_mapping`.
+- Three existing Wix label-added task automations are live for future events (Needs Qualification, Affiliate Prospect, Wix Smart Chat); they do not enroll historical contacts or send customer messages.
+- Native Wix saved segment creation remains UI-only in this integration; `docs/WIX_LABEL_SEGMENT_PREVIEW_20261022.json` contains verified count/key definitions for 17 cohorts.
 
 ## Security and deployment gates
 
