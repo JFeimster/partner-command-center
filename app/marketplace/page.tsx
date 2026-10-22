@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import { PublicInterior } from "@/components/public-interior";
+import { ProgramDirectory } from "@/components/program-directory";
+import { getPrograms } from "@/lib/program-catalog";
 
-export const metadata: Metadata = { title: "Marketplace", description: "Explore funding review paths and partner enablement resources." };
+export const metadata: Metadata = { title: "Partner programs", description: "Browse current funding and affiliate program records by category and use case." };
+export const dynamic = "force-dynamic";
 
-const paths = [
-  { number: "01", type: "CAPITAL REVIEW", title: "Working capital", body: "A conversation about operating capital, cash flow, and a documented use of funds.", href: "/partner-access?source=marketplace&offer=working-capital-review" },
-  { number: "02", type: "CAPITAL REVIEW", title: "Equipment finance", body: "A route for businesses evaluating equipment acquisition, replacement, or upgrades.", href: "/partner-access?source=marketplace&offer=equipment-finance-path" },
-  { number: "03", type: "CAPITAL REVIEW", title: "Invoice cash flow", body: "A review path for businesses with receivables and payment timing gaps.", href: "/partner-access?source=marketplace&offer=invoice-cash-flow-review" },
-  { number: "04", type: "READINESS", title: "Funding readiness", body: "Organize the business basics and documents before a funding conversation.", href: "/resources#readiness" },
-];
-
-export default function MarketplacePage() {
-  return <PublicInterior eyebrow="MARKETPLACE / REVIEW PATHS" title="Find a useful path for the next conversation." intro="Browse common funding and readiness categories. Specific availability, eligibility, and terms depend on current provider review.">
-    <section aria-labelledby="paths-heading"><div className="interior-section-head"><div><span className="eyebrow">THE DIRECTORY</span><h2 id="paths-heading">Review paths</h2></div><p>Use these as conversation starters. They are not live offers or lender decisions.</p></div><div className="directory-list">{paths.map((path) => <article key={path.number} className="directory-row"><span className="directory-row__number">{path.number}</span><div><span className="directory-row__type">{path.type}</span><h3>{path.title}</h3></div><p>{path.body}</p><Link href={path.href} aria-label={`Explore ${path.title}`}><ArrowUpRight size={23} /></Link></article>)}</div><p className="interior-footnote">No approval, amount, rate, timing, funding, or commission outcome is guaranteed. A qualified human reviewer determines the appropriate next step.</p></section>
+export default async function MarketplacePage() {
+  let programs = [] as Awaited<ReturnType<typeof getPrograms>>;
+  let unavailable = false;
+  try { programs = await getPrograms(); } catch { unavailable = true; }
+  return <PublicInterior eyebrow="MARKETPLACE / PROGRAMS" title="Find the right conversation." intro="Search current program records by category, use case, and product. Partner access and funding outcomes always require review.">
+    {unavailable ? <section className="catalog-empty" role="status"><h2>Program directory is temporarily unavailable</h2><p>Use the funding readiness tools while the registry reconnects.</p><a href="/resources">Open resources</a></section> : programs.length ? <ProgramDirectory programs={programs}/> : <section className="catalog-empty"><h2>No programs are ready to display</h2><p>Explore readiness resources or request partner access for current opportunities.</p><a href="/resources">Open resources</a></section>}
+    <p className="interior-footnote">Registry entries are program discovery information. They do not establish lender eligibility, available terms, approval, funding, or compensation.</p>
   </PublicInterior>;
 }
