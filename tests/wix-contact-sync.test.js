@@ -153,3 +153,26 @@ test('activation-test intake is not mirrored into Wix', () => {
     answers: {}
   }), null);
 });
+
+
+test('scheduled worker refreshes rolling referral windows before claiming events', async () => {
+  const calls = [];
+  const db = {
+    rpc: async (fn) => {
+      calls.push(fn);
+      return fn === 'enqueue_wix_daily_partner_metric_refresh'
+        ? { data: 1, error: null }
+        : { data: [], error: null };
+    }
+  };
+  const result = await runWixSync({
+    env: { SUPABASE_URL: 'https://example.supabase.co',
+      SUPABASE_SERVICE_ROLE_KEY: 'stub', WIX_API_KEY: 'stub' },
+    db
+  });
+  assert.equal(result.dailyRefreshQueued, 1);
+  assert.deepEqual(calls, [
+    'enqueue_wix_daily_partner_metric_refresh',
+    'claim_wix_contact_sync_outbox'
+  ]);
+});
