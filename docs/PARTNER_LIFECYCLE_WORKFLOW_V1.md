@@ -143,3 +143,17 @@ Each action must have an idempotency key, retry limit, dead-letter review queue,
 ## 9. Compatibility / change management
 
 Version workflow transitions and event schemas; support additive rollout and rollback of automation flags. Document external mapping ownership and allow selective sync. Preserve existing Notion lead router, Tally relay and Vercel routes. Review the implementation against the current deployed schema and linked Vercel secrets before activation. Never claim completion, merge success or live automation before CI and connector readback confirm it.
+
+
+## 10. Wix production configuration registered 2026-10-22
+
+Changes completed via Wix site API on Moonshine Capital site `cc61a0cb-edcd-43dc-bdda-42c76443dcd6`:
+
+- Dedicated pipeline **Partner Recruitment & Activation** created: `b4312672-51d1-428c-8828-5a006f637286`; initial revision `1`.
+- Stages: Application Received `8727f1d2-5d23-4196-b8e1-2b8dc1a0d2f4`; Under Review `1bcf4dc5-75c7-43ba-8855-fe21a8227856`; Needs Information `a8c9053e-13b4-422e-ac41-20020a68d872`; Approved `6aab56c7-4ebd-4b52-99c9-e2dd21bee1dd`; Onboarding In Progress `0e71f973-3a72-4ed8-8335-4ece4bbf35f7`; Activated `455adc01-6bb2-4fcd-9d1d-c44eceeb0cea`; Producing / Growing `d6eef2da-4335-4f31-a545-677c80ea396f`; Inactive `e3fedd44-dc2a-4bb0-a593-1cb1d32da78f`; Suspended / Hold `bb1d8969-fdb1-4162-86b0-41cd20151cbd`; final Closed / Rejected `c79f2326-a74d-4883-9942-da5bf3d4c06d`.
+- Dover Moore card `952838be-c993-4152-8133-648c2816faad` created in **Approved**, associated with Wix contact `52565bfb-5062-47ad-be5d-cb9f24212081`. Card explicitly states Notion approval is recorded while onboarding and access are unverified. Financial value omitted.
+- Existing Funding Submissions and To Do Tasks pipelines unchanged.
+- Wix contact notes and existing Affiliate Prospect / Affiliate Program labels were added and verified in the preceding CRM operation.
+- No outbound automations activated, no Gmail sent, no Wix tasks generated, no membership provisioned, no new financial deals created.
+
+**Important:** This is an operational configuration milestone, not a claim that the lifecycle automation engine, Supabase ingest, task orchestration or marketing segmentation is deployed. Those require the acceptance gates above.
