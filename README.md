@@ -51,6 +51,24 @@ Configure environment variables in the existing Vercel project for the environme
 
 The existing verified Tally join webhook forwards form `mOe658` to the canonical `partner-crm-ingest` Edge Function when **both** server-only `PARTNER_CRM_INGEST_URL` and `PARTNER_CRM_INGEST_TOKEN` are configured. The URL must be `https://loaowmappekunngjknnx.supabase.co/functions/v1/partner-crm-ingest`. Set the matching token and `PARTNER_CRM_ORG_ID` in Supabase Edge Function secrets. Without these settings the legacy Notion intake path remains active. A configured relay fails closed on an upstream error so Tally can retry the same submission id; the Edge Function deduplicates it. Funding applicant forms are excluded.
 
+## Partner CRM activation — operator handoff (2026-10-22)
+
+**Operating decision:** Tally form `mOe658` and its webhook are accepted as working based on the owner's confirmation. Do not block partner operations or require another synthetic Tally submission solely to reproduce an already working form. This is an **operator acceptance**, not a claim that a fresh signed Tally-to-Supabase end-to-end replay was independently witnessed by the activation thread.
+
+**Verified production evidence:**
+
+- Tally form `mOe658` has an enabled webhook pointing to `https://partner-command-center-rho.vercel.app/api/router` (owner-supplied UI evidence); a prior delivery returned HTTP 201 on October 18, before the canonical relay deployment.
+- `PARTNER_CRM_INGEST_URL` and `PARTNER_CRM_INGEST_TOKEN` are present for **Vercel Production** (owner-supplied UI evidence). Production `GET /api/intake-health` responded HTTP 200 with `partner_crm: { configured: true, endpoint_matches_canonical: true }`. This indicates configuration, **not delivery or token equivalence**.
+- The `partner-crm-ingest` Supabase Edge Function is deployed and active. An invalid bearer token was rejected with 401 rather than reporting missing integration configuration; the router also rejected unsigned requests with 401. No production credential values were read or logged.
+- The PostgreSQL `public.ingest_partner_application` RPC is callable by `service_role`, not `anon` or `authenticated`. A synthetic same-ID test verified duplicate detection and application/event atomicity within a **rolled-back transaction**, without leaving synthetic application rows.
+- The new canonical relay and safe reporting behavior shipped in [PR #91](https://github.com/JFeimster/partner-command-center/pull/91); the secret-free readiness check shipped in [PR #97](https://github.com/JFeimster/partner-command-center/pull/97).
+
+**Known boundaries:** No fresh signed webhook delivery from the public Tally form was independently observed in that thread (automated submission encountered CAPTCHA). Do not label this an independently proven end-to-end acceptance test. Do not replay historical applications to manufacture evidence. Two other canonical application records observed on October 22 originated from a separate Tally form and an `activation_test` source; they are not evidence of the `mOe658` path.
+
+**Operating policy:** Handle the next genuine new `mOe658` application through the live workflow. On a reported delivery issue, correlate the **submission ID** across the Tally webhook event, Vercel router response/logs, Supabase `partner_applications` and `partner_intake_events`, and the Notion event before taking a retry or recovery action. An exact replay should leave one canonical application and one canonical intake event, but the Notion event lookup is a sequential retry guard, not a distributed concurrency lock. Do not count `metadata.fictional = true` QA partners as real active partners, and do not create duplicate HubSpot/Notion records.
+
+The next focus is real-applicant reconciliation, idempotent downstream projection and operational monitoring—not another manual Tally acceptance gate.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for implementation and release rules and [ROADMAP.md](ROADMAP.md) for the migration sequence.
