@@ -9,6 +9,7 @@ export type DashboardData = {
   recentActivity: { id: string; title: string; detail: string; at: string }[];
   onboarding?: { completed: number; total: number; nextHref: string; nextTitle: string };
   sourceBreakdown?: { label: string; count: number }[];
+  operatorLifecycle?: { label: string; count: number; detail: string; href: string }[];
 };
 
 function safeInternalHref(href: string) {
@@ -25,6 +26,12 @@ export function DashboardOverview({ data, mode }: { data: DashboardData; mode: "
       </div>
       {!isOperator && data.onboarding && <Link className="dashboard-activation" href={safeInternalHref(data.onboarding.nextHref)}><span><span className="workspace-kicker">ONBOARDING</span><strong>{data.onboarding.completed} of {data.onboarding.total} steps complete</strong><small>{data.onboarding.nextTitle}</small></span><span className="dashboard-activation__right">Continue <ArrowRight size={17} /></span><span className="dashboard-activation__track"><i style={{ width: `${data.onboarding.completed / data.onboarding.total * 100}%` }} /></span></Link>}
       {data.metrics.length > 0 && <div className={`metric-strip${data.metrics.length > 3 ? " metric-strip--four" : ""}`} aria-label="Dashboard metrics">{data.metrics.slice(0, 4).map((metric) => <div className="metric-strip__item" key={metric.label}><span className="metric-strip__label">{metric.label}</span><strong className="metric-strip__value">{metric.value}</strong><span className="metric-strip__detail">{metric.detail}</span></div>)}</div>}
+      {isOperator && data.operatorLifecycle?.length ? <section className="workspace-section operator-lifecycle" aria-labelledby="lifecycle-heading">
+        <div className="workspace-section__head"><h2 id="lifecycle-heading">Partner lifecycle</h2><span className="workspace-section__hint">Current counts by workflow stage</span></div>
+        <div className="operator-lifecycle__grid">{data.operatorLifecycle.map((stage) => <Link key={stage.label} className="operator-lifecycle__stage" href={safeInternalHref(stage.href)}>
+          <span className="operator-lifecycle__count">{stage.count}</span><span className="operator-lifecycle__label">{stage.label}</span><span className="operator-lifecycle__detail">{stage.detail}</span><span className="operator-lifecycle__action">Open queue <ArrowUpRight size={14} /></span>
+        </Link>)}</div>
+      </section> : null}
       <div className="dashboard-grid">
         <section className="workspace-section" aria-labelledby="priority-heading">
           <div className="workspace-section__head"><h2 id="priority-heading">Needs attention</h2><Link href={isOperator ? "/operator/tasks" : "/dashboard/referrals"}>View all <ArrowRight size={14} /></Link></div>

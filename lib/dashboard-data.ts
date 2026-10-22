@@ -13,6 +13,7 @@ type Dashboard = {
   recentActivity: ActivityItem[];
   onboarding?: { completed: number; total: number; nextHref: string; nextTitle: string };
   sourceBreakdown?: { label: string; count: number }[];
+  operatorLifecycle?: { label: string; count: number; detail: string; href: string }[];
 };
 
 const ACTION_LABELS: Record<string, string> = {
@@ -304,15 +305,21 @@ export async function getPartnerDashboard(): Promise<Dashboard> {
   };
 }
 
-export async function getOperatorApplications() {
+const APPLICATION_STATUSES = new Set(["new", "received", "needs_review", "qualified", "onboarding", "approved", "declined", "nurture"]);
+const PARTNER_STATUSES = new Set(["pending", "active", "paused", "terminated"]);
+
+export async function getOperatorApplications(statuses?: string[]) {
   const session = await requireOperatorSession();
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
+  const validStatuses = statuses?.filter((status) => APPLICATION_STATUSES.has(status));
+  let query = supabase
     .from("partner_applications")
     .select("id,applicant_name,agency_name,email,status,source,received_at")
     .eq("organization_id", session.organizationId)
-    .order("received_at", { ascending: false })
-    .limit(100);
+    .order("received_at", { ascending: false });
+  if (validStatuses?.length === 1) query = query.eq("status", validStatuses[0]);
+  else if (validStatuses?.length) query = query.in("status", validStatuses);
+  const { data, error } = await query.limit(100);
   if (error) throw new Error("Could not load partner applications");
   return { items: (data ?? []).map((row) => ({
     id: row.id,
@@ -348,15 +355,16 @@ export async function getOperatorApplicationDetail(id: string) {
   return { application, events: events.data ?? [], tasks: tasks.data ?? [] };
 }
 
-export async function getOperatorTasks() {
+export async function getOperatorTasks(status?: "open" | "completed") {
   const session = await requireOperatorSession();
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("partner_follow_up_tasks")
     .select("id,title,status,due_at,notes,partner_id")
     .eq("organization_id", session.organizationId)
-    .order("created_at", { ascending: false })
-    .limit(100);
+    .order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query.limit(100);
   if (error) throw new Error("Could not load partner tasks");
   const ids = [...new Set((data ?? []).map((row) => row.partner_id).filter((id): id is string => Boolean(id)))];
   const partnersResult = ids.length
@@ -374,17 +382,18 @@ export async function getOperatorTasks() {
   })) };
 }
 
-export async function getOperatorPartners() {
+export async function getOperatorPartners(status?: string) {
   const session = await requireOperatorSession();
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("partners")
     .select("id,name,contact_email,status,partner_type,created_at")
     .eq("organization_id", session.organizationId)
     // A QA partner may remain active for tests but must not appear as a real partner.
     .or("metadata->>fictional.is.null,metadata->>fictional.neq.true")
-    .order("created_at", { ascending: false })
-    .limit(100);
+    .order("created_at", { ascending: false });
+  if (status && PARTNER_STATUSES.has(status)) query = query.eq("status", status);
+  const { data, error } = await query.limit(100);
   if (error) throw new Error("Could not load partners");
   return { items: (data ?? []).map((row) => ({
     id: row.id,
@@ -423,21 +432,27 @@ export async function getOperatorPartnerDetail(id: string) {
 export async function getOperatorDashboard(): Promise<Dashboard> {
   const session = await requireOperatorSession();
   const supabase = await createServerSupabaseClient();
-  const [{ items: applications }, { items: activity }, applicationsCount, newApplicationsCount, openTasksCount, activePartnersCount, linkedAccountsCount, referralCount, pendingReferralCount] = await Promise.all([
+  const [{ items: applications }, { items: activity }, applicationsCount, newApplicationsCount, qualifiedApplicationsCount, approvedApplicationsCount, openTasksCount, pendingActivationCount, activePartnersCount, linkedAccountsCount, referralCount, pendingReferralCount] = await Promise.all([
     getOperatorApplications(), getOperatorActivity(),
     supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId),
-    supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).in("status", ["new", "needs_review"]),
+    supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).in("status", ["new", "received", "needs_review"]),
+    supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).in("status", ["qualified", "onboarding"]),
+    supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "approved"),
     supabase.from("partner_follow_up_tasks").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "open"),
+    supabase.from("partners").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "pending").or("metadata->>fictional.is.null,metadata->>fictional.neq.true"),
     supabase.from("partners").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "active").or("metadata->>fictional.is.null,metadata->>fictional.neq.true"),
     supabase.from("partner_portal_accounts").select("user_id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "active"),
     supabase.from("referrals").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId),
     supabase.from("referrals").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "submitted")
   ]);
-  if ([applicationsCount, newApplicationsCount, openTasksCount, activePartnersCount, linkedAccountsCount, referralCount, pendingReferralCount].some((result) => result.error)) {
+  if ([applicationsCount, newApplicationsCount, qualifiedApplicationsCount, approvedApplicationsCount, openTasksCount, pendingActivationCount, activePartnersCount, linkedAccountsCount, referralCount, pendingReferralCount].some((result) => result.error)) {
     throw new Error("Could not load operator metrics");
   }
   const newApplications = newApplicationsCount.count ?? 0;
+  const qualifiedApplications = qualifiedApplicationsCount.count ?? 0;
+  const approvedApplications = approvedApplicationsCount.count ?? 0;
   const openTasks = openTasksCount.count ?? 0;
+  const pendingActivation = pendingActivationCount.count ?? 0;
   const activePartners = activePartnersCount.count ?? 0;
   const linkedAccounts = linkedAccountsCount.count ?? 0;
   const referrals = referralCount.count ?? 0;
@@ -451,6 +466,11 @@ export async function getOperatorDashboard(): Promise<Dashboard> {
     ...(openTasks ? [{ id: "tasks", title: `${openTasks} open follow-up tasks`, detail: "Review owners and due dates.", href: "/operator/tasks", status: "Open" }] : []),
     ...(activePartners > 0 && linkedAccounts === 0 ? [{ id: "activation", title: "Partner portal activation", detail: "Active partners have not yet claimed portal access.", href: "/operator/partners", status: "Ready" }] : [])
   ];
+  const operatorLifecycle = [
+    { label: "Qualification", count: qualifiedApplications, detail: "Applications qualified or in onboarding", href: "/operator/applications?stage=qualification" },
+    { label: "Approved", count: approvedApplications, detail: "Applications approved by an operator", href: "/operator/applications?stage=approved" },
+    { label: "Pending activation", count: pendingActivation, detail: "Canonical partner records not yet active", href: "/operator/partners?status=pending" }
+  ];
   return {
     displayName: session.email.split("@")[0] || "Operator",
     organizationName: session.organizationName,
@@ -462,6 +482,7 @@ export async function getOperatorDashboard(): Promise<Dashboard> {
     ],
     priorityItems,
     recentActivity: activity.slice(0, 5).map(activitySummary),
-    sourceBreakdown
+    sourceBreakdown,
+    operatorLifecycle
   };
 }
