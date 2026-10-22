@@ -5,7 +5,7 @@
 'use strict';
 
 const crypto = require('crypto');
-const { relayPartnerApplication } = require('../lib/partner-crm-relay');
+const { relayPartnerApplication, partnerCrmCorrelationId } = require('../lib/partner-crm-relay');
 const {
   upsertPartner,
   findPartnerByPartnerId,
@@ -243,10 +243,27 @@ function isCanonicalPartnerJoin(body) {
   return cleanString(getTallyData(body).formId || body.formId) === 'mOe658';
 }
 function partnerSignupEventId(submissionId) {
-  const id = cleanString(submissionId);
-  if (!id) return '';
-  // Notion Event Name is a title, so use a stable, non-PII ID for retries.
-  return 'tally_mOe658_' + crypto.createHash('sha256').update(id).digest('hex').slice(0, 32);
+  return partnerCrmCorrelationId(cleanString(submissionId), 'mOe658');
+}
+function logPartnerSignupTrace(correlationId, stage, outcome, details = {}) {
+  if (!correlationId) return;
+  console.info(JSON.stringify({
+    event: 'partner_signup_trace',
+    source: 'tally',
+    form_id: 'mOe658',
+    correlation_id: correlationId,
+    stage,
+    outcome,
+    ...details
+  }));
+}
+function relayErrorCode(error) {
+  const message = error && typeof error.message === 'string' ? error.message : '';
+  const status = message.match(/Partner CRM ingestion failed \((\d{3})\)/)?.[1];
+  if (status) return `http_${status}`;
+  if (/not configured/i.test(message)) return 'not_configured';
+  if (/correlation ID mismatch/i.test(message)) return 'correlation_mismatch';
+  return 'relay_failed';
 }
 function buildName(fields) { const name = cleanString(fields.name || fields.full_name); return name || [fields.first_name, fields.last_name].map(cleanString).filter(Boolean).join(' '); }
 function generatePartnerId(seedInput) {
@@ -417,29 +434,67 @@ async function handleReceivePartnerSignup(body) {
   if (canonical && !normalized.partner.tally_submission_id) {
     return validationError('Canonical Tally partner signup requires a stable submission ID.');
   }
-  if (canonical) await relayPartnerApplication({
-    submission_id: normalized.partner.tally_submission_id,
-    email: normalized.partner.email,
-    name: normalized.partner.name,
-    agency_name: normalized.partner.company,
-    form_id: 'mOe658',
-    answers: normalized.raw_fields
-  });
   const eventId = canonical ? partnerSignupEventId(normalized.partner.tally_submission_id) : '';
-  if (eventId) {
-    const existingEvent = await findPartnerEventByEventId(eventId);
-    if (existingEvent) {
-      return success({
-        action: 'receivePartnerSignup',
-        result: 'duplicate',
-        partner_id: propertyText(existingEvent.properties && existingEvent.properties['Partner ID']) || normalized.partner.partner_id,
-        notion_event: safePageSummary(existingEvent)
+  let relayReceipt = { configured: false, applicationId: null, duplicate: false, correlationId: eventId };
+  if (canonical) {
+    try {
+      relayReceipt = await relayPartnerApplication({
+        submission_id: normalized.partner.tally_submission_id,
+        email: normalized.partner.email,
+        name: normalized.partner.name,
+        agency_name: normalized.partner.company,
+        form_id: 'mOe658',
+        answers: normalized.raw_fields
       });
+      logPartnerSignupTrace(eventId, 'supabase_relay', relayReceipt.configured ? 'accepted' : 'skipped_not_configured', {
+        application_id: relayReceipt.applicationId || null,
+        duplicate: relayReceipt.duplicate === true
+      });
+    } catch (error) {
+      logPartnerSignupTrace(eventId, 'supabase_relay', 'failed', { error_code: relayErrorCode(error) });
+      throw error;
     }
   }
-  const result = await upsertPartner(normalized.partner);
-  await createPartnerEvent({ event_id: eventId || undefined, partner_id: normalized.partner.partner_id, event_type: result.action === 'created' ? 'partner_created' : 'partner_updated', source: 'tally', status: normalized.partner.status, summary: 'Partner signup received, normalized, classified, and stored in Notion.', metadata: { tally_submission_id: normalized.partner.tally_submission_id, partner_type: normalized.partner.partner_type, tier: normalized.partner.tier, onboarding_path: normalized.partner.onboarding_path, match_strategy: result.match_strategy, legacy_without_consent: normalized.legacy_without_consent }, created_at: new Date().toISOString() });
-  return created({ action: 'receivePartnerSignup', result: result.action, partner_id: normalized.partner.partner_id, partner: normalized.partner, notion_page: safePageSummary(result.page) });
+  try {
+    if (eventId) {
+      const existingEvent = await findPartnerEventByEventId(eventId);
+      if (existingEvent) {
+        const partnerId = propertyText(existingEvent.properties && existingEvent.properties['Partner ID']) || normalized.partner.partner_id;
+        logPartnerSignupTrace(eventId, 'notion', 'duplicate', {
+          application_id: relayReceipt.applicationId || null,
+          partner_id: partnerId,
+          notion_correlation_id: eventId,
+          notion_page_id: existingEvent.id || null,
+          supabase_duplicate: relayReceipt.duplicate === true
+        });
+        return success({
+          action: 'receivePartnerSignup',
+          result: 'duplicate',
+          partner_id: partnerId,
+          notion_event: safePageSummary(existingEvent)
+        });
+      }
+    }
+    const result = await upsertPartner(normalized.partner);
+    const notionEvent = await createPartnerEvent({ event_id: eventId || undefined, partner_id: normalized.partner.partner_id, event_type: result.action === 'created' ? 'partner_created' : 'partner_updated', source: 'tally', status: normalized.partner.status, summary: 'Partner signup received, normalized, classified, and stored in Notion.', metadata: { tally_submission_id: normalized.partner.tally_submission_id, partner_type: normalized.partner.partner_type, tier: normalized.partner.tier, onboarding_path: normalized.partner.onboarding_path, match_strategy: result.match_strategy, legacy_without_consent: normalized.legacy_without_consent }, created_at: new Date().toISOString() });
+    logPartnerSignupTrace(eventId, 'notion', result.action, {
+      application_id: relayReceipt.applicationId || null,
+      partner_id: normalized.partner.partner_id,
+      notion_correlation_id: eventId || null,
+      notion_page_id: notionEvent && notionEvent.id || null,
+      supabase_duplicate: relayReceipt.duplicate === true
+    });
+    return created({ action: 'receivePartnerSignup', result: result.action, partner_id: normalized.partner.partner_id, partner: normalized.partner, notion_page: safePageSummary(result.page) });
+  } catch (error) {
+    const status = Number.isInteger(error && error.status) ? error.status : undefined;
+    logPartnerSignupTrace(eventId, 'notion', 'failed', {
+      application_id: relayReceipt.applicationId || null,
+      partner_id: normalized.partner.partner_id,
+      error_code: error && error.code === 'notion_error' ? 'notion_error' : 'notion_request_failed',
+      ...(status ? { http_status: status } : {})
+    });
+    throw error;
+  }
 }
 async function handleCreatePartner(body) {
   const input = body.partner || body;
