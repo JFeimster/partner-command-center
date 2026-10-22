@@ -38,5 +38,6 @@
       "enabled": true,
       "invocation_logs": true
     }
-  }
+  },
+  "previews": {}
 }

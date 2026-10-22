@@ -1,0 +1,118 @@
+{
+  "id": "MC-001",
+  "slug": "you-aint-done-yet",
+  "name": "You Ain't Done Yet",
+  "subtitle": "The Comeback Sequence",
+  "status": "draft",
+  "version": 1,
+  "audience": {
+    "description": "Applicants needing a second shot, especially gig workers and microbusiness owners",
+    "provider_candidates": [
+      "DAC",
+      "BankBreezy",
+      "Giggle"
+    ],
+    "requires_positive_match": true
+  },
+  "voice": "Marine grit, respect, humor and curiosity. Human not corporate. Never imply approval or shame financial hardship.",
+  "sending": {
+    "enabled": false,
+    "requires_consent": true,
+    "reply_to_required": true
+  },
+  "steps": [
+    {
+      "id": "001.01",
+      "type": "email",
+      "trigger": "new_eligible_application",
+      "delay_days": 0,
+      "subject": "You pulled the trigger. Respect. 🫡",
+      "body": "Hey {{first_name}},\n\nGot word you put in a funding application.\n\nFirst off, hell yeah. Respect. 🫡\n\nI don't know your story yet. Maybe business is booming and you're chasing your next move. Maybe things are tight and you need breathing room.\n\nEither way, you did something about it. That counts.\n\nThe funding provider handles the application decision. Me? I'm interested in something else.\n\nWhat are you actually fighting for?\n\nA better life? A business? Getting out of survival mode? More freedom?\n\nI've been broke and knocked on my ass. Where you are today doesn't have to be where you end up.\n\nHit reply. Tell me what you're trying to change. One sentence. No bullshit. No perfect answer.\n\nSemper Fi,\nJason\nMoonshine Capital"
+    },
+    {
+      "id": "001.02",
+      "type": "email",
+      "trigger": "no_substantive_reply",
+      "delay_days": 3,
+      "subject": "Quick question. What's your Plan B?",
+      "body": "Hey {{first_name}},\n\nWhat if the funding doesn't come through?\n\nNot trying to be a buzzkill. Hope matters. A plan matters more.\n\nIf you had to find another $500–$1,000 over the next month without borrowing, where would you start? More customers? Another gig? Something you already know how to do?\n\nI found one thing that might help: {{resource_title}} — {{resource_url}}\n\nWhat's the biggest thing standing between you and your next move?\n\nJason",
+      "requires_verified_resource": true
+    },
+    {
+      "id": "001.03",
+      "type": "email",
+      "trigger": "no_substantive_reply",
+      "delay_days": 7,
+      "subject": "You don't have to figure it all out alone.",
+      "body": "Hey {{first_name}},\n\nOne thing the Marines taught me: tough people still need a good team.\n\nMoney matters. So do skills, people and opportunity.\n\nIf you're building something, come check out our Capital Launchpad Network: https://www.distilledfunding.com/group/capital-launchpad-network/\n\nLurk, connect, or tell us what you're working on. And if you want to talk, hit reply.\n\nSemper Fi,\nJason",
+      "stop_after": true
+    }
+  ],
+  "reply_branches": [
+    {
+      "id": "001.A",
+      "key": "cash_flow_pressure",
+      "question": "Is this a temporary setback, or has it been a struggle for a while?",
+      "response": "I hear you, {{first_name}}. When bills stack up it's hard to think about anything else.\n\nBut one question: will borrowing fix the problem, or just push it out a few weeks?\n\nIs this a temporary setback or something that's been going on for a while?\n\nLet's start there.\n\nJason",
+      "human_review": true
+    },
+    {
+      "id": "001.B",
+      "key": "vehicle_issue",
+      "question": "Repair or replacement?",
+      "response": "Damn, {{first_name}}. The thing that earns your money is keeping you from earning it.\n\nAre we talking about one repair that'll get you moving, or a car that's turned into a money pit? What would it actually take to get back on the road?\n\nJason",
+      "human_review": true
+    },
+    {
+      "id": "001.C",
+      "key": "aspiring_entrepreneur",
+      "question": "What would you sell, and to whom?",
+      "response": "Now you've got my attention, {{first_name}}.\n\nAn idea is one thing. A business somebody pays for is another.\n\nWhat would you sell, who would buy it, and why would they pick you? No 40-page plan needed. Just tell me what you've got cooking.\n\nJason",
+      "human_review": true
+    },
+    {
+      "id": "001.D",
+      "key": "business_growth",
+      "question": "What would you do with the money first?",
+      "response": "Okay, {{first_name}}, now we're talking.\n\nIf the money landed tomorrow, what would you do with it first? And how would that turn into more revenue, margin, or time back in your week?\n\nTell me the real plan.\n\nJason",
+      "human_review": true
+    },
+    {
+      "id": "001.E",
+      "key": "exploring_goals",
+      "question": "What's one change you want in six months?",
+      "response": "I respect that, {{first_name}}.\n\nSometimes all you know is you want something better. That's a start.\n\nSix months from now, what's ONE thing you wish were different? Work, income, freedom, family?\n\nPick one. I'm curious.\n\nJason",
+      "human_review": true
+    },
+    {
+      "id": "001.F",
+      "key": "transaction_only",
+      "question": "No follow-up question",
+      "response": "Fair point, {{first_name}}. You applied for funding, not a motivational boot camp. 😂\n\nThe provider handles the application decision. If you'd rather leave it there, understood. No more relationship emails from this sequence.\n\nIf you ever want to talk strategy, you know where to find me.\n\nJason",
+      "stop_journey": true
+    }
+  ],
+  "outcome_branches": [
+    {
+      "id": "001.X",
+      "event": "provider_declined_verified",
+      "subject": "Well, that wasn't the answer we wanted.",
+      "body": "Hey {{first_name}},\n\nSaw the application update. Not the answer we hoped for. That sucks.\n\nOne provider saying no isn't the end of your story.\n\nWhat were you planning to do with that money that matters most right now? There may be a different path—or a better next move before borrowing again.\n\nJason",
+      "human_review": true
+    },
+    {
+      "id": "001.Y",
+      "event": "funding_received_verified",
+      "subject": "You got funded. Now what?",
+      "body": "Hey {{first_name}},\n\nHeard the good news. You got funded. Hell yeah. 🫡\n\nTake the win.\n\nNow tell me: what's your first move? What would make you look back six months from now and say, 'Damn, that was worth it'?\n\nSemper Fi,\nJason",
+      "human_review": true
+    }
+  ],
+  "policy": {
+    "no_assumed_approval": true,
+    "no_provider_instruction_duplication": true,
+    "no_unverified_links": true,
+    "no_silent_group_enrollment": true,
+    "substantive_reply_stops_drip": true
+  }
+}
