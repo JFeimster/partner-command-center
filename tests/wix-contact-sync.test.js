@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  FIELDS, projection, mergeWixFields, normalizedEmail, patchExactContact, runWixSync
+  FIELDS, projection, mergeWixFields, normalizedEmail, patchExactContact, runWixSync, isNonproductionEmail
 } = require('../lib/wix-contact-sync-worker');
 
 test('rejects malformed emails and synthetic partners', () => {
@@ -175,4 +175,20 @@ test('scheduled worker refreshes rolling referral windows before claiming events
     'enqueue_wix_daily_partner_metric_refresh',
     'claim_wix_contact_sync_outbox'
   ]);
+});
+
+
+test('synthetic sample domains never produce Wix contact projections', () => {
+  assert.equal(isNonproductionEmail('demo@example.invalid'), true);
+  assert.equal(isNonproductionEmail('name@example.com'), true);
+  assert.equal(isNonproductionEmail('person@some-company.test'), true);
+  assert.equal(isNonproductionEmail('person@real-company.com'), false);
+  assert.equal(projection('partner_application', {
+    email: 'someone@example.invalid', status: 'new', source: 'tally',
+    answers: {}
+  }), null);
+  assert.equal(projection('partner', {
+    contact_email: 'someone@example.invalid', status: 'pending',
+    partner_type: 'unknown', metadata: {}
+  }), null);
 });
