@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { PublicInterior } from "@/components/public-interior";
+import { ResourceLibrary } from "@/components/resource-library";
 
-export const metadata: Metadata = { title: "Resources", description: "Partner field resources for readiness, referrals, and responsible funding conversations." };
-
-const resources = [
-  { id: "readiness", label: "INTERACTIVE CHECKLIST", title: "Funding readiness checklist", detail: "Organize basic business information and documentation before a review.", href: "/tools/funding-readiness-checklist.html" },
-  { id: "referrals", label: "OPERATING GUIDE", title: "Permission-based referrals", detail: "Ask for consent, share only what is needed, and keep the introduction truthful.", href: "/compliance#permission" },
-  { id: "disclosure", label: "DISCLOSURE", title: "Affiliate disclosure", detail: "Understand how to disclose a partner or compensation relationship.", href: "/affiliate-disclosure" },
-  { id: "tools", label: "INTERACTIVE TOOL", title: "Sales script generator", detail: "Draft an introduction or follow-up message for human review.", href: "/tools/sales-script-generator.html" },
-];
+export const metadata: Metadata = { title: "Partner resources", description: "Search practical partner guides, referral tools, tracking links, and approved operating resources." };
 
 export default function ResourcesPage() {
-  return <PublicInterior eyebrow="FIELD LIBRARY / RESOURCES" title="Find the asset for the work in front of you." intro="Practical tools and guidance for partner conversations, intake readiness, and responsible referral activity."><section aria-labelledby="resource-index"><div className="interior-section-head"><div><span className="eyebrow">OPERATING ASSETS</span><h2 id="resource-index">Resource index</h2></div><p>Use the smallest resource that helps you take the next step.</p></div><div className="directory-list">{resources.map((resource, index) => <article id={resource.id} key={resource.id} className="directory-row"><span className="directory-row__number">{String(index + 1).padStart(2, "0")}</span><div><span className="directory-row__type">{resource.label}</span><h3>{resource.title}</h3></div><p>{resource.detail}</p><Link href={resource.href} aria-label={`Open ${resource.title}`}><ArrowUpRight size={23} /></Link></article>)}</div><p className="interior-footnote">These resources support readiness and responsible referral conversations. They do not determine eligibility or approval.</p></section></PublicInterior>;
+  return <PublicInterior compactHero eyebrow="FIELD LIBRARY / RESOURCES" title="Find the asset for the work in front of you." intro="Practical tools for partner conversations, intake readiness, attribution, and responsible referrals.">
+    <section className="resource-center" aria-labelledby="resource-index">
+      <div className="interior-section-head"><div><span className="eyebrow">OPERATING ASSETS</span><h2 id="resource-index">Partner resource center</h2></div><p>Search by task or filter by the work you do.</p></div>
+      <ResourceLibrary />
+      <aside className="resource-next-step"><div><span className="eyebrow">READY TO PUT IT TO WORK?</span><h2>Make your next referral count.</h2><p>Open your partner workspace to submit a referral or manage an attributed link.</p></div><div><Link href="/dashboard/referrals">Submit a referral <ArrowRight size={17}/></Link><Link href="/dashboard/links">Manage tracking links <ArrowRight size={17}/></Link></div></aside>
+      <p className="interior-footnote">Funding resources support preparation and education. They do not determine eligibility, terms, approval, or funding outcomes.</p>
+    </section>
+  </PublicInterior>;
 }
