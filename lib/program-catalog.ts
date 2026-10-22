@@ -1,7 +1,8 @@
 import "server-only";
 
-type NotionProperty = { type?: string; title?: { plain_text?: string }[]; rich_text?: { plain_text?: string }[]; select?: { name?: string }; multi_select?: { name?: string }[]; url?: string | null; checkbox?: boolean };
+type NotionProperty = { type?: string; title?: { plain_text?: string }[]; rich_text?: { plain_text?: string }[]; select?: { name?: string }; status?: { name?: string }; multi_select?: { name?: string }[]; url?: string | null; checkbox?: boolean };
 type NotionPage = { id: string; properties?: Record<string, NotionProperty> };
+const CANONICAL_PROVIDER_SOURCE = "1c54bc1b-d63c-801f-946c-000bd9dd59b5";
 
 export type Program = {
   id: string;
@@ -33,7 +34,7 @@ function safeWebsite(value?: string | null) {
 
 function mapProgram(page: NotionPage): Program | null {
   const fields = page.properties || {};
-  if (fields["Affiliate Status"]?.select?.name !== "Active") return null;
+  if ((fields["Affiliate Status"]?.select?.name || fields["Affiliate Status"]?.status?.name) !== "Active") return null;
   const name = propertyText(fields["Affiliate/Lender Name"]).trim();
   if (!name) return null;
   return {
@@ -48,9 +49,9 @@ function mapProgram(page: NotionPage): Program | null {
   };
 }
 
-async function queryPrograms(): Promise<NotionPage[]> {
+async function queryPrograms(sourceOverride?: string): Promise<NotionPage[]> {
   const token = process.env.NOTION_API_KEY;
-  const source = process.env.NOTION_FUNDING_PROVIDERS_DATA_SOURCE_ID?.replace(/^collection:\/\//, "");
+  const source = (sourceOverride || process.env.NOTION_FUNDING_PROVIDERS_DATA_SOURCE_ID)?.replace(/^collection:\/\//, "");
   if (!token || !source || !/^[0-9a-f-]{32,36}$/i.test(source)) return [];
   const pages: NotionPage[] = [];
   let cursor: string | undefined;
@@ -74,7 +75,35 @@ async function queryPrograms(): Promise<NotionPage[]> {
 }
 
 export async function getPrograms(): Promise<Program[]> {
-  return (await queryPrograms()).map(mapProgram).filter((program): program is Program => program !== null).sort((a, b) => a.name.localeCompare(b.name));
+  const configuredSource = process.env.NOTION_FUNDING_PROVIDERS_DATA_SOURCE_ID?.replace(/^collection:\/\//, "");
+  const primaryPages = await queryPrograms();
+  const primary = primaryPages.map(mapProgram).filter((program): program is Program => program !== null);
+  // Older deployments may retain a stale source ID after the Notion registry was
+  // split into a dedicated data source. Fall back only when that source has no
+  // active records, and keep the same server-side Active allowlist on both reads.
+  const fallbackPages = !primary.length && configuredSource && configuredSource !== CANONICAL_PROVIDER_SOURCE
+    ? await queryPrograms(CANONICAL_PROVIDER_SOURCE)
+    : [];
+  const fallback = fallbackPages.map(mapProgram).filter((program): program is Program => program !== null);
+  const programs = primary.length ? primary : fallback;
+  if (!programs.length) {
+    const pages = primaryPages.length ? primaryPages : fallbackPages;
+    const statusCounts = pages.reduce<Record<string, number>>((counts, page) => {
+      const status = page.properties?.["Affiliate Status"];
+      const name = status?.select?.name || status?.status?.name || (status?.type ? `type:${status.type}` : "missing");
+      counts[name] = (counts[name] || 0) + 1;
+      return counts;
+    }, {});
+    console.warn("Marketplace registry returned no active programs", {
+      tokenConfigured: Boolean(process.env.NOTION_API_KEY),
+      sourceConfigured: Boolean(configuredSource),
+      sourceIsCanonical: configuredSource === CANONICAL_PROVIDER_SOURCE,
+      pageCount: pages.length,
+      propertyNames: Object.keys(pages[0]?.properties || {}),
+      statusCounts
+    });
+  }
+  return programs.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getProgram(id: string): Promise<Program | null> {
