@@ -56,6 +56,15 @@
   "functions": {
     "api/reconcile-applicants.js": {
       "maxDuration": 60
+    },
+    "api/wix-sync.js": {
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/wix-sync",
+      "schedule": "0 * * * *"
+    }
+  ]
 }
