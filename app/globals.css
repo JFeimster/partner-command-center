@@ -426,3 +426,8 @@ a{color:inherit;text-decoration:none}
 .resource-next-step a:last-child { color: var(--accent); border: 1px solid rgba(228,251,85,.3); background: transparent; }
 @media (max-width: 900px) { .resource-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .resource-controls { grid-template-columns: 1fr 1fr; } .resource-count { grid-column: 2; } }
 @media (max-width: 600px) { .resource-grid { grid-template-columns: 1fr; } .resource-controls { grid-template-columns: 1fr; } .resource-count { grid-column: auto; justify-self: start; padding: 4px 2px; } .resource-next-step { align-items: flex-start; flex-direction: column; } .resource-next-step > div:last-child { width: 100%; } .resource-next-step a { flex: 1; justify-content: center; } }
+.task-create { display: grid; grid-template-columns: minmax(210px, .65fr) minmax(0, 1fr); gap: 38px; margin-bottom: 24px; }
+.task-create h2 { margin: 10px 0; font-size: clamp(22px, 2.4vw, 31px); letter-spacing: -.05em; }
+.task-create > div:first-child p { max-width: 360px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.task-create .portal-form { max-width: none; }
+@media (max-width: 760px) { .task-create { grid-template-columns: 1fr; gap: 16px; } }
