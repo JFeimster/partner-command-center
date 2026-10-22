@@ -3,6 +3,7 @@
 const { isConfigured: hubspotConfigured } = require('../lib/hubspot-client');
 const { isConfigured: sheetsConfigured, configurationStatus: sheetsConfigurationStatus } = require('../lib/google-sheets-sync');
 const { configured: notionConfigured } = require('../lib/notion/funding-leads');
+const { configurationStatus: partnerCrmConfigurationStatus } = require('../lib/partner-crm-relay');
 const { methodNotAllowed, sendJson, success } = require('../lib/response');
 
 module.exports = async function intakeHealth(req, res) {
@@ -20,6 +21,7 @@ module.exports = async function intakeHealth(req, res) {
     service: 'forwarded-email-intake',
     ready: systems.hubspot && systems.notion && systems.google_sheets,
     systems,
+    partner_crm: partnerCrmConfigurationStatus(),
     google_sheets: sheetsConfigurationStatus(),
     checked_at: new Date().toISOString()
   }));
