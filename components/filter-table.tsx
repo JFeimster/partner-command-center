@@ -14,9 +14,9 @@ function safeUrl(value: string) {
   } catch { return null; }
 }
 
-export function FilterTable({ columns, rows, searchLabel, emptyTitle, emptyBody }: { columns: TableColumn[]; rows: TableRow[]; searchLabel: string; emptyTitle: string; emptyBody: string }) {
+export function FilterTable({ columns, rows, searchLabel, emptyTitle, emptyBody, initialStatus = "all" }: { columns: TableColumn[]; rows: TableRow[]; searchLabel: string; emptyTitle: string; emptyBody: string; initialStatus?: string }) {
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState(initialStatus);
   const statuses = useMemo(() => Array.from(new Set(rows.map((row) => String(row.status || "")).filter(Boolean))).sort(), [rows]);
   const filtered = useMemo(() => rows.filter((row) => {
     if (status !== "all" && String(row.status || "") !== status) return false;

@@ -9,15 +9,20 @@ import { completePartnerTask, createPartnerFollowUpTask } from "@/lib/actions";
 export const metadata: Metadata = { title: "Follow-up tasks", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-export default async function TasksPage({ searchParams }: { searchParams: Promise<{ created?: string; error?: string }> }) {
+export default async function TasksPage({ searchParams }: { searchParams: Promise<{ created?: string | string[]; error?: string | string[]; status?: string | string[] }> }) {
+  const params = await searchParams;
   await requireOperatorSession();
-  const [{ items }, { items: applications }, { items: partners }, params] = await Promise.all([
-    getOperatorTasks(), getOperatorApplications(), getOperatorPartners(), searchParams
+  const created = Array.isArray(params.created) ? params.created[0] : params.created;
+  const error = Array.isArray(params.error) ? params.error[0] : params.error;
+  const requestedStatus = Array.isArray(params.status) ? params.status[0] : params.status;
+  const status = requestedStatus === "open" || requestedStatus === "completed" ? requestedStatus : undefined;
+  const [{ items }, { items: applications }, { items: partners }] = await Promise.all([
+    getOperatorTasks(status), getOperatorApplications(), getOperatorPartners()
   ]);
   const rows = items.map((item) => ({ id: item.id, title: item.title, partnerName: item.partnerName, status: item.status, dueAt: item.dueAt?.slice(0, 10), detail: item.detail, actions: item.status === "open" ? [{ label: "Mark complete", action: completePartnerTask.bind(null, item.id) }] : [] }));
   return <WorkspaceShell mode="operator"><div className="workspace-title-row"><div><span className="workspace-kicker">FOLLOW-UP</span><h1>Task queue</h1><p>Assign yourself a next action, link it to a partner record, then track it through completion.</p></div></div>
-    {params.created && <p className="form-notice" role="status">Follow-up task created and assigned to you.</p>}
-    {params.error && <p className="form-notice form-notice--error" role="alert">Task could not be created. Check the title, linked record, and field lengths.</p>}
+    {created && <p className="form-notice" role="status">Follow-up task created and assigned to you.</p>}
+    {error && <p className="form-notice form-notice--error" role="alert">Task could not be created. Check the title, linked record, and field lengths.</p>}
     <section className="workspace-section task-create" aria-labelledby="task-create-title"><div><span className="workspace-kicker">NEW ACTION</span><h2 id="task-create-title">Create a follow-up task</h2><p>Tasks stay in the partner operations ledger. No email or external message is sent.</p></div>
       <form action={createPartnerFollowUpTask} className="portal-form"><input type="hidden" name="task_id" value={randomUUID()} />
         <label>Task title<input className="portal-field" name="title" minLength={3} maxLength={160} required placeholder="Example: Confirm portal account claim" /></label>
@@ -28,6 +33,6 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         <button type="submit" className="workspace-action">Create task</button>
       </form>
     </section>
-    <FilterTable columns={[{ key: "title", label: "Task" }, { key: "partnerName", label: "Partner" }, { key: "status", label: "Status", kind: "status" }, { key: "dueAt", label: "Due" }, { key: "detail", label: "Detail" }]} rows={rows} searchLabel="Search tasks" emptyTitle="No follow-up tasks" emptyBody="Create an operator action above or tasks will appear when partner workflows need follow-up." />
+    <FilterTable columns={[{ key: "title", label: "Task" }, { key: "partnerName", label: "Partner" }, { key: "status", label: "Status", kind: "status" }, { key: "dueAt", label: "Due" }, { key: "detail", label: "Detail" }]} rows={rows} searchLabel="Search tasks" emptyTitle="No follow-up tasks" emptyBody="Create an operator action above or tasks will appear when partner workflows need follow-up." initialStatus={status || "all"} />
   </WorkspaceShell>;
 }

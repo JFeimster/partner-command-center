@@ -8,9 +8,18 @@ import { approvePartnerApplication, reviewPartnerApplication } from "@/lib/actio
 export const metadata: Metadata = { title: "Partner applications", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-export default async function ApplicationsPage() {
+export default async function ApplicationsPage({ searchParams }: { searchParams: Promise<{ stage?: string | string[]; status?: string | string[] }> }) {
   await requireOperatorSession();
-  const { items } = await getOperatorApplications();
+  const params = await searchParams;
+  const stage = Array.isArray(params.stage) ? params.stage[0] : params.stage;
+  const requestedStatus = Array.isArray(params.status) ? params.status[0] : params.status;
+  const stageStatuses: Record<string, string[]> = {
+    qualification: ["qualified", "onboarding"],
+    approved: ["approved"]
+  };
+  const allowedStatuses = new Set(["new", "received", "needs_review", "qualified", "onboarding", "approved", "declined", "nurture"]);
+  const statuses = stageStatuses[stage || ""] || (requestedStatus && allowedStatuses.has(requestedStatus) ? [requestedStatus] : undefined);
+  const { items } = await getOperatorApplications(statuses);
   const rows = items.map((item) => {
     const action = (label: string, status: string) => ({ label, action: reviewPartnerApplication.bind(null, item.id, status) });
     const actions = item.status === "new" || item.status === "received"
@@ -26,5 +35,5 @@ export default async function ApplicationsPage() {
               : [];
     return { id: item.id, href: `/operator/applications/${item.id}`, applicantName: item.applicantName, organizationName: item.organizationName, email: item.email, source: item.source.replaceAll("_", " "), status: item.status, submittedAt: item.submittedAt?.slice(0, 10), nextAction: item.nextAction, actions };
   });
-  return <WorkspaceShell mode="operator"><div className="workspace-title-row"><div><span className="workspace-kicker">PARTNER INTAKE</span><h1>Applications</h1><p>Review the current queue and route each application to its next human action.</p></div></div><FilterTable columns={[{ key: "applicantName", label: "Applicant" }, { key: "organizationName", label: "Organization" }, { key: "email", label: "Email" }, { key: "source", label: "Source" }, { key: "status", label: "Status", kind: "status" }, { key: "submittedAt", label: "Received" }, { key: "nextAction", label: "Next action" }]} rows={rows} searchLabel="Search applications" emptyTitle="No applications in this workspace" emptyBody="Partner applications will appear here after intake records are received." /><p className="workspace-note">Triage actions are recorded in partner intake history. Final approval remains a separate human decision.</p></WorkspaceShell>;
+  return <WorkspaceShell mode="operator"><div className="workspace-title-row"><div><span className="workspace-kicker">PARTNER INTAKE</span><h1>Applications</h1><p>Review the current queue and route each application to its next human action.</p></div></div><FilterTable columns={[{ key: "applicantName", label: "Applicant" }, { key: "organizationName", label: "Organization" }, { key: "email", label: "Email" }, { key: "source", label: "Source" }, { key: "status", label: "Status", kind: "status" }, { key: "submittedAt", label: "Received" }, { key: "nextAction", label: "Next action" }]} rows={rows} searchLabel="Search applications" emptyTitle="No applications in this workspace" emptyBody="Partner applications will appear here after intake records are received." initialStatus={statuses?.length === 1 ? statuses[0] : "all"} /><p className="workspace-note">Triage actions are recorded in partner intake history. Final approval remains a separate human decision.</p></WorkspaceShell>;
 }
