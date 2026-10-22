@@ -262,3 +262,24 @@ export async function updatePartnerClassification(formData: FormData) {
   revalidatePath("/operator");
   redirect(`/operator/partners/${parsed.data.partner_id}?saved=1`);
 }
+
+const wixSyncEventSchema = z.object({ event_id: z.uuid() });
+
+export async function retryWixContactSyncEvent(formData: FormData) {
+  const parsed = wixSyncEventSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) redirect("/operator/integrations/wix?error=event");
+  const session = await requireOperatorSession();
+  const workerConfigured = Boolean(
+    process.env.WIX_API_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY &&
+    process.env.CRON_SECRET && (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)
+  );
+  if (!workerConfigured) redirect("/operator/integrations/wix?error=configuration");
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("retry_wix_contact_sync_event", {
+    p_organization_id: session.organizationId,
+    p_event_id: parsed.data.event_id
+  });
+  if (error) redirect("/operator/integrations/wix?error=retry");
+  revalidatePath("/operator/integrations/wix");
+  redirect("/operator/integrations/wix?retry=queued");
+}

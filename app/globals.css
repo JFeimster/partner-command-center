@@ -431,3 +431,29 @@ a{color:inherit;text-decoration:none}
 .task-create > div:first-child p { max-width: 360px; color: var(--muted); font-size: 13px; line-height: 1.55; }
 .task-create .portal-form { max-width: none; }
 @media (max-width: 760px) { .task-create { grid-template-columns: 1fr; gap: 16px; } }
+.wix-sync-readiness { margin-bottom: 20px; }
+.wix-sync-readiness__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
+.wix-sync-readiness__item { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 7px 9px; padding: 12px; border: 1px solid rgba(255,255,255,.09); border-radius: 9px; background: rgba(255,255,255,.025); }
+.wix-sync-readiness__item svg { color: var(--accent); grid-row: span 2; }
+.wix-sync-readiness__item span { color: #abb3bf; font-size: 11px; }
+.wix-sync-readiness__item strong { color: #f4f4f5; font-size: 12px; }
+.wix-sync-schedule { display: flex; align-items: center; gap: 6px; }
+.wix-sync-schedule svg { color: var(--accent); }
+.wix-sync-controls { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 12px; margin: 14px 0; }
+.wix-sync-controls label { display: grid; gap: 7px; color: #aab2be; font-size: 11px; }
+.wix-sync-count { color: var(--muted); font: 600 10px/1 var(--font-mono); text-transform: uppercase; }
+.wix-sync-list { display: grid; gap: 9px; }
+.wix-sync-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px; border: 1px solid rgba(255,255,255,.09); border-radius: 10px; background: rgba(255,255,255,.025); }
+.wix-sync-row__main { display: grid; gap: 7px; min-width: 0; }
+.wix-sync-row__top { display: flex; align-items: center; gap: 9px; color: #9ba4b1; font-size: 11px; text-transform: capitalize; }
+.wix-sync-row__main > strong { color: #f4f4f5; font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.wix-sync-row code { color: #d1d5db; font: 10px var(--font-mono); }
+.wix-sync-row__main p,.wix-sync-row__main small { margin: 0; color: #8f98a5; font-size: 10px; }
+.wix-sync-row__action { flex: 0 0 auto; }
+.wix-sync-row__action .workspace-note { display: block; max-width: 230px; font-size: 10px; }
+.wix-sync-row__action .workspace-action:disabled { opacity: .48; cursor: not-allowed; }
+.status-pill--needs_mapping { color: #f6d58a; background: rgba(246,213,138,.1); }
+.status-pill--retry { color: #f6d58a; background: rgba(246,213,138,.1); }
+.workspace-action--secondary { margin-top: 14px; background: transparent; color: var(--accent); border: 1px solid rgba(228,251,85,.28); }
+@media (max-width: 900px) { .wix-sync-readiness__grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 600px) { .wix-sync-readiness__grid { grid-template-columns: 1fr; } .wix-sync-controls { grid-template-columns: 1fr; } .wix-sync-row { align-items: flex-start; flex-direction: column; } .wix-sync-row__action { width: 100%; } }
