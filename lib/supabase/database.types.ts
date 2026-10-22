@@ -2056,12 +2056,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      approve_partner_application: {
+        Args: { p_application_id: string }
+        Returns: string
+      }
       complete_partner_follow_up: {
         Args: { p_task_id: string }
         Returns: boolean
       }
       create_partner_tracking_link: {
         Args: { p_campaign: string; p_destination_url: string; p_slug: string }
+        Returns: string
+      }
+      decline_partner_application: {
+        Args: { p_application_id: string; p_reason: string }
         Returns: string
       }
       submit_partner_referral: {
@@ -2073,6 +2081,10 @@ export type Database = {
           p_phone: string
           p_request_id: string
         }
+        Returns: string
+      }
+      update_partner_referral_status: {
+        Args: { p_referral_id: string; p_status: string }
         Returns: string
       }
       triage_partner_application: {

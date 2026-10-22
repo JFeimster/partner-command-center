@@ -19,6 +19,7 @@ const ACTION_LABELS: Record<string, string> = {
   "partner_portal.access_claimed": "Portal access linked",
   "partner_profile.updated": "Business profile updated",
   "partner_referral.submitted": "Referral submitted",
+  "partner_referral.status_changed": "Referral status updated",
   "partner_tracking_link.created": "Tracking link created",
   "partner_task.completed": "Follow-up task completed"
 };
@@ -139,6 +140,71 @@ export async function getPartnerReferrals() {
   };
 }
 
+async function mapOperatorReferrals(
+  rows: Array<{ id: string; partner_id: string; lead_id: string; status: string; referred_at: string }>,
+  organizationId: string
+) {
+  const supabase = await createServerSupabaseClient();
+  const leadIds = [...new Set(rows.map((row) => row.lead_id))];
+  const partnerIds = [...new Set(rows.map((row) => row.partner_id))];
+  const [leadsResult, partnersResult] = await Promise.all([
+    leadIds.length ? supabase.from("leads").select("id,company_name,first_name,last_name,email,source,attribution").eq("organization_id", organizationId).in("id", leadIds) : Promise.resolve({ data: [], error: null }),
+    partnerIds.length ? supabase.from("partners").select("id,name").eq("organization_id", organizationId).in("id", partnerIds) : Promise.resolve({ data: [], error: null })
+  ]);
+  if (leadsResult.error || partnersResult.error) throw new Error("Could not load referral details");
+  const leads = new Map((leadsResult.data ?? []).map((lead) => [lead.id, lead]));
+  const partners = new Map((partnersResult.data ?? []).map((partner) => [partner.id, partner.name]));
+  return rows.map((row) => {
+    const lead = leads.get(row.lead_id);
+    const attribution = lead?.attribution && typeof lead.attribution === "object" && !Array.isArray(lead.attribution)
+      ? lead.attribution as Record<string, unknown>
+      : {};
+    return {
+      id: row.id,
+      partnerId: row.partner_id,
+      leadId: row.lead_id,
+      businessName: lead?.company_name || "Business referral",
+      contactName: [lead?.first_name, lead?.last_name].filter(Boolean).join(" ") || "",
+      email: lead?.email || "",
+      partnerName: partners.get(row.partner_id) || "Partner",
+      status: row.status,
+      source: lead?.source || "unknown",
+      campaign: typeof attribution.campaign === "string" ? attribution.campaign : "",
+      submittedAt: row.referred_at
+    };
+  });
+}
+
+export async function getOperatorReferrals(limit = 500) {
+  const session = await requireOperatorSession();
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.from("referrals")
+    .select("id,partner_id,lead_id,status,referred_at")
+    .eq("organization_id", session.organizationId)
+    .order("referred_at", { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 1000));
+  if (error) throw new Error("Could not load partner referrals");
+  return { items: await mapOperatorReferrals(data ?? [], session.organizationId) };
+}
+
+export async function getOperatorReferralDetail(id: string) {
+  const session = await requireOperatorSession();
+  const supabase = await createServerSupabaseClient();
+  const { data: row, error } = await supabase.from("referrals")
+    .select("id,partner_id,lead_id,status,referred_at")
+    .eq("organization_id", session.organizationId).eq("id", id).maybeSingle();
+  if (error) throw new Error("Could not load referral");
+  if (!row) return null;
+  const [item] = await mapOperatorReferrals([row], session.organizationId);
+  const { data: history, error: historyError } = await supabase.from("activity_logs")
+    .select("id,action,metadata,occurred_at")
+    .eq("organization_id", session.organizationId).eq("entity_type", "referral").eq("entity_id", id)
+    .in("action", ["partner_referral.submitted", "partner_referral.status_changed"])
+    .order("occurred_at", { ascending: true }).limit(100);
+  if (historyError) throw new Error("Could not load referral history");
+  return { item, history: history ?? [] };
+}
+
 export async function getPartnerLinks() {
   const { session, supabase, partnerId } = await getLinkedPartnerId();
   if (!partnerId) return { items: [] as { id: string; label: string; url: string; destinationUrl?: string; clicks?: number; createdAt?: string }[] };
@@ -167,6 +233,7 @@ const PARTNER_ACTIVITY_ACTIONS = [
   "partner_portal.access_claimed",
   "partner_profile.updated",
   "partner_referral.submitted",
+  "partner_referral.status_changed",
   "partner_tracking_link.created"
 ];
 
@@ -175,13 +242,19 @@ export async function getPartnerActivity() {
   if (!partnerId) return { items: [] as { id: string; action: string; entityType: string; occurredAt: string }[] };
   const { data, error } = await supabase
     .from("activity_logs")
-    .select("id,action,entity_type,occurred_at")
+    .select("id,action,entity_type,occurred_at,metadata")
     .eq("organization_id", session.organizationId)
     .in("action", PARTNER_ACTIVITY_ACTIONS)
     .order("occurred_at", { ascending: false })
     .limit(100);
   if (error) throw new Error("Could not load partner activity");
-  return { items: (data ?? []).map((row) => ({ id: row.id, action: row.action, entityType: row.entity_type, occurredAt: row.occurred_at })) };
+  return { items: (data ?? []).map((row) => {
+    const metadata = row.metadata && typeof row.metadata === "object" ? row.metadata as Record<string, unknown> : {};
+    const status = row.action === "partner_referral.status_changed" && typeof metadata.to_status === "string"
+      ? `referral · ${metadata.to_status.replaceAll("_", " ")}`
+      : row.entity_type;
+    return { id: row.id, action: row.action, entityType: status, occurredAt: row.occurred_at };
+  }) };
 }
 
 export async function getOperatorActivity() {
@@ -257,7 +330,7 @@ export async function getOperatorApplicationDetail(id: string) {
   const session = await requireOperatorSession();
   const supabase = await createServerSupabaseClient();
   const { data: application, error } = await supabase.from("partner_applications")
-    .select("id,partner_id,applicant_name,agency_name,email,applicant_type,status,source,received_at,updated_at")
+    .select("id,partner_id,applicant_name,agency_name,email,applicant_type,status,source,received_at,updated_at,answers")
     .eq("organization_id", session.organizationId).eq("id", id).maybeSingle();
   if (error) throw new Error("Could not load application");
   if (!application) return null;
@@ -350,26 +423,31 @@ export async function getOperatorPartnerDetail(id: string) {
 export async function getOperatorDashboard(): Promise<Dashboard> {
   const session = await requireOperatorSession();
   const supabase = await createServerSupabaseClient();
-  const [{ items: applications }, { items: activity }, applicationsCount, newApplicationsCount, openTasksCount, activePartnersCount, linkedAccountsCount] = await Promise.all([
+  const [{ items: applications }, { items: activity }, applicationsCount, newApplicationsCount, openTasksCount, activePartnersCount, linkedAccountsCount, referralCount, pendingReferralCount] = await Promise.all([
     getOperatorApplications(), getOperatorActivity(),
     supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId),
     supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).in("status", ["new", "needs_review"]),
     supabase.from("partner_follow_up_tasks").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "open"),
     supabase.from("partners").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "active").or("metadata->>fictional.is.null,metadata->>fictional.neq.true"),
-    supabase.from("partner_portal_accounts").select("user_id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "active")
+    supabase.from("partner_portal_accounts").select("user_id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "active"),
+    supabase.from("referrals").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId),
+    supabase.from("referrals").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "submitted")
   ]);
-  if ([applicationsCount, newApplicationsCount, openTasksCount, activePartnersCount, linkedAccountsCount].some((result) => result.error)) {
+  if ([applicationsCount, newApplicationsCount, openTasksCount, activePartnersCount, linkedAccountsCount, referralCount, pendingReferralCount].some((result) => result.error)) {
     throw new Error("Could not load operator metrics");
   }
   const newApplications = newApplicationsCount.count ?? 0;
   const openTasks = openTasksCount.count ?? 0;
   const activePartners = activePartnersCount.count ?? 0;
   const linkedAccounts = linkedAccountsCount.count ?? 0;
+  const referrals = referralCount.count ?? 0;
+  const pendingReferrals = pendingReferralCount.count ?? 0;
   const sources = new Map<string, number>();
   for (const item of applications) sources.set(item.source, (sources.get(item.source) || 0) + 1);
   const sourceBreakdown = [...sources].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count).slice(0, 5);
   const priorityItems: ListItem[] = [
     ...(newApplications ? [{ id: "applications", title: `${newApplications} applications to review`, detail: "Open the partner intake queue.", href: "/operator/applications", status: "Review needed" }] : []),
+    ...(pendingReferrals ? [{ id: "referrals", title: `${pendingReferrals} new referrals`, detail: "Review attributed partner introductions.", href: "/operator/referrals", status: "Review needed" }] : []),
     ...(openTasks ? [{ id: "tasks", title: `${openTasks} open follow-up tasks`, detail: "Review owners and due dates.", href: "/operator/tasks", status: "Open" }] : []),
     ...(activePartners > 0 && linkedAccounts === 0 ? [{ id: "activation", title: "Partner portal activation", detail: "Active partners have not yet claimed portal access.", href: "/operator/partners", status: "Ready" }] : [])
   ];
@@ -379,7 +457,8 @@ export async function getOperatorDashboard(): Promise<Dashboard> {
     metrics: [
       { label: "Applications", value: String(applicationsCount.count ?? 0), detail: "All partner applications" },
       { label: "Active partners", value: String(activePartners), detail: "Canonical partner records" },
-      { label: "Portal accounts", value: String(linkedAccounts), detail: `${openTasks} open follow-up tasks` }
+      { label: "Portal accounts", value: String(linkedAccounts), detail: `${openTasks} open follow-up tasks` },
+      { label: "Referrals", value: String(referrals), detail: `${pendingReferrals} awaiting review` }
     ],
     priorityItems,
     recentActivity: activity.slice(0, 5).map(activitySummary),
