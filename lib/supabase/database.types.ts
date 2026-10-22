@@ -2064,6 +2064,24 @@ export type Database = {
         Args: { p_task_id: string }
         Returns: boolean
       }
+      list_wix_contact_sync_exceptions: {
+        Args: { p_organization_id: string }
+        Returns: {
+          attempts: number
+          created_at: string
+          entity_id: string
+          entity_kind: string
+          id: string
+          last_error_code: string | null
+          next_attempt_at: string
+          status: string
+          updated_at: string
+        }[]
+      }
+      retry_wix_contact_sync_event: {
+        Args: { p_event_id: string; p_organization_id: string }
+        Returns: boolean
+      }
       create_partner_follow_up_task: {
         Args: {
           p_application_id?: string | null

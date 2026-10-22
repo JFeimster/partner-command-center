@@ -22,6 +22,7 @@ const operatorNav = [
   { label: "Referrals", href: "/operator/referrals", icon: Waypoints },
   { label: "Partners", href: "/operator/partners", icon: Users },
   { label: "Follow-up tasks", href: "/operator/tasks", icon: Activity },
+  { label: "Wix sync", href: "/operator/integrations/wix", icon: Settings2 },
   { label: "Activity history", href: "/operator/activity", icon: Activity },
 ];
 
