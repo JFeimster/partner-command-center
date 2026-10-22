@@ -1350,6 +1350,7 @@ export type Database = {
           name: string
           organization_id: string
           partner_code: string
+          partner_type: string
           status: string
           terms: Json
           updated_at: string
@@ -1365,6 +1366,7 @@ export type Database = {
           name: string
           organization_id: string
           partner_code: string
+          partner_type: string
           status?: string
           terms?: Json
           updated_at?: string
@@ -1380,6 +1382,7 @@ export type Database = {
           name?: string
           organization_id?: string
           partner_code?: string
+          partner_type?: string
           status?: string
           terms?: Json
           updated_at?: string
@@ -2074,6 +2077,14 @@ export type Database = {
       }
       triage_partner_application: {
         Args: { p_application_id: string; p_status: string }
+        Returns: string
+      }
+      update_partner_operational_fields: {
+        Args: {
+          p_partner_id: string
+          p_status: string
+          p_partner_type: string
+        }
         Returns: string
       }
       update_partner_portal_profile: {

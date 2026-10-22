@@ -150,3 +150,29 @@ export async function updatePartnerProfile(formData: FormData) {
   revalidatePath("/dashboard/activity");
   redirect("/dashboard/profile?saved=1");
 }
+
+const partnerClassificationSchema = z.object({
+  partner_id: z.uuid(),
+  status: z.enum(["pending", "active", "paused", "terminated"]),
+  partner_type: z.enum([
+    "funding_broker", "referral_partner", "affiliate_partner", "center_of_influence",
+    "professional_service_provider", "community_connector", "internal_operator", "unknown"
+  ])
+});
+
+export async function updatePartnerClassification(formData: FormData) {
+  const parsed = partnerClassificationSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) throw new Error("Select a valid partner status and partner type");
+  await requireOperatorSession();
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("update_partner_operational_fields", {
+    p_partner_id: parsed.data.partner_id,
+    p_status: parsed.data.status,
+    p_partner_type: parsed.data.partner_type
+  });
+  if (error) redirect(`/operator/partners/${parsed.data.partner_id}?error=save`);
+  revalidatePath("/operator/partners");
+  revalidatePath(`/operator/partners/${parsed.data.partner_id}`);
+  revalidatePath("/operator");
+  redirect(`/operator/partners/${parsed.data.partner_id}?saved=1`);
+}

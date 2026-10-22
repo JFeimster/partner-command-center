@@ -306,7 +306,7 @@ export async function getOperatorPartners() {
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("partners")
-    .select("id,name,contact_email,status,created_at")
+    .select("id,name,contact_email,status,partner_type,created_at")
     .eq("organization_id", session.organizationId)
     // A QA partner may remain active for tests but must not appear as a real partner.
     .or("metadata->>fictional.is.null,metadata->>fictional.neq.true")
@@ -319,6 +319,7 @@ export async function getOperatorPartners() {
     organizationName: session.organizationName,
     email: row.contact_email || undefined,
     status: row.status,
+    partnerType: row.partner_type,
     joinedAt: row.created_at
   })) };
 }
@@ -327,7 +328,7 @@ export async function getOperatorPartnerDetail(id: string) {
   const session = await requireOperatorSession();
   const supabase = await createServerSupabaseClient();
   const { data: partner, error } = await supabase.from("partners")
-    .select("id,name,partner_code,contact_email,contact_phone,status,created_at")
+    .select("id,name,partner_code,contact_email,contact_phone,status,partner_type,created_at")
     .eq("organization_id", session.organizationId).eq("id", id).maybeSingle();
   if (error) throw new Error("Could not load partner");
   if (!partner) return null;
