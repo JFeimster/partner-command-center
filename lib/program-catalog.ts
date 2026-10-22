@@ -58,7 +58,10 @@ async function queryPrograms(): Promise<NotionPage[]> {
     const response = await fetch(`https://api.notion.com/v1/data_sources/${source}/query`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Notion-Version": "2026-03-11", "Content-Type": "application/json" },
-      body: JSON.stringify({ page_size: 100, filter: { property: "Affiliate Status", select: { equals: "Active" } }, ...(cursor ? { start_cursor: cursor } : {}) }),
+      // Keep the Notion query broad: registry property types have changed across
+      // imported databases. The canonical status allowlist is enforced by
+      // mapProgram below, where inactive records are excluded consistently.
+      body: JSON.stringify({ page_size: 100, ...(cursor ? { start_cursor: cursor } : {}) }),
       next: { revalidate: 900 }
     });
     if (!response.ok) throw new Error(`Program registry unavailable (${response.status})`);
