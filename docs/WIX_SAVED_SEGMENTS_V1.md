@@ -16,7 +16,7 @@
 | Partner Referrals (90d) | `custom.partner-referrals-90d-jnpjdyzjdwjxn` | NUMBER | Verified `referrals` received within 90 days, excluding rejected / fictional rows |
 | Last Partner Referral Date | `custom.last-partner-referral-date-xxitadje` | DATE | Last accepted/submitted/qualified/converted referral date |
 
-**Deployed Supabase:** source-backed partner-created, portal-state and referral-state outbox events; an authenticated-worker-only metrics RPC; exclusion of `activation_test`, `synthetic` and `qa` application sources. Existing unmatched Tally intake is in `needs_mapping`; a synthetic activation event is `ignored`. Neither was converted into an invented Wix contact.
+**Deployed Supabase:** source-backed partner-created, portal-state and referral-state outbox events; a service-role-only metrics RPC; an idempotent once-per-UTC-day referral-window refresher for previously synchronized real partners; exclusion of `activation_test`, `synthetic` and `qa` application sources. Existing unmatched Tally intake is in `needs_mapping`; a synthetic activation event is `ignored`. Neither was converted into an invented Wix contact.
 
 **Deployed Wix internal automations** (ACTIVE; no outbound communications):
 
@@ -30,7 +30,7 @@ These automations are validated task-only triggers. They do **not** backfill tas
 
 **Current audience evidence:** `docs/WIX_LABEL_SEGMENT_PREVIEW_20261022.json` records all 17 legacy-label cohort definitions and unique-contact counts from 4,013 Wix Contacts, keyed to the actual remaining label keys. Three largest: L16 Wix Chat 58, L01 Historical Funding 57, L08 Affiliate Network 20. **That manifest is not native saved Wix segments.** The native Wix Manage Segments dashboard still requires its own save/create interaction; no supported API or installed-app tool was found for native segment creation.
 
-**Unfinished activation gates:** server-side Wix/Vercel credential validation, production E2E real-event delivery, source identity reconciliation, native Wix saved segments, and daily refresh of a rolling 90-day count. A 90-day number currently refreshes on partner/referral/portal source events; **without a periodic refresh it can become stale as old referrals age out**. Do not use it to automatically classify a partner inactive until periodic freshness is operational.
+**Unfinished activation gates:** server-side Wix/Vercel credential validation, production E2E real-event delivery, source identity reconciliation, native Wix saved segments, and end-to-end validation of the new daily referral refresh. The refresh RPC and hourly worker call are implemented, but **they run only when the Vercel worker has valid production credentials and successfully executes**. A 90-day count must not be used for automated inactivity decisions until a real scheduled refresh is observed.
 
 
 ## 1. Executive recommendation
