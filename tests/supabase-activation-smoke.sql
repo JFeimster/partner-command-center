@@ -11,10 +11,13 @@ select set_config('pcc.qa.org', (
 ), true);
 select set_config('pcc.qa.a', gen_random_uuid()::text, true);
 select set_config('pcc.qa.b', gen_random_uuid()::text, true);
+select set_config('pcc.qa.c', gen_random_uuid()::text, true);
 select set_config('pcc.qa.operator', gen_random_uuid()::text, true);
 select set_config('pcc.qa.partner_a', gen_random_uuid()::text, true);
 select set_config('pcc.qa.partner_b', gen_random_uuid()::text, true);
 select set_config('pcc.qa.application', gen_random_uuid()::text, true);
+select set_config('pcc.qa.approval_application', gen_random_uuid()::text, true);
+select set_config('pcc.qa.decline_application', gen_random_uuid()::text, true);
 select set_config('pcc.qa.spoof_application', gen_random_uuid()::text, true);
 select set_config('pcc.qa.task', gen_random_uuid()::text, true);
 select set_config('pcc.qa.request', gen_random_uuid()::text, true);
@@ -23,7 +26,7 @@ insert into auth.users (id, aud, role, email, email_confirmed_at)
 select user_id::uuid, 'authenticated', 'authenticated',
        'pcc-qa-' || replace(user_id, '-', '') || '@example.invalid', now()
 from (values (current_setting('pcc.qa.a')), (current_setting('pcc.qa.b')),
-             (current_setting('pcc.qa.operator'))) users(user_id);
+             (current_setting('pcc.qa.c')), (current_setting('pcc.qa.operator'))) users(user_id);
 
 insert into public.partners (id, organization_id, partner_code, name, status, contact_email, metadata)
 select partner_id::uuid, current_setting('pcc.qa.org')::uuid,
@@ -50,6 +53,19 @@ values (
   current_setting('pcc.qa.partner_b')::uuid, 'pcc_synthetic_smoke',
   'pcc-qa-' || replace(current_setting('pcc.qa.a'), '-', '') || '@example.invalid',
   'PCC synthetic mismatched application', 'affiliate', 'new', '{}'::jsonb
+);
+insert into public.partner_applications
+  (id, organization_id, source, email, applicant_name, agency_name, applicant_type, status, answers)
+values (
+  current_setting('pcc.qa.approval_application')::uuid, current_setting('pcc.qa.org')::uuid,
+  'pcc_synthetic_smoke', 'pcc-qa-' || replace(current_setting('pcc.qa.c'), '-', '') || '@example.invalid',
+  'PCC synthetic approval', 'PCC synthetic approval agency', 'affiliate', 'onboarding', '{}'::jsonb
+);
+insert into public.partner_applications
+  (id, organization_id, source, applicant_name, applicant_type, status, answers)
+values (
+  current_setting('pcc.qa.decline_application')::uuid, current_setting('pcc.qa.org')::uuid,
+  'pcc_synthetic_smoke', 'PCC synthetic decline', 'affiliate', 'needs_review', '{}'::jsonb
 );
 insert into public.partner_follow_up_tasks
   (id, organization_id, application_id, partner_id, title, status)
@@ -125,6 +141,47 @@ select set_config('pcc.qa.operator_triage', public.triage_partner_application(
 select set_config('pcc.qa.operator_task', public.complete_partner_follow_up(
   current_setting('pcc.qa.task')::uuid
 )::text, true);
+select set_config('pcc.qa.approved_partner', public.approve_partner_application(
+  current_setting('pcc.qa.approval_application')::uuid
+)::text, true);
+select public.update_partner_operational_fields(
+  current_setting('pcc.qa.approved_partner')::uuid, 'active', 'affiliate_partner'
+);
+select set_config('pcc.qa.operator_decline', public.decline_partner_application(
+  current_setting('pcc.qa.decline_application')::uuid, 'Synthetic qualification test'
+), true);
+select set_config('pcc.qa.c_task_count', (
+  select count(*)::text from public.partner_follow_up_tasks
+  where application_id = current_setting('pcc.qa.approval_application')::uuid and status = 'open'
+), true);
+select set_config('pcc.qa.decline_status', (
+  select status from public.partner_applications where id = current_setting('pcc.qa.decline_application')::uuid
+), true);
+select set_config('pcc.qa.operator_referral_status', public.update_partner_referral_status(
+  current_setting('pcc.qa.a_referral')::uuid, 'accepted'
+), true);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', current_setting('pcc.qa.b'), true);
+select set_config('pcc.qa.b_referral_status_event_count', (
+  select count(*)::text from public.activity_logs
+  where action = 'partner_referral.status_changed'
+    and entity_id = current_setting('pcc.qa.a_referral')::uuid
+), true);
+select set_config('request.jwt.claim.sub', current_setting('pcc.qa.a'), true);
+select set_config('pcc.qa.a_referral_status_event_count', (
+  select count(*)::text from public.activity_logs
+  where action = 'partner_referral.status_changed'
+    and entity_id = current_setting('pcc.qa.a_referral')::uuid
+), true);
+select set_config('pcc.qa.a_referral_status', (
+  select status from public.referrals where id = current_setting('pcc.qa.a_referral')::uuid
+), true);
+select set_config('request.jwt.claim.sub', current_setting('pcc.qa.c'), true);
+select set_config('pcc.qa.c_claim', public.claim_partner_portal_access()::text, true);
+select set_config('pcc.qa.c_approval_status', (
+  select status from public.partner_applications where id = current_setting('pcc.qa.approval_application')::uuid
+), true);
 
 reset role;
 select jsonb_build_object(
@@ -149,6 +206,16 @@ select jsonb_build_object(
   'operator_can_operate', current_setting('pcc.qa.operator_access') = 'true',
   'operator_can_read_application', current_setting('pcc.qa.operator_app_count') = '1',
   'operator_can_triage', current_setting('pcc.qa.operator_triage') = 'needs_review',
-  'operator_can_complete_follow_up', current_setting('pcc.qa.operator_task') = 'true'
+  'operator_can_complete_follow_up', current_setting('pcc.qa.operator_task') = 'true',
+  'operator_can_advance_referral', current_setting('pcc.qa.operator_referral_status') = 'accepted',
+  'partner_sees_own_referral_status_event', current_setting('pcc.qa.a_referral_status_event_count') = '1',
+  'other_partner_cannot_see_referral_status_event', current_setting('pcc.qa.b_referral_status_event_count') = '0',
+  'referral_status_persisted', current_setting('pcc.qa.a_referral_status') = 'accepted',
+  'operator_can_approve_qualified_application', current_setting('pcc.qa.approved_partner') is not null,
+  'approved_account_claims_linked_partner', current_setting('pcc.qa.c_claim') = current_setting('pcc.qa.approved_partner'),
+  'approved_application_status_persisted', current_setting('pcc.qa.c_approval_status') = 'approved',
+  'approval_creates_manual_onboarding_task', current_setting('pcc.qa.c_task_count') = '1',
+  'operator_can_decline_with_reason', current_setting('pcc.qa.operator_decline') = 'declined',
+  'decline_status_persisted', current_setting('pcc.qa.decline_status') = 'declined'
 ) as checks;
 rollback;

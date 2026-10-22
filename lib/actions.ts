@@ -100,6 +100,61 @@ export async function reviewPartnerApplication(applicationId: string, status: st
   revalidatePath("/operator");
 }
 
+export async function approvePartnerApplication(applicationId: string) {
+  const parsedId = applicationIdSchema.safeParse(applicationId);
+  if (!parsedId.success) throw new Error("Invalid application approval request");
+  await requireOperatorSession();
+  const supabase = await createServerSupabaseClient();
+  const { data: partnerId, error } = await supabase.rpc("approve_partner_application", {
+    p_application_id: parsedId.data
+  });
+  if (error || !partnerId) redirect(`/operator/applications/${parsedId.data}?error=approve`);
+  revalidatePath("/operator/applications");
+  revalidatePath(`/operator/applications/${parsedId.data}`);
+  revalidatePath(`/operator/partners/${partnerId}`);
+  revalidatePath("/operator/partners");
+  revalidatePath("/operator/tasks");
+  revalidatePath("/operator");
+  redirect(`/operator/applications/${parsedId.data}?approved=1`);
+}
+
+export async function declinePartnerApplication(applicationId: string, formData: FormData) {
+  const parsedId = applicationIdSchema.safeParse(applicationId);
+  const parsed = z.object({ reason: z.string().trim().min(3).max(500) }).safeParse(Object.fromEntries(formData.entries()));
+  if (!parsedId.success || !parsed.success) redirect(`/operator/applications/${applicationId}?error=reason`);
+  await requireOperatorSession();
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("decline_partner_application", {
+    p_application_id: parsedId.data,
+    p_reason: parsed.data.reason
+  });
+  if (error) redirect(`/operator/applications/${parsedId.data}?error=decline`);
+  revalidatePath("/operator/applications");
+  revalidatePath(`/operator/applications/${parsedId.data}`);
+  revalidatePath("/operator");
+  redirect(`/operator/applications/${parsedId.data}?declined=1`);
+}
+
+export async function updatePartnerReferralStatus(referralId: string, status: string) {
+  const parsedId = applicationIdSchema.safeParse(referralId);
+  if (!parsedId.success || !["accepted", "qualified", "converted", "rejected"].includes(status)) {
+    throw new Error("Invalid referral status update");
+  }
+  await requireOperatorSession();
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("update_partner_referral_status", {
+    p_referral_id: parsedId.data,
+    p_status: status
+  });
+  if (error) redirect(`/operator/referrals/${parsedId.data}?error=transition`);
+  revalidatePath("/operator/referrals");
+  revalidatePath(`/operator/referrals/${parsedId.data}`);
+  revalidatePath("/operator");
+  revalidatePath("/dashboard/referrals");
+  revalidatePath("/dashboard/activity");
+  redirect(`/operator/referrals/${parsedId.data}?updated=1`);
+}
+
 export async function completePartnerTask(taskId: string) {
   const parsedId = applicationIdSchema.safeParse(taskId);
   if (!parsedId.success) throw new Error("Invalid task request");

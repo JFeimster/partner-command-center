@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Activity, ArrowUpRight, CircleCheck, ClipboardList, Home, LayoutGrid, Link2, Menu, PanelLeftClose, PanelLeftOpen, Settings2, UserRound, Users, X } from "lucide-react";
+import { Activity, ArrowUpRight, CircleCheck, ClipboardList, Home, LayoutGrid, Link2, Menu, PanelLeftClose, PanelLeftOpen, Settings2, UserRound, Users, Waypoints, X } from "lucide-react";
 import { Brand } from "./brand";
 
 const partnerNav = [
@@ -19,6 +19,7 @@ const partnerNav = [
 const operatorNav = [
   { label: "Overview", href: "/operator", icon: Home },
   { label: "Applications", href: "/operator/applications", icon: ClipboardList },
+  { label: "Referrals", href: "/operator/referrals", icon: Waypoints },
   { label: "Partners", href: "/operator/partners", icon: Users },
   { label: "Follow-up tasks", href: "/operator/tasks", icon: Activity },
   { label: "Activity history", href: "/operator/activity", icon: Activity },
