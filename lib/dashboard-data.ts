@@ -387,7 +387,7 @@ export async function getOperatorPartners(status?: string) {
   const supabase = await createServerSupabaseClient();
   let query = supabase
     .from("partners")
-    .select("id,name,contact_email,status,partner_type,created_at")
+    .select("id,name,contact_email,status,partner_type,created_at,updated_at")
     .eq("organization_id", session.organizationId)
     // A QA partner may remain active for tests but must not appear as a real partner.
     .or("metadata->>fictional.is.null,metadata->>fictional.neq.true")
@@ -395,6 +395,32 @@ export async function getOperatorPartners(status?: string) {
   if (status && PARTNER_STATUSES.has(status)) query = query.eq("status", status);
   const { data, error } = await query.limit(100);
   if (error) throw new Error("Could not load partners");
+  const partnerIds = (data ?? []).map((row) => row.id);
+  const lastActivity = new Map(partnerIds.map((id, index) => [id, data?.[index]?.updated_at || null]));
+  if (partnerIds.length) {
+    const [accounts, links, referrals, tasks] = await Promise.all([
+      supabase.from("partner_portal_accounts").select("partner_id,updated_at").eq("organization_id", session.organizationId).in("partner_id", partnerIds),
+      supabase.from("tracking_links").select("partner_id,updated_at").eq("organization_id", session.organizationId).in("partner_id", partnerIds),
+      supabase.from("referrals").select("partner_id,updated_at").eq("organization_id", session.organizationId).in("partner_id", partnerIds),
+      supabase.from("partner_follow_up_tasks").select("partner_id,updated_at").eq("organization_id", session.organizationId).in("partner_id", partnerIds)
+    ]);
+    if (accounts.error || links.error || referrals.error || tasks.error) throw new Error("Could not load partner activity recency");
+    const recordActivity = (events: Array<{ partner_id: string | null; updated_at: string | null }>) => {
+      for (const event of events) {
+        if (!event.partner_id || !event.updated_at) continue;
+        const current = lastActivity.get(event.partner_id);
+        const eventTime = Date.parse(event.updated_at);
+        const currentTime = current ? Date.parse(current) : Number.NaN;
+        if (Number.isFinite(eventTime) && (!Number.isFinite(currentTime) || eventTime > currentTime)) {
+          lastActivity.set(event.partner_id, event.updated_at);
+        }
+      }
+    };
+    recordActivity(accounts.data ?? []);
+    recordActivity(links.data ?? []);
+    recordActivity(referrals.data ?? []);
+    recordActivity(tasks.data ?? []);
+  }
   return { items: (data ?? []).map((row) => ({
     id: row.id,
     name: row.name,
@@ -402,7 +428,8 @@ export async function getOperatorPartners(status?: string) {
     email: row.contact_email || undefined,
     status: row.status,
     partnerType: row.partner_type,
-    joinedAt: row.created_at
+    joinedAt: row.created_at,
+    lastActivityAt: lastActivity.get(row.id) || undefined
   })) };
 }
 
