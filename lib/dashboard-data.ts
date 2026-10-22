@@ -308,6 +308,8 @@ export async function getOperatorPartners() {
     .from("partners")
     .select("id,name,contact_email,status,created_at")
     .eq("organization_id", session.organizationId)
+    // A QA partner may remain active for tests but must not appear as a real partner.
+    .or("metadata->>fictional.is.null,metadata->>fictional.neq.true")
     .order("created_at", { ascending: false })
     .limit(100);
   if (error) throw new Error("Could not load partners");
@@ -352,7 +354,7 @@ export async function getOperatorDashboard(): Promise<Dashboard> {
     supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId),
     supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).in("status", ["new", "needs_review"]),
     supabase.from("partner_follow_up_tasks").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "open"),
-    supabase.from("partners").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "active"),
+    supabase.from("partners").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "active").or("metadata->>fictional.is.null,metadata->>fictional.neq.true"),
     supabase.from("partner_portal_accounts").select("user_id", { count: "exact", head: true }).eq("organization_id", session.organizationId).eq("status", "active")
   ]);
   if ([applicationsCount, newApplicationsCount, openTasksCount, activePartnersCount, linkedAccountsCount].some((result) => result.error)) {
