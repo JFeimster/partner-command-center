@@ -168,6 +168,37 @@ export async function completePartnerTask(taskId: string) {
   revalidatePath("/operator");
 }
 
+const partnerTaskSchema = z.object({
+  task_id: z.uuid(),
+  title: z.string().trim().min(3).max(160),
+  notes: z.string().trim().max(2000),
+  due_date: z.union([z.literal(""), z.iso.date()]),
+  application_id: z.union([z.literal(""), z.uuid()]),
+  partner_id: z.union([z.literal(""), z.uuid()])
+});
+
+export async function createPartnerFollowUpTask(formData: FormData) {
+  const parsed = partnerTaskSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) redirect("/operator/tasks?error=check-details");
+  const session = await requireOperatorSession();
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("create_partner_follow_up_task", {
+    p_organization_id: session.organizationId,
+    p_task_id: parsed.data.task_id,
+    p_title: parsed.data.title,
+    p_notes: parsed.data.notes || null,
+    p_due_at: parsed.data.due_date ? new Date(`${parsed.data.due_date}T12:00:00.000Z`).toISOString() : null,
+    p_application_id: parsed.data.application_id || null,
+    p_partner_id: parsed.data.partner_id || null
+  });
+  if (error) redirect("/operator/tasks?error=create");
+  revalidatePath("/operator/tasks");
+  revalidatePath("/operator/applications");
+  revalidatePath("/operator/partners");
+  revalidatePath("/operator");
+  redirect("/operator/tasks?created=1");
+}
+
 export async function claimPartnerPortalAccess() {
   const supabase = await createServerSupabaseClient();
   const { data: auth, error: authError } = await supabase.auth.getUser();

@@ -2064,6 +2064,18 @@ export type Database = {
         Args: { p_task_id: string }
         Returns: boolean
       }
+      create_partner_follow_up_task: {
+        Args: {
+          p_application_id?: string | null
+          p_due_at?: string | null
+          p_notes?: string | null
+          p_organization_id: string
+          p_partner_id?: string | null
+          p_task_id: string
+          p_title: string
+        }
+        Returns: string
+      }
       create_partner_tracking_link: {
         Args: { p_campaign: string; p_destination_url: string; p_slug: string }
         Returns: string
