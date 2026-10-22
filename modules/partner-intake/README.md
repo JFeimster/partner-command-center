@@ -47,19 +47,23 @@ The first live workflow is **partner signup and activation**.
 
 Lead submission depends on partner identity and activation state. It must wait until `partner_id` exists.
 
-## Required live sequence
+## Current live intake sequence
 
 ```text
-Tally partner signup
-  -> API/router
-  -> Notion Partner record
-  -> partner_id
-  -> onboarding path
-  -> assigned resources
-  -> dashboard access
+Tally partner signup (mOe658)
+  -> Vercel /api/router (verified webhook signature)
+     -> Supabase partner-crm-ingest
+        -> atomic partner_applications + partner_intake_events
+     -> existing Notion Partner CRM upsert + deterministic Notion intake event
+  -> operator review and onboarding
+  -> activated partner identity and portal access
   -> tracking links
-  -> lead submission
+  -> future attributed lead submission
 ```
+
+The Supabase partner application is an intake object, not an automatically approved or activated partner. The separate Notion workflow is retained while canonical downstream projection is reconciled. Do not treat legacy synthetic partner records as real onboarded accounts. Funding-applicant forms must not enter this partner join relay.
+
+**Activation handoff, October 22, 2026:** the user attested that the Tally form works and waived repeated signed Tally replay in this thread. Production configuration was verified via secret-free health endpoint and 401 authentication rejection tests. This is operator-accepted readiness, **not** evidence of a freshly observed signed end-to-end Tally delivery. Future live submission failures should be traced by the exact Tally submission ID before any recovery replay.
 
 ## Module files
 
