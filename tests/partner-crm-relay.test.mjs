@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { relayPartnerApplication } = require('../lib/partner-crm-relay');
+const { relayPartnerApplication, configurationStatus } = require('../lib/partner-crm-relay');
 const { isCanonicalPartnerJoin } = require('../api/router')._private;
 const url = 'https://loaowmappekunngjknnx.supabase.co/functions/v1/partner-crm-ingest';
 const input = { submission_id: 'tally-123', email: 'synthetic@example.invalid', name: 'Synthetic Partner', agency_name: 'Synthetic Agency', form_id: 'mOe658', answers: { consent: 'yes' } };
@@ -35,4 +35,21 @@ test('CRM relay fails closed for partial config and upstream failures', async ()
   await assert.rejects(relayPartnerApplication(input, { url: 'https://example.com/ingest', token: 'test-only-token' }), /not configured/);
   await assert.rejects(relayPartnerApplication({ ...input, submission_id: '' }, { url, token: 'test-only-token' }), /stable submission/);
   await assert.rejects(relayPartnerApplication(input, { url, token: 'test-only-token', fetch: async () => ({ ok: false, status: 503 }) }), /503/);
+});
+
+
+test('partner CRM health exposes only secret-free configuration state', () => {
+  assert.deepEqual(configurationStatus({ url, token: 'test-only-token' }), {
+    configured: true,
+    endpoint_matches_canonical: true
+  });
+  assert.deepEqual(configurationStatus({ url, token: '' }), {
+    configured: false,
+    endpoint_matches_canonical: true
+  });
+  assert.deepEqual(configurationStatus({ url: 'https://example.com/ingest', token: 'test-only-token' }), {
+    configured: false,
+    endpoint_matches_canonical: false
+  });
+  assert.equal(JSON.stringify(configurationStatus({ url, token: 'test-only-token' })).includes('test-only-token'), false);
 });
