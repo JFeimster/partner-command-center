@@ -32,8 +32,8 @@ const activitySummary = (item: { id: string; action: string; entityType: string;
   at: item.occurredAt
 });
 
-async function getLinkedPartnerId() {
-  const session = await requirePartnerSession();
+async function getLinkedPartnerId(returnTo = "/dashboard") {
+  const session = await requirePartnerSession(returnTo);
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("partner_portal_accounts")
@@ -143,7 +143,7 @@ export async function getPartnerReferrals() {
 }
 
 export async function getPartnerReferralDetail(id: string) {
-  const { session, supabase, partnerId } = await getLinkedPartnerId();
+  const { session, supabase, partnerId } = await getLinkedPartnerId(`/dashboard/referrals/${encodeURIComponent(id)}`);
   if (!partnerId) return null;
   const { data: row, error } = await supabase.from("referrals")
     .select("id,partner_id,lead_id,status,referred_at")

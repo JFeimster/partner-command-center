@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { nextReferralStatuses, partnerReferralGuidance, toReferralCsv } = require("../lib/referral-operations.ts");
+const { nextReferralStatuses, partnerReferralGuidance, referralReviewAgeDays, toReferralCsv } = require("../lib/referral-operations.ts");
 
 test("referral status controls only expose forward operator actions", () => {
   assert.deepEqual(nextReferralStatuses("submitted"), ["accepted", "rejected"]);
@@ -36,4 +36,12 @@ test("partner referral guidance explains recorded workflow status without implyi
   assert.equal(partnerReferralGuidance("rejected").label, "Closed");
   assert.match(partnerReferralGuidance("converted").nextAction, /does not confirm funding/);
   assert.equal(partnerReferralGuidance("unexpected").label, "Status updated");
+});
+
+test("referral review age uses elapsed days and fails safely for invalid or future timestamps", () => {
+  const now = Date.parse("2026-10-23T12:00:00.000Z");
+  assert.equal(referralReviewAgeDays("2026-10-23T00:00:00.000Z", now), 0);
+  assert.equal(referralReviewAgeDays("2026-10-21T11:59:59.000Z", now), 2);
+  assert.equal(referralReviewAgeDays("not-a-date", now), null);
+  assert.equal(referralReviewAgeDays("2026-10-24T00:00:00.000Z", now), null);
 });
