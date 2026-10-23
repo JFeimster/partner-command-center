@@ -18,7 +18,7 @@ export const partnerResources: PartnerResource[] = [
     category: "Readiness",
     description: "Organize business basics and common documents before a funding conversation.",
     href: "/tools/funding-readiness-checklist.html",
-    audience: ["Funding brokers", "Referral partners", "Centers of influence"],
+    audience: ["Funding brokers", "Referral partners", "Centers of influence", "Professional service providers"],
     keywords: ["documents", "intake", "checklist", "readiness"],
     action: "Open checklist"
   },
@@ -28,7 +28,7 @@ export const partnerResources: PartnerResource[] = [
     category: "Referrals",
     description: "Start a permission-based referral and follow its status from your partner workspace.",
     href: "/dashboard/referrals",
-    audience: ["Funding brokers", "Referral partners", "Centers of influence"],
+    audience: ["Funding brokers", "Referral partners", "Centers of influence", "Professional service providers"],
     keywords: ["lead", "client", "submit", "status"],
     action: "Open referrals"
   },

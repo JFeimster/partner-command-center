@@ -109,6 +109,15 @@ export async function getPartnerProfile() {
   };
 }
 
+export async function getPartnerResourcePartnerType() {
+  const { session, supabase, partnerId } = await getLinkedPartnerId();
+  if (!partnerId) return null;
+  const { data, error } = await supabase.from("partners").select("partner_type")
+    .eq("organization_id", session.organizationId).eq("id", partnerId).maybeSingle();
+  if (error) throw new Error("Could not load partner resource recommendations");
+  return data?.partner_type ?? null;
+}
+
 export async function getPartnerReferrals() {
   const { session, supabase, partnerId } = await getLinkedPartnerId();
   if (!partnerId) return { items: [] as { id: string; businessName: string; contactName?: string; status: string; submittedAt: string; nextAction?: string }[] };

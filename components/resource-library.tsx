@@ -6,12 +6,12 @@ import { ArrowUpRight, Bookmark, Search, SlidersHorizontal } from "lucide-react"
 import { partnerResources } from "@/lib/resource-catalog";
 import { setPartnerResourceFavorite } from "@/lib/actions";
 
-const audiences = ["All partner types", "Funding brokers", "Referral partners", "Affiliate partners", "Centers of influence", "Community connectors", "Operators"];
+const audiences = ["All partner types", "Funding brokers", "Referral partners", "Affiliate partners", "Centers of influence", "Professional service providers", "Community connectors", "Operators"];
 
-export function ResourceLibrary({ allowSave = false, initialSavedResourceIds = [] }: { allowSave?: boolean; initialSavedResourceIds?: string[] }) {
+export function ResourceLibrary({ allowSave = false, initialSavedResourceIds = [], initialAudience }: { allowSave?: boolean; initialSavedResourceIds?: string[]; initialAudience?: string }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All resources");
-  const [audience, setAudience] = useState("All partner types");
+  const [audience, setAudience] = useState(initialAudience || "All partner types");
   const [savedResourceIds, setSavedResourceIds] = useState(() => new Set(initialSavedResourceIds));
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState(false);
