@@ -2,6 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { safeNextPath } from "@/lib/safe-next";
 
 export type PortalSession = {
   userId: string;
@@ -11,11 +12,13 @@ export type PortalSession = {
   role: string;
 };
 
-export async function requirePartnerSession(): Promise<PortalSession> {
-  if (!isSupabaseConfigured()) redirect("/auth/login?reason=configuration");
+export async function requirePartnerSession(returnTo = "/dashboard"): Promise<PortalSession> {
+  const next = safeNextPath(returnTo);
+  const nextParam = `&next=${encodeURIComponent(next)}`;
+  if (!isSupabaseConfigured()) redirect(`/auth/login?reason=configuration${nextParam}`);
   const supabase = await createServerSupabaseClient();
   const { data: auth, error: authError } = await supabase.auth.getUser();
-  if (authError || !auth.user) redirect("/auth/login");
+  if (authError || !auth.user) redirect(`/auth/login?next=${encodeURIComponent(next)}`);
 
   const { data: memberships, error: membershipError } = await supabase
     .from("memberships")
