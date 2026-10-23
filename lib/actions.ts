@@ -6,6 +6,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireOperatorSession, requirePartnerSession } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { isPartnerResourceId, normalizePartnerResourceFavorites } from "@/lib/partner-resource-favorites";
+import { partnerResources } from "@/lib/resource-catalog";
+
+const partnerResourceIds = new Set(partnerResources.map((resource) => resource.id));
 
 const referralSchema = z.object({
   request_id: z.uuid(),
@@ -206,6 +210,25 @@ export async function claimPartnerPortalAccess() {
   const { error } = await supabase.rpc("claim_partner_portal_access");
   if (error) redirect("/auth/no-access?claim=unavailable");
   redirect("/dashboard/onboarding");
+}
+
+export async function setPartnerResourceFavorite(resourceId: string, saved: boolean) {
+  if (!isPartnerResourceId(resourceId, partnerResourceIds) || typeof saved !== "boolean") {
+    throw new Error("Invalid resource favorite request");
+  }
+  await requirePartnerSession();
+  const supabase = await createServerSupabaseClient();
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError || !auth.user) throw new Error("Sign in to save partner resources");
+  const metadata = auth.user.user_metadata ?? {};
+  const current = normalizePartnerResourceFavorites(metadata.partner_resource_favorites, partnerResourceIds);
+  const next = saved
+    ? normalizePartnerResourceFavorites([...current, resourceId], partnerResourceIds)
+    : current.filter((id) => id !== resourceId);
+  const { error } = await supabase.auth.updateUser({ data: { ...metadata, partner_resource_favorites: next } });
+  if (error) throw new Error("Your saved resources could not be updated");
+  revalidatePath("/dashboard/resources");
+  return { savedResourceIds: next };
 }
 
 const profileSchema = z.object({

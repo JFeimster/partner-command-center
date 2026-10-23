@@ -19,10 +19,14 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const [{ items }, { items: applications }, { items: partners }] = await Promise.all([
     getOperatorTasks(status), getOperatorApplications(), getOperatorPartners()
   ]);
-  const rows = items.map((item) => ({ id: item.id, title: item.title, partnerName: item.partnerName, status: item.status, dueAt: item.dueAt?.slice(0, 10), detail: item.detail, actions: item.status === "open" ? [{ label: "Mark complete", action: completePartnerTask.bind(null, item.id) }] : [] }));
+  const rows = items.map((item) => ({ id: item.id, title: item.title, partnerName: item.partnerName, status: item.status, urgency: item.urgency, dueAt: item.dueAt?.slice(0, 10), detail: item.detail, actions: item.status === "open" ? [{ label: "Mark complete", action: completePartnerTask.bind(null, item.id) }] : [] }));
+  const overdueCount = items.filter((item) => item.urgency === "overdue").length;
+  const dueTodayCount = items.filter((item) => item.urgency === "due today").length;
+  const openCount = items.filter((item) => item.status === "open").length;
   return <WorkspaceShell mode="operator"><div className="workspace-title-row"><div><span className="workspace-kicker">FOLLOW-UP</span><h1>Task queue</h1><p>Assign yourself a next action, link it to a partner record, then track it through completion.</p></div></div>
     {created && <p className="form-notice" role="status">Follow-up task created and assigned to you.</p>}
     {error && <p className="form-notice form-notice--error" role="alert">Task could not be created. Check the title, linked record, and field lengths.</p>}
+    <section className="metric-strip metric-strip--three" aria-label="Task urgency summary"><div className="metric-strip__item"><span className="metric-strip__label">Overdue</span><strong className="metric-strip__value">{overdueCount}</strong><span className="metric-strip__detail">Open tasks past due</span></div><div className="metric-strip__item"><span className="metric-strip__label">Due today</span><strong className="metric-strip__value">{dueTodayCount}</strong><span className="metric-strip__detail">Tasks needing attention today</span></div><div className="metric-strip__item"><span className="metric-strip__label">Open queue</span><strong className="metric-strip__value">{openCount}</strong><span className="metric-strip__detail">Open tasks in the loaded queue</span></div></section>
     <section className="workspace-section task-create" aria-labelledby="task-create-title"><div><span className="workspace-kicker">NEW ACTION</span><h2 id="task-create-title">Create a follow-up task</h2><p>Tasks stay in the partner operations ledger. No email or external message is sent.</p></div>
       <form action={createPartnerFollowUpTask} className="portal-form"><input type="hidden" name="task_id" value={randomUUID()} />
         <label>Task title<input className="portal-field" name="title" minLength={3} maxLength={160} required placeholder="Example: Confirm portal account claim" /></label>
@@ -33,6 +37,6 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         <button type="submit" className="workspace-action">Create task</button>
       </form>
     </section>
-    <FilterTable columns={[{ key: "title", label: "Task" }, { key: "partnerName", label: "Partner" }, { key: "status", label: "Status", kind: "status" }, { key: "dueAt", label: "Due" }, { key: "detail", label: "Detail" }]} rows={rows} searchLabel="Search tasks" emptyTitle="No follow-up tasks" emptyBody="Create an operator action above or tasks will appear when partner workflows need follow-up." initialStatus={status || "all"} />
+    <FilterTable columns={[{ key: "title", label: "Task" }, { key: "partnerName", label: "Partner" }, { key: "urgency", label: "Priority", kind: "status" }, { key: "status", label: "Status", kind: "status" }, { key: "dueAt", label: "Due" }, { key: "detail", label: "Detail" }]} rows={rows} searchLabel="Search tasks" emptyTitle="No follow-up tasks" emptyBody="Create an operator action above or tasks will appear when partner workflows need follow-up." initialStatus={status || "all"} />
   </WorkspaceShell>;
 }
