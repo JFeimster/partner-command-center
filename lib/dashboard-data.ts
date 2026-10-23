@@ -1,6 +1,7 @@
 import "server-only";
 import { requireOperatorSession, requirePartnerSession } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { prioritizeTasks } from "@/lib/task-aging";
 import { buildOnboardingSteps, onboardingProgress } from "@/lib/partner-onboarding";
 
 type ListItem = { id: string; title: string; detail: string; href: string; status: string };
@@ -360,7 +361,7 @@ export async function getOperatorTasks(status?: "open" | "completed") {
   const supabase = await createServerSupabaseClient();
   let query = supabase
     .from("partner_follow_up_tasks")
-    .select("id,title,status,due_at,notes,partner_id")
+    .select("id,title,status,due_at,notes,partner_id,created_at")
     .eq("organization_id", session.organizationId)
     .order("created_at", { ascending: false });
   if (status) query = query.eq("status", status);
@@ -372,13 +373,15 @@ export async function getOperatorTasks(status?: "open" | "completed") {
     : { data: [] as { id: string; name: string }[], error: null };
   if (partnersResult.error) throw new Error("Could not load task partners");
   const names = new Map((partnersResult.data ?? []).map((row) => [row.id, row.name]));
-  return { items: (data ?? []).map((row) => ({
+  const prioritized = prioritizeTasks(data ?? []);
+  return { items: prioritized.map((row) => ({
     id: row.id,
     title: row.title,
     partnerName: row.partner_id ? names.get(row.partner_id) : undefined,
     status: row.status,
     dueAt: row.due_at || undefined,
-    detail: row.notes || undefined
+    detail: row.notes || undefined,
+    urgency: row.urgency
   })) };
 }
 

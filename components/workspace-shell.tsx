@@ -13,7 +13,7 @@ const partnerNav = [
   { label: "Referrals", href: "/dashboard/referrals", icon: ClipboardList },
   { label: "Tracking links", href: "/dashboard/links", icon: Link2 },
   { label: "Activity", href: "/dashboard/activity", icon: Activity },
-  { label: "Resources", href: "/resources", icon: LayoutGrid },
+  { label: "Resources", href: "/dashboard/resources", icon: LayoutGrid },
   { label: "Settings", href: "/dashboard/settings", icon: Settings2 },
 ];
 const operatorNav = [
