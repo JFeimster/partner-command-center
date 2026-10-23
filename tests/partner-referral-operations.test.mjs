@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { nextReferralStatuses, toReferralCsv } = require("../lib/referral-operations.ts");
+const { nextReferralStatuses, partnerReferralGuidance, toReferralCsv } = require("../lib/referral-operations.ts");
 
 test("referral status controls only expose forward operator actions", () => {
   assert.deepEqual(nextReferralStatuses("submitted"), ["accepted", "rejected"]);
@@ -28,4 +28,12 @@ test("referral export quotes values and neutralizes spreadsheet formulas", () =>
   assert.ok(csv.includes(`"Jane ""J"" Smith"`));
   assert.ok(csv.includes(`"'+SUM(A1:A2)"`));
   assert.ok(csv.includes("\r\n"));
+});
+
+test("partner referral guidance explains recorded workflow status without implying outcomes", () => {
+  assert.equal(partnerReferralGuidance("submitted").label, "Submitted");
+  assert.match(partnerReferralGuidance("submitted").nextAction, /No action is needed/);
+  assert.equal(partnerReferralGuidance("rejected").label, "Closed");
+  assert.match(partnerReferralGuidance("converted").nextAction, /does not confirm funding/);
+  assert.equal(partnerReferralGuidance("unexpected").label, "Status updated");
 });

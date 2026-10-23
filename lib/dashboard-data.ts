@@ -142,6 +142,30 @@ export async function getPartnerReferrals() {
   };
 }
 
+export async function getPartnerReferralDetail(id: string) {
+  const { session, supabase, partnerId } = await getLinkedPartnerId();
+  if (!partnerId) return null;
+  const { data: row, error } = await supabase.from("referrals")
+    .select("id,partner_id,lead_id,status,referred_at")
+    .eq("organization_id", session.organizationId).eq("partner_id", partnerId).eq("id", id).maybeSingle();
+  if (error) throw new Error("Could not load referral");
+  if (!row) return null;
+  const [leadResult, historyResult] = await Promise.all([
+    supabase.from("leads").select("id,company_name,first_name,last_name").eq("organization_id", session.organizationId).eq("id", row.lead_id).maybeSingle(),
+    supabase.from("activity_logs").select("id,action,metadata,occurred_at")
+      .eq("organization_id", session.organizationId).eq("entity_type", "referral").eq("entity_id", id)
+      .in("action", ["partner_referral.submitted", "partner_referral.status_changed"])
+      .order("occurred_at", { ascending: true }).limit(100)
+  ]);
+  if (leadResult.error || historyResult.error) throw new Error("Could not load referral history");
+  const lead = leadResult.data;
+  const contactName = [lead?.first_name, lead?.last_name].filter(Boolean).join(" ");
+  return {
+    item: { id: row.id, businessName: lead?.company_name || "Business referral", contactName, status: row.status, submittedAt: row.referred_at },
+    history: historyResult.data ?? []
+  };
+}
+
 async function mapOperatorReferrals(
   rows: Array<{ id: string; partner_id: string; lead_id: string; status: string; referred_at: string }>,
   organizationId: string
