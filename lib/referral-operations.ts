@@ -26,6 +26,12 @@ export function partnerReferralGuidance(status: string) {
   return { label: "Status updated", explanation: "An operator updated this referral.", nextAction: "Contact your Moonshine representative if you need help with the current status." };
 }
 
+export function referralReviewAgeDays(submittedAt: string, now = Date.now()) {
+  const submittedTime = Date.parse(submittedAt);
+  if (!Number.isFinite(submittedTime) || submittedTime > now) return null;
+  return Math.floor((now - submittedTime) / 86_400_000);
+}
+
 export function toReferralCsv(rows: Array<Record<string, string | null | undefined>>) {
   const columns = ["submitted_at", "business", "contact", "partner", "status", "source", "campaign"] as const;
   const escape = (value: string | null | undefined) => {
