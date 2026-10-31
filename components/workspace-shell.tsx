@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Activity, ArrowUpRight, CircleCheck, ClipboardList, Home, LayoutGrid, Link2, Menu, PanelLeftClose, PanelLeftOpen, Settings2, UserRound, Users, Waypoints, X } from "lucide-react";
+import { Activity, ArrowUpRight, CircleCheck, ClipboardList, Home, LayoutGrid, Link2, Menu, Megaphone, PanelLeftClose, PanelLeftOpen, Settings2, UserRound, Users, Waypoints, X } from "lucide-react";
 import { Brand } from "./brand";
 
 const partnerNav = [
@@ -12,6 +12,7 @@ const partnerNav = [
   { label: "Business profile", href: "/dashboard/profile", icon: UserRound },
   { label: "Referrals", href: "/dashboard/referrals", icon: ClipboardList },
   { label: "Tracking links", href: "/dashboard/links", icon: Link2 },
+  { label: "Campaign activation", href: "/dashboard/growth/import", icon: Megaphone },
   { label: "Activity", href: "/dashboard/activity", icon: Activity },
   { label: "Resources", href: "/dashboard/resources", icon: LayoutGrid },
   { label: "Settings", href: "/dashboard/settings", icon: Settings2 },
