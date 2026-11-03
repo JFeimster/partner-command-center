@@ -37,6 +37,12 @@ npm run build
 
 Prefer the existing `platform-core` Supabase project (`loaowmappekunngjknnx`) and its organization, membership, partner, referral, link, and activity contracts. Check the current schema and policies before adding migrations. Authenticated partner or operator actions must use organization-scoped permissions. Privileged credentials and integration tokens remain server-side; only public Supabase connection values may enter browser code.
 
+### Partner microsite read-only projection
+
+`GET /api/partner/microsite/[slug]` is an authenticated, no-store server endpoint for approved partner sites. It uses the existing server-only Supabase service key to read an explicit tenant allowlist, an active partner, active `partner_portal_accounts` membership, and an active tracking link scoped to the same partner and organization. Its response allowlists public display fields and a verified `capital.distilledfunding.com` destination with one matching `ref` value; it excludes contact data, metadata, referrals, and campaign fields. It performs no writes and adds no migration.
+
+Configure server-only `PCC_MICROSITE_READ_TOKEN` and `PCC_MICROSITE_TENANT_MAP_JSON` alongside the existing Supabase server settings. The map must be an explicit JSON array of unique approved entries with `slug`, canonical UUID `partnerId` and `organizationId`, `status: "approved"`, `approvedAt`, and `evidenceRef`. Use `.env.example` for the variable names; it contains no live tenant mapping or token. Without both settings the endpoint fails closed.
+
 Partner access uses a verified email sign-in and an active partner record in the same organization. A partner claims the matching record, completes `/dashboard/onboarding`, and can update business context in `/dashboard/profile`. Operators use `/operator/applications` to qualify, approve, or decline an application; approval links or creates a pending canonical partner record, while activation and verified account claim remain separate steps. `/operator/referrals` provides the attributed referral queue, status history, and an operator-scoped CSV export. `/operator/tasks` and `/operator/partners` support the resulting follow-up and account workflows. `tests/supabase-activation-smoke.sql` exercises partner isolation and these operator actions with synthetic identities inside a rolled-back transaction.
 
 ## Routes and compatibility
