@@ -2138,6 +2138,20 @@ export type Database = {
         }
         Returns: string
       }
+      update_partner_portal_profile_details: {
+        Args: {
+          p_phone: string
+          p_business_name: string
+          p_display_name: string
+          p_bio: string
+          p_photo_url: string
+          p_website_url: string
+          p_service_area: string
+          p_funding_specialties: Json
+          p_business_summary: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

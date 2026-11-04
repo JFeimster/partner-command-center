@@ -239,18 +239,21 @@ function getTallySubmissionId(body) {
   const data = getTallyData(body);
   return cleanString(body.submissionId || body.submission_id || body.responseId || body.response_id || data.submissionId || data.submission_id || data.responseId || data.response_id || data.id || '');
 }
+function partnerJoinFormId(body) {
+  return cleanString(getTallyData(body).formId || body.formId);
+}
 function isCanonicalPartnerJoin(body) {
-  return cleanString(getTallyData(body).formId || body.formId) === 'mOe658';
+  return ['rjM6do', 'mOe658'].includes(partnerJoinFormId(body));
 }
-function partnerSignupEventId(submissionId) {
-  return partnerCrmCorrelationId(cleanString(submissionId), 'mOe658');
+function partnerSignupEventId(submissionId, formId = 'mOe658') {
+  return partnerCrmCorrelationId(cleanString(submissionId), formId);
 }
-function logPartnerSignupTrace(correlationId, stage, outcome, details = {}) {
+function logPartnerSignupTrace(correlationId, stage, outcome, details = {}, formId = 'mOe658') {
   if (!correlationId) return;
   console.info(JSON.stringify({
     event: 'partner_signup_trace',
     source: 'tally',
-    form_id: 'mOe658',
+    form_id: formId,
     correlation_id: correlationId,
     stage,
     outcome,
@@ -317,7 +320,7 @@ function recommendCampaignsForPartner(partner) {
   return ['Manual Review Follow-Up'];
 }
 function isHistoricalTallyReplayWithoutConsent(body, fields) {
-  if (cleanString(getTallyData(body).formId || body.formId) !== 'mOe658') return false;
+  if (partnerJoinFormId(body) !== 'mOe658') return false;
   if (hasAffirmativeConsent(fields.partner_acknowledgment) || hasAffirmativeConsent(fields.contact_permission)) return false;
   const submittedAt = cleanString(getTallyData(body).createdAt || getTallyData(body).submittedAt || body.createdAt);
   const timestamp = Date.parse(submittedAt);
@@ -327,6 +330,7 @@ function isHistoricalTallyReplayWithoutConsent(body, fields) {
 
 function normalizePartnerFromSignup(body) {
   const fields = extractTallyFields(body);
+  const formId = partnerJoinFormId(body) || 'mOe658';
   const submittedAt = cleanString(getTallyData(body).createdAt || getTallyData(body).submittedAt || body.createdAt) || new Date().toISOString();
   const sensitiveMatches = findSensitiveData(fields);
   const partnerType = PARTNER_TYPES.includes(fields.partner_type) ? fields.partner_type : classifyPartner(fields);
@@ -360,8 +364,8 @@ function normalizePartnerFromSignup(body) {
     preferred_start: cleanString(fields.launch_timeline),
     bio: cleanString(fields.bio),
     referred_by: cleanString(fields.referred_by),
-    source_form: 'mOe658',
-    consent_to_contact: legacyWithoutConsent ? false : hasAffirmativeConsent(fields.contact_permission),
+    source_form: formId,
+    consent_to_contact: legacyWithoutConsent ? false : hasAffirmativeConsent(fields.consent_to_contact || fields.contact_permission || fields.partner_acknowledgment),
     legacy_submission_without_consent: legacyWithoutConsent,
     tally_submission_id: getTallySubmissionId(body),
     created_at: submittedAt,
@@ -423,7 +427,10 @@ function assertAuthorized(req, body, action) {
 }
 async function handleReceivePartnerSignup(body) {
   const normalized = normalizePartnerFromSignup(body);
-  const missingConsent = validateSignupConsent(normalized.raw_fields);
+  const joinForm = partnerJoinFormId(body);
+  const missingConsent = joinForm === 'rjM6do'
+    ? (normalized.partner.consent_to_contact ? [] : ['consent_to_contact'])
+    : validateSignupConsent(normalized.raw_fields);
   if (missingConsent.length > 0 && !normalized.legacy_without_consent) {
     return validationError('Partner signup consent is required before storage.', { fields: missingConsent });
   }
@@ -434,7 +441,7 @@ async function handleReceivePartnerSignup(body) {
   if (canonical && !normalized.partner.tally_submission_id) {
     return validationError('Canonical Tally partner signup requires a stable submission ID.');
   }
-  const eventId = canonical ? partnerSignupEventId(normalized.partner.tally_submission_id) : '';
+  const eventId = canonical ? partnerSignupEventId(normalized.partner.tally_submission_id, joinForm) : '';
   let relayReceipt = { configured: false, applicationId: null, duplicate: false, correlationId: eventId };
   if (canonical) {
     try {
@@ -443,15 +450,15 @@ async function handleReceivePartnerSignup(body) {
         email: normalized.partner.email,
         name: normalized.partner.name,
         agency_name: normalized.partner.company,
-        form_id: 'mOe658',
-        answers: normalized.raw_fields
+        form_id: joinForm,
+        answers: { ...normalized.raw_fields, consent_to_contact: normalized.partner.consent_to_contact }
       });
       logPartnerSignupTrace(eventId, 'supabase_relay', relayReceipt.configured ? 'accepted' : 'skipped_not_configured', {
         application_id: relayReceipt.applicationId || null,
         duplicate: relayReceipt.duplicate === true
-      });
+      }, joinForm);
     } catch (error) {
-      logPartnerSignupTrace(eventId, 'supabase_relay', 'failed', { error_code: relayErrorCode(error) });
+      logPartnerSignupTrace(eventId, 'supabase_relay', 'failed', { error_code: relayErrorCode(error) }, joinForm);
       throw error;
     }
   }
@@ -466,7 +473,7 @@ async function handleReceivePartnerSignup(body) {
           notion_correlation_id: eventId,
           notion_page_id: existingEvent.id || null,
           supabase_duplicate: relayReceipt.duplicate === true
-        });
+        }, joinForm);
         return success({
           action: 'receivePartnerSignup',
           result: 'duplicate',
