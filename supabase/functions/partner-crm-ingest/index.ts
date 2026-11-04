@@ -70,6 +70,15 @@ Deno.serve(async (req: Request) => {
   const formId = String(body.form_id || "").slice(0, 100);
   if (!source || !submission || !email || !email.includes("@"))
     return json({ error: "source_submission_id_email_required" }, 400);
+  if (source !== "tally" || !["rjM6do", "mOe658"].includes(formId))
+    return json({ error: "unsupported_partner_join_form" }, 400);
+  const answers = body.answers && typeof body.answers === "object" && !Array.isArray(body.answers)
+    ? body.answers as Record<string, unknown> : {};
+  // The primary Join form must carry the normalized affirmative consent answer.
+  // Legacy mOe658 deliveries remain accepted for reconciliation, but the database
+  // function will leave them in the operator queue when consent is absent.
+  if (formId === "rjM6do" && answers.consent_to_contact !== true)
+    return json({ error: "consent_required" }, 400);
   const correlationId = await correlationIdFor(source, formId, submission);
   const suppliedCorrelationId = typeof body.correlation_id === "string" ? body.correlation_id : "";
   if (suppliedCorrelationId && suppliedCorrelationId !== correlationId)
@@ -95,8 +104,7 @@ Deno.serve(async (req: Request) => {
       p_agency_name: String(body.agency_name || "").slice(0, 200),
       p_applicant_type: String(body.applicant_type || "individual").slice(0, 40),
       p_form_id: formId,
-      p_answers: body.answers && typeof body.answers === "object" && !Array.isArray(body.answers)
-        ? body.answers : {},
+      p_answers: answers,
     });
     data = result.data;
     error = result.error;

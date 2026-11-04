@@ -51,7 +51,19 @@ function portalProfileFromMetadata(value: unknown) {
   const candidate = metadata.portal_profile;
   const profile = candidate && typeof candidate === "object" && !Array.isArray(candidate) ? candidate as Record<string, unknown> : {};
   const field = (key: string) => typeof profile[key] === "string" ? profile[key] as string : "";
-  return { websiteUrl: field("website_url"), serviceArea: field("service_area"), businessSummary: field("business_summary") };
+  const specialties = Array.isArray(profile.funding_specialties)
+    ? profile.funding_specialties.filter((item): item is string => typeof item === "string")
+    : [];
+  return {
+    businessName: field("business_name"),
+    displayName: field("display_name"),
+    bio: field("bio"),
+    photoUrl: field("photo_url"),
+    websiteUrl: field("website_url"),
+    serviceArea: field("service_area"),
+    fundingSpecialties: specialties,
+    businessSummary: field("business_summary")
+  };
 }
 
 export async function getPartnerProfile() {

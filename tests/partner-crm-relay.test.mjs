@@ -9,6 +9,7 @@ const url = 'https://loaowmappekunngjknnx.supabase.co/functions/v1/partner-crm-i
 const input = { submission_id: 'tally-123', email: 'synthetic@example.invalid', name: 'Synthetic Partner', agency_name: 'Synthetic Agency', form_id: 'mOe658', answers: { consent: 'yes' } };
 
 test('only the partner join form enters canonical partner intake', () => {
+  assert.equal(isCanonicalPartnerJoin({ data: { formId: 'rjM6do' } }), true);
   assert.equal(isCanonicalPartnerJoin({ data: { formId: 'mOe658' } }), true);
   assert.equal(isCanonicalPartnerJoin({ data: { formId: 'funding-applicant' } }), false);
   assert.equal(isCanonicalPartnerJoin({ action: 'receivePartnerSignup' }), false);

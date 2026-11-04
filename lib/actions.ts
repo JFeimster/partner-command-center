@@ -233,8 +233,13 @@ export async function setPartnerResourceFavorite(resourceId: string, saved: bool
 
 const profileSchema = z.object({
   phone: z.string().trim().max(40),
+  business_name: z.string().trim().max(160),
+  display_name: z.string().trim().max(160),
+  bio: z.string().trim().max(1000),
+  photo_url: z.union([z.literal(""), z.url().max(512)]),
   website_url: z.union([z.literal(""), z.url().max(256)]),
   service_area: z.string().trim().max(120),
+  funding_specialties: z.string().trim().max(1200),
   business_summary: z.string().trim().max(500)
 });
 
@@ -244,12 +249,25 @@ export async function updatePartnerProfile(formData: FormData) {
   if (parsed.data.website_url && new URL(parsed.data.website_url).protocol !== "https:") {
     redirect("/dashboard/profile?error=website");
   }
+  if (parsed.data.photo_url && new URL(parsed.data.photo_url).protocol !== "https:") {
+    redirect("/dashboard/profile?error=photo");
+  }
   await requirePartnerSession();
   const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.rpc("update_partner_portal_profile", {
+  const specialties = parsed.data.funding_specialties
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .slice(0, 12);
+  const { error } = await supabase.rpc("update_partner_portal_profile_details", {
     p_phone: parsed.data.phone,
+    p_business_name: parsed.data.business_name,
+    p_display_name: parsed.data.display_name,
+    p_bio: parsed.data.bio,
+    p_photo_url: parsed.data.photo_url,
     p_website_url: parsed.data.website_url,
     p_service_area: parsed.data.service_area,
+    p_funding_specialties: specialties,
     p_business_summary: parsed.data.business_summary
   });
   if (error) redirect("/dashboard/profile?error=save");

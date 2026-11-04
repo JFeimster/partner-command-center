@@ -18,7 +18,7 @@ export type OnboardingStep = {
 export function buildOnboardingSteps(input: OnboardingInput): OnboardingStep[] {
   const profileComplete = Boolean(input.phone.trim() && (input.websiteUrl.trim() || input.serviceArea.trim()));
   return [
-    { id: "access", title: "Claim your partner account", detail: "Connect your verified email to the approved partner record.", href: "/auth/no-access", complete: input.linked },
+    { id: "access", title: "Verified partner access", detail: "Your verified email is linked automatically to the active partner record.", href: "/dashboard", complete: input.linked },
     { id: "profile", title: "Complete business details", detail: "Add a contact phone and website or service area.", href: "/dashboard/profile", complete: input.linked && profileComplete },
     { id: "link", title: "Create an attribution link", detail: "Build a trackable link for an approved destination.", href: "/dashboard/links", complete: input.linked && input.linkCount > 0 },
     { id: "referral", title: "Submit your first referral", detail: "Introduce a business after obtaining contact permission.", href: "/dashboard/referrals", complete: input.linked && input.referralCount > 0 }
